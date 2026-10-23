@@ -25,15 +25,6 @@ export function renderSuperAdminView(state) {
 
         <div class="flex items-center gap-2">
           <button 
-            id="btn-admin-reset-all" 
-            type="button" 
-            class="px-4 py-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 font-bold text-xs shadow-xs transition flex items-center gap-1.5 active:scale-95"
-            title="Wipe all platform sales, customers, and points to 0"
-          >
-            <span class="material-symbols-outlined text-base">restart_alt</span>
-            Reset All Data to 0
-          </button>
-          <button 
             id="btn-open-create-restaurant" 
             type="button" 
             class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
@@ -242,19 +233,6 @@ export function attachSuperAdminListeners() {
   if (closeBtn) closeBtn.onclick = () => toggleCard(false);
   if (cancelBtn) cancelBtn.onclick = () => toggleCard(false);
 
-  const resetAllBtn = document.getElementById('btn-admin-reset-all');
-  if (resetAllBtn) {
-    resetAllBtn.onclick = async () => {
-      if (confirm('Reset all platform restaurants, guest directories, and sales to 0?')) {
-        await store.resetAllDataToZero();
-        try {
-          await fetch(apiUrl('/api/v1/admin/reset-data'), { method: 'POST' });
-        } catch (_) {}
-        showToast('All platform data has been reset to 0');
-        loadRestaurants();
-      }
-    };
-  }
 
   // Fetch and populate restaurants table
   const loadRestaurants = async () => {

@@ -465,139 +465,60 @@ export function renderSettingsView(state) {
         </button>
       </div>
 
-      <!-- Live Petpooja POS Engine & Webhook Simulator -->
-      <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 md:p-8 text-white shadow-xl space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
+      <!-- POS & Webhook Integration Endpoints Card -->
+      <div class="bg-white rounded-3xl p-6 md:p-8 border border-gray-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-black text-xl border border-teal-500/30">
-              ⚡
+            <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl">
+              <span class="material-symbols-outlined text-2xl">cable</span>
             </div>
             <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base md:text-lg font-black tracking-tight">Petpooja POS Live Engine & Simulator</h3>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Port 4000 Online
-                </span>
-              </div>
-              <p class="text-xs text-slate-400 mt-0.5">Test live cashier inquiry, points lock, and double-entry order settlement webhooks</p>
+              <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">POS Integration Endpoints</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Use these URLs to connect your physical POS billing terminal (Petpooja, POSist, or custom RMS)</p>
             </div>
           </div>
-          <button 
-            id="btn-view-webhook-logs" 
-            type="button" 
-            class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold border border-slate-600 transition flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <span class="material-symbols-outlined text-sm">terminal</span>
-            Fetch Recent Logs
-          </button>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live & Ready
+          </span>
         </div>
 
-        <!-- Interactive POS Simulator Form -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label class="text-[11px] font-bold text-slate-300 block mb-1">Diner Phone Number</label>
-            <input 
-              id="pos-sim-phone" 
-              type="text" 
-              value="9876543210" 
-              class="w-full px-3 py-2 text-xs font-mono bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-teal-400"
-            >
-          </div>
-          <div>
-            <label class="text-[11px] font-bold text-slate-300 block mb-1">Bill Subtotal (₹)</label>
-            <input 
-              id="pos-sim-amount" 
-              type="number" 
-              value="1450" 
-              class="w-full px-3 py-2 text-xs font-mono bg-slate-800 border border-slate-700 rounded-xl text-white focus:border-teal-400"
-            >
-          </div>
-          <div>
-            <label class="text-[11px] font-bold text-slate-300 block mb-1">Discount Applied (₹)</label>
-            <input 
-              id="pos-sim-discount" 
-              type="number" 
-              value="0" 
-              class="w-full px-3 py-2 text-xs font-mono bg-slate-800 border border-slate-700 rounded-xl text-emerald-400 font-bold"
-              readonly
-            >
-          </div>
-          <div>
-            <label class="text-[11px] font-bold text-slate-300 block mb-1">Net Payable (₹)</label>
-            <input 
-              id="pos-sim-net" 
-              type="number" 
-              value="1523" 
-              class="w-full px-3 py-2 text-xs font-mono bg-slate-800 border border-slate-700 rounded-xl text-white font-bold"
-              readonly
-            >
-          </div>
-        </div>
-
-        <div class="flex items-center gap-3 flex-wrap">
-          <button 
-            id="btn-pos-test-inquire" 
-            type="button" 
-            class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition shadow-md flex items-center gap-1.5"
-          >
-            <span class="material-symbols-outlined text-sm">search</span>
-            Check Petpooja Loyalty (Inquire)
-          </button>
-          <button 
-            id="btn-pos-fire-order" 
-            type="button" 
-            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-md flex items-center gap-1.5"
-          >
-            <span class="material-symbols-outlined text-sm">receipt_long</span>
-            <span id="pos-btn-settle-label">Settle & Print Bill (Save Order)</span>
-          </button>
-        </div>
-
-        <!-- Dynamic Available Discounts Box (rendered when cashier presses Inquire) -->
-        <div id="pos-discounts-box" class="hidden p-4 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-teal-400 text-lg">local_activity</span>
-              <span class="text-xs font-black text-white" id="pos-customer-banner">Available Loyalty Discounts</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">1. Loyalty Inquiry Endpoint</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
             </div>
-            <span class="text-[11px] text-teal-300 font-bold" id="pos-earn-preview">+145 pts will be earned</span>
+            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/loyalty/inquire</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Looks up customer points balance and available discount vouchers when cashier enters mobile number.</p>
           </div>
-          <div id="pos-options-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <!-- Dynamically populated discount cards -->
-          </div>
-        </div>
 
-        <!-- Response Terminal Display -->
-        <div class="space-y-1.5">
-          <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
-            <span>POS Webhook Payload & Engine Response:</span>
-            <span id="pos-terminal-status" class="text-teal-400">Ready</span>
-          </div>
-          <pre id="pos-terminal-output" class="p-4 rounded-2xl bg-black/70 border border-slate-700 text-emerald-400 font-mono text-[11px] leading-relaxed overflow-x-auto max-h-56 select-all">// Click "Check Petpooja Loyalty (Inquire)" to inspect available customer discounts and redemption options</pre>
-        </div>
-      </div>
-
-      <!-- Danger Zone / Data Management -->
-      <div class="bg-red-50/60 rounded-2xl p-6 border border-red-200 shadow-sm space-y-4">
-        <div class="flex items-center justify-between border-b border-red-200 pb-3">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-red-600 text-2xl">warning</span>
-            <div>
-              <h3 class="text-base font-bold text-red-900">Platform Data Reset</h3>
-              <p class="text-xs text-red-600">Reset all customers, loyalty points ledger, and orders to 0</p>
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">2. Points Lock / Apply Voucher</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
             </div>
+            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/loyalty/lock</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Locks points when cashier selects voucher and returns net discounted bill total.</p>
           </div>
-          <button 
-            id="btn-settings-reset-zero"
-            type="button" 
-            class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs transition shadow-sm"
-          >
-            Reset All Data to 0
-          </button>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">3. Order Settlement / Ledger Save</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/orders/save</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Called when cashier settles bill. Credits 10% points, burns redeemed points, and logs to ledger.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">4. Bill Void / Cancellation</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/orders/cancel</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Reverses earned and burned points if a bill is cancelled or voided by restaurant manager.</p>
+          </div>
         </div>
-        <p class="text-xs text-gray-600">
-          This will wipe all active diners, points transactions, and sales metrics so you can test starting fresh from 0.
-        </p>
       </div>
 
     </div>
@@ -611,191 +532,6 @@ export function attachSettingsListeners() {
       store.setUIState({ activeModal: 'petpoojaIntegration' });
     };
   }
-
-  const resetBtn = document.getElementById('btn-settings-reset-zero');
-  if (resetBtn) {
-    resetBtn.onclick = async () => {
-      if (confirm('Are you sure you want to reset all customers, points, and orders to 0?')) {
-        await store.resetAllDataToZero();
-        showToast('All platform data reset to 0');
-      }
-    };
-  }
-
-  const terminal = document.getElementById('pos-terminal-output');
-  const termStatus = document.getElementById('pos-terminal-status');
-  const discountsBox = document.getElementById('pos-discounts-box');
-  const optionsGrid = document.getElementById('pos-options-grid');
-  const custBanner = document.getElementById('pos-customer-banner');
-  const earnPreview = document.getElementById('pos-earn-preview');
-  const discountInput = document.getElementById('pos-sim-discount');
-  const netInput = document.getElementById('pos-sim-net');
-  const settleLabel = document.getElementById('pos-btn-settle-label');
-
-  let activeSessionToken = null;
-
-  const btnInquire = document.getElementById('btn-pos-test-inquire');
-  if (btnInquire) {
-    btnInquire.onclick = async () => {
-      const phone = document.getElementById('pos-sim-phone')?.value || '9876543210';
-      const amount = parseFloat(document.getElementById('pos-sim-amount')?.value) || 1450;
-      if (termStatus) termStatus.innerText = 'Calling Petpooja Inquire API...';
-
-      try {
-        const res = await fetch(apiUrl('/api/v1/pos/petpooja/loyalty/inquire'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            restID: 'PP_DEL_101',
-            customer_phone: phone,
-            bill_amount: amount,
-            discountable_amount: amount,
-            order_id: `ORD-${Date.now().toString().slice(-6)}`,
-            table_no: 'T-12',
-            server_name: 'Vikas'
-          })
-        });
-        const data = await res.json();
-        activeSessionToken = data.redemption_offer?.session_token;
-
-        if (terminal) terminal.innerText = JSON.stringify(data, null, 2);
-        if (termStatus) termStatus.innerText = 'Inquiry Response 200 OK';
-
-        if (custBanner) {
-          custBanner.innerText = `${data.customer.name} (${data.customer.tier}) • ${data.customer.points_balance} Points Available (₹${data.customer.points_value_inr})`;
-        }
-        if (earnPreview && data.bill_context?.estimated_points_to_earn) {
-          earnPreview.innerText = `+${data.bill_context.estimated_points_to_earn} pts will be earned on this bill`;
-        }
-
-        // Render clickable discount buttons
-        if (optionsGrid && data.redemption_options) {
-          optionsGrid.innerHTML = data.redemption_options.map(opt => `
-            <div class="p-3 rounded-xl border ${opt.eligible ? 'border-teal-500/50 bg-teal-950/40 hover:border-teal-400 cursor-pointer' : 'border-slate-700 bg-slate-900/60 opacity-60'} flex flex-col justify-between transition-all">
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <span class="text-xs font-black ${opt.eligible ? 'text-teal-300' : 'text-slate-400'}">${opt.label}</span>
-                  ${opt.isRecommended ? '<span class="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-teal-400 text-slate-950">Recommended</span>' : ''}
-                </div>
-                <p class="text-[11px] text-slate-400">${opt.description}</p>
-              </div>
-              <button 
-                type="button" 
-                data-option-id="${opt.id}"
-                data-discount="${opt.discountInr || 0}"
-                class="btn-apply-discount mt-3 w-full py-1.5 rounded-lg text-[11px] font-bold ${opt.eligible ? 'bg-teal-500 hover:bg-teal-400 text-slate-950 shadow-sm' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}"
-                ${!opt.eligible ? 'disabled' : ''}
-              >
-                ${opt.eligible ? `Apply ₹${opt.discountInr} Discount` : 'Points Ineligible'}
-              </button>
-            </div>
-          `).join('');
-
-          if (discountsBox) discountsBox.classList.remove('hidden');
-
-          // Wire up discount selection buttons
-          document.querySelectorAll('.btn-apply-discount').forEach(btn => {
-            btn.onclick = async (e) => {
-              const optId = btn.getAttribute('data-option-id');
-              const disc = parseFloat(btn.getAttribute('data-discount')) || 0;
-
-              if (activeSessionToken) {
-                try {
-                  const lockRes = await fetch(apiUrl('/api/v1/pos/petpooja/loyalty/lock'), {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      session_token: activeSessionToken,
-                      option_id: optId
-                    })
-                  });
-                  const lockData = await lockRes.json();
-                  if (terminal) terminal.innerText = JSON.stringify(lockData, null, 2);
-                  if (termStatus) termStatus.innerText = `Discount Locked (Session ${activeSessionToken.slice(-6)})`;
-
-                  if (discountInput) discountInput.value = lockData.discount_applied_inr;
-                  const gross = Math.round(amount * 1.05);
-                  const net = Math.max(0, gross - lockData.discount_applied_inr);
-                  if (netInput) netInput.value = net;
-                  if (settleLabel) settleLabel.innerText = `Settle & Print Bill (Pay ₹${net})`;
-
-                  window.showToast(`Applied ₹${lockData.discount_applied_inr} discount to Petpooja bill!`);
-                } catch (err) {
-                  console.error(err);
-                }
-              }
-            };
-          });
-        }
-
-        window.showToast(`Points balance: ${data.customer.points_balance} pts (Eligible discount: ₹${data.redemption_offer.max_discount_amount})`);
-      } catch (err) {
-        if (terminal) terminal.innerText = `Error contacting engine: ${err.message}`;
-        if (termStatus) termStatus.innerText = 'Error';
-      }
-    };
-  }
-
-  const btnOrder = document.getElementById('btn-pos-fire-order');
-  if (btnOrder) {
-    btnOrder.onclick = async () => {
-      const phone = document.getElementById('pos-sim-phone')?.value || '9876543210';
-      const amount = parseFloat(document.getElementById('pos-sim-amount')?.value) || 1450;
-      const discount = parseFloat(document.getElementById('pos-sim-discount')?.value) || 0;
-      const orderId = `PP-ORD-${Date.now().toString().slice(-5)}`;
-
-      if (termStatus) termStatus.innerText = 'Ingesting Petpooja Order...';
-
-      try {
-        const res = await fetch(apiUrl('/api/v1/pos/petpooja/orders/save'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            restID: 'PP_DEL_101',
-            order_id: orderId,
-            bill_no: `BILL/${orderId}`,
-            table_no: 'T-12',
-            server_name: 'Vikas',
-            customer: { phone, name: 'Valued Guest' },
-            financials: {
-              subtotal: amount,
-              tax: Math.round(amount * 0.05),
-              gross_amount: Math.round(amount * 1.05),
-              loyalty_discount: discount,
-              net_paid: Math.max(0, Math.round(amount * 1.05) - discount),
-              payment_mode: 'UPI'
-            },
-            redemption_session_token: activeSessionToken,
-            items: [
-              { item_id: 'ITEM_101', name: 'Truffle Tagliatelle', qty: 2, price: 450 },
-              { item_id: 'ITEM_204', name: 'Sparkling Lemonade', qty: 1, price: 150 }
-            ]
-          })
-        });
-        const data = await res.json();
-        if (terminal) terminal.innerText = JSON.stringify(data, null, 2);
-        if (termStatus) termStatus.innerText = 'Order Ingested & Ledger Written';
-        window.showToast(`Order settled! ${data.customer.points_earned} points earned, new balance: ${data.customer.new_balance} pts`);
-      } catch (err) {
-        if (terminal) terminal.innerText = `Error contacting engine: ${err.message}`;
-        if (termStatus) termStatus.innerText = 'Error';
-      }
-    };
-  }
-
-  const btnLogs = document.getElementById('btn-view-webhook-logs');
-  if (btnLogs) {
-    btnLogs.onclick = async () => {
-      try {
-        const res = await fetch(apiUrl('/api/v1/pos/webhook-logs'));
-        const data = await res.json();
-        if (terminal) terminal.innerText = JSON.stringify(data.logs.slice(0, 5), null, 2);
-        if (termStatus) termStatus.innerText = `Showing last ${Math.min(5, data.count)} webhook events`;
-        window.showToast(`Retrieved ${data.count} POS webhook logs`);
-      } catch (err) {
-        if (terminal) terminal.innerText = `Error fetching logs: ${err.message}`;
-      }
-    };
-  }
 }
+
 

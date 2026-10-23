@@ -3,7 +3,6 @@ import { store } from '../state/store.js';
 import { renderAmountSpentModal, attachAmountSpentModalListeners } from './AmountSpentModal.js';
 import { renderRefillModal, attachRefillModalListeners } from './RefillCreditsModal.js';
 import { renderAutoRefillModal, attachAutoRefillModalListeners } from './AutoRefillModal.js';
-import { renderBookDemoModal, attachBookDemoModalListeners } from './BookDemoModal.js';
 import { renderCustomerDrawer, attachCustomerDrawerListeners } from './CustomerDrawerModal.js';
 import { renderActivationSuccessModal, attachActivationSuccessModalListeners } from './ActivationSuccessModal.js';
 import { renderRegisterCustomerModal, attachRegisterCustomerModalListeners } from './RegisterCustomerModal.js';
@@ -24,8 +23,6 @@ export function renderActiveModal(state, uiState) {
       return renderRefillModal();
     case 'autoRefill':
       return renderAutoRefillModal(state);
-    case 'bookDemo':
-      return renderBookDemoModal();
     case 'customerDrawer':
       return renderCustomerDrawer(selectedCustomer);
     case 'activationSuccess':
@@ -54,9 +51,6 @@ export function attachActiveModalListeners(uiState) {
       break;
     case 'autoRefill':
       attachAutoRefillModalListeners();
-      break;
-    case 'bookDemo':
-      attachBookDemoModalListeners();
       break;
     case 'customerDrawer':
       attachCustomerDrawerListeners();

@@ -4,7 +4,7 @@ import { apiUrl } from '../config/api.js';
 
 const STORAGE_KEY = 'yeezy_loyalty_state';
 const DATA_VERSION_KEY = 'yeezy_state_version';
-const CURRENT_VERSION = 'v4_clean_zero_state';
+const CURRENT_VERSION = 'v5_production_clean_state';
 
 class Store {
   constructor() {
@@ -21,7 +21,7 @@ class Store {
     // Non-persisted UI State
     this.uiState = {
       currentRoute: this.getRouteFromHash(),
-      activeModal: null, // 'amountSpent' | 'refill' | 'autoRefill' | 'bookDemo' | 'activationSuccess' | 'customerDrawer' | 'posTerminal' | 'registerCustomer'
+      activeModal: null, // 'amountSpent' | 'refill' | 'autoRefill' | 'activationSuccess' | 'customerDrawer' | 'registerCustomer' | 'petpoojaIntegration'
       selectedCustomer: null,
       amountSpentSlide: 0,
       configuratorStep: 1,

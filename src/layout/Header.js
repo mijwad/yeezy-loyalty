@@ -96,14 +96,6 @@ export function renderHeader(state) {
         </button>
 
 
-        <!-- Book a Demo CTA Button -->
-        <button 
-          id="btn-book-demo"
-          class="hidden sm:inline-flex px-space-md py-1.5 md:py-2 bg-primary text-on-primary font-bold text-xs rounded-full hover:bg-primary/90 transition-all shadow-[0_2px_6px_rgba(124,58,237,0.2)] active:scale-95" 
-          type="button"
-        >
-          Book a Demo
-        </button>
 
         <!-- Notifications Bell -->
         <div class="relative" id="notifications-wrapper">
@@ -207,10 +199,6 @@ export function renderHeader(state) {
                 <span class="material-symbols-outlined text-base">file_download</span>
                 <span>Export Guest Data (CSV)</span>
               </button>
-              <button id="btn-header-reset-zero" type="button" class="w-full flex items-center gap-2 px-4 py-2 hover:bg-red-50 text-red-600 transition text-left text-xs font-bold border-t border-outline-variant/20 mt-1">
-                <span class="material-symbols-outlined text-base">restart_alt</span>
-                <span>Reset All Data to 0</span>
-              </button>
             </div>
             <div class="pt-2 px-4 border-t border-outline-variant/20">
               <button 
@@ -238,15 +226,6 @@ export function attachHeaderListeners() {
   }
 
 
-  const resetZeroBtn = document.getElementById('btn-header-reset-zero');
-  if (resetZeroBtn) {
-    resetZeroBtn.onclick = async () => {
-      if (confirm('Are you sure you want to reset all loyalty points, customer accounts, and sales to 0?')) {
-        await store.resetAllDataToZero();
-        showToast('All data successfully reset to 0');
-      }
-    };
-  }
 
   const outletBtn = document.getElementById('outlet-selector-btn');
   const outletMenu = document.getElementById('outlet-dropdown-menu');
