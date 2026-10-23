@@ -7,11 +7,11 @@ import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
 export const posRouter = Router();
 
 /**
- * 1. PETPOOJA INQUIRE API
- * Cashier inputs diner mobile number on Petpooja billing screen.
- * Petpooja requests customer points balance and maximum allowable discount.
+ * 1. POS / RMS INQUIRE API
+ * Cashier inputs diner mobile number on billing screen.
+ * Requests customer points balance and available discount vouchers.
  */
-posRouter.post('/petpooja/loyalty/inquire', (req, res) => {
+posRouter.post(['/loyalty/inquire', '/petpooja/loyalty/inquire'], (req, res) => {
   try {
     const restID = req.body.restID || req.body.rest_id || req.body.restaurant_id || req.body.rid || req.query?.restID || 'PP_DEL_101';
     const customer_phone = req.body.customer_phone || req.body.phone || req.body.mobile || req.body.cust_phone || req.body.customer_mobile || req.query?.customer_phone || req.query?.phone;
@@ -218,10 +218,10 @@ posRouter.post('/petpooja/loyalty/inquire', (req, res) => {
 });
 
 /**
- * 2. PETPOOJA LOCK / HOLD POINTS
+ * 2. POS / RMS LOCK / HOLD POINTS
  * When cashier selects a redemption option, locks the points so they cannot be spent concurrently.
  */
-posRouter.post('/petpooja/loyalty/lock', (req, res) => {
+posRouter.post(['/loyalty/lock', '/petpooja/loyalty/lock'], (req, res) => {
   try {
     const session_token = req.body.session_token || req.body.sessionToken || req.body.token;
     const option_id = req.body.option_id || req.body.optionId || req.body.selected_option_id;
@@ -270,11 +270,11 @@ posRouter.post('/petpooja/loyalty/lock', (req, res) => {
     points_locked: pointsLocked,
     discount_applied_inr: discountAmount,
     net_payable_after_discount: netPayable,
-    message: `₹${discountAmount} discount applied to Petpooja bill (holding ${pointsLocked} points).`
+    message: `₹${discountAmount} discount applied to bill (holding ${pointsLocked} points).`
   };
 
   posStore.logWebhook({
-    eventType: 'PETPOOJA_LOYALTY_LOCK',
+    eventType: 'POS_LOYALTY_LOCK',
     restID: session.restID,
     orderId: session.orderId,
     payload: req.body,
@@ -284,17 +284,17 @@ posRouter.post('/petpooja/loyalty/lock', (req, res) => {
 
   return res.json(responsePayload);
 } catch (err) {
-  console.error('[Petpooja Lock Error]', err);
+  console.error('[POS Lock Error]', err);
   return res.status(500).json({ status: 'error', message: err.message || 'Internal error in loyalty lock' });
 }
 });
 
 /**
- * 3. PETPOOJA SAVE ORDER / BILL SETTLEMENT
- * Cashier tenders and settles the bill in Petpooja POS.
+ * 3. POS / RMS SAVE ORDER / BILL SETTLEMENT
+ * Cashier tenders and settles the bill in POS.
  * Calculates points earned, burns redeemed points, and appends to double-entry ledger.
  */
-posRouter.post('/petpooja/orders/save', (req, res) => {
+posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   try {
     const restID = req.body.restID || req.body.rest_id || req.body.restaurant_id || req.body.rid || 'PP_DEL_101';
     const order_id = req.body.order_id || req.body.orderID || req.body.orderid || req.body.order_no || req.body.bill_no || `ORD-${Date.now()}`;
@@ -464,10 +464,10 @@ posRouter.post('/petpooja/orders/save', (req, res) => {
 });
 
 /**
- * 4. PETPOOJA CANCEL ORDER / VOID REVERSAL
+ * 4. POS / RMS CANCEL ORDER / VOID REVERSAL
  * Manager voids bill in POS. Reverses points accrued and points burned.
  */
-posRouter.post('/petpooja/orders/cancel', (req, res) => {
+posRouter.post(['/orders/cancel', '/loyalty/unlock', '/petpooja/orders/cancel', '/petpooja/loyalty/unlock'], (req, res) => {
   const { restID, order_id, reason } = req.body;
   const order = posStore.data.orders.find(o => o.orderId === order_id);
 
