@@ -50,8 +50,15 @@ customersRouter.get('/:id', (req, res) => {
     return res.status(404).json({ status: 'error', message: 'Customer not found' });
   }
 
-  const orders = posStore.data.orders.filter(o => o.customerId === customer.id);
-  const ledger = posStore.data.loyaltyLedger.filter(l => l.customerId === customer.id);
+  const cleanPhone = customer.phone ? String(customer.phone).replace(/\D/g, '').slice(-10) : '';
+  const orders = posStore.data.orders.filter(o => 
+    o.customerId === customer.id || 
+    (cleanPhone && o.customerPhone && String(o.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+  );
+  const ledger = posStore.data.loyaltyLedger.filter(l => 
+    l.customerId === customer.id ||
+    (cleanPhone && l.customerPhone && String(l.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+  );
 
   return res.json({
     status: 'success',

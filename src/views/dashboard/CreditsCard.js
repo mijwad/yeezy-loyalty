@@ -1,5 +1,6 @@
 // Messaging Credits Balance Deck Component
 import { store } from '../../state/store.js';
+import { renderInfoTooltip } from '../../utils/tooltip.js';
 
 export function renderCreditsCard(creditsBalance) {
   return `
@@ -9,7 +10,7 @@ export function renderCreditsCard(creditsBalance) {
           <span class="material-symbols-outlined text-2xl text-on-surface">paid</span>
           <h3 class="text-xl md:text-2xl font-bold text-on-surface tracking-tight flex items-center gap-1.5">
             Your Credits Balance 
-            <span class="material-symbols-outlined text-base text-outline cursor-help" title="Credits are used for sending automated WhatsApp, SMS, and Email campaigns">info</span>
+            ${renderInfoTooltip("Credits are required to send automated WhatsApp, SMS, and Email campaigns.", "left")}
           </h3>
         </div>
         <div class="flex items-center gap-3">
@@ -32,11 +33,14 @@ export function renderCreditsCard(creditsBalance) {
         </div>
       </div>
 
-      <div class="p-space-lg rounded-2xl bg-surface-container-low/60 border border-outline-variant/30 shadow-sm">
+      <div class="p-space-lg rounded-2xl bg-surface-container-low/60 border border-outline-variant/30 shadow-sm overflow-visible">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
           <!-- SMS Credits -->
-          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition">
-            <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.sms}</span>
+          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition relative overflow-visible">
+            <div class="flex items-center justify-between">
+              <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.sms}</span>
+              ${renderInfoTooltip("Available balance for SMS transactional updates and campaign broadcasts.", "right")}
+            </div>
             <div class="flex items-center gap-1.5 text-xs font-bold text-on-surface mt-2">
               <span class="material-symbols-outlined text-[#2563EB] text-lg">chat_bubble</span>
               <span>SMS Credits</span>
@@ -44,8 +48,11 @@ export function renderCreditsCard(creditsBalance) {
           </div>
 
           <!-- Email Credits -->
-          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition">
-            <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.email}</span>
+          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition relative overflow-visible">
+            <div class="flex items-center justify-between">
+              <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.email}</span>
+              ${renderInfoTooltip("Available balance for sending email receipts, offers, and newsletters.", "right")}
+            </div>
             <div class="flex items-center gap-1.5 text-xs font-bold text-on-surface mt-2">
               <span class="material-symbols-outlined text-[#EA580C] text-lg">mail</span>
               <span>Email Credits</span>
@@ -53,8 +60,11 @@ export function renderCreditsCard(creditsBalance) {
           </div>
 
           <!-- WhatsApp Utility -->
-          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition">
-            <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.whatsappUtility}</span>
+          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition relative overflow-visible">
+            <div class="flex items-center justify-between">
+              <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.whatsappUtility}</span>
+              ${renderInfoTooltip("Used for high-priority automated OTPs, digital bills, and account receipts.", "right")}
+            </div>
             <div class="flex items-center gap-1.5 text-xs font-bold text-on-surface mt-2">
               <span class="material-symbols-outlined text-[#00796B] text-lg">call</span>
               <span class="text-on-surface underline decoration-dashed decoration-secondary/40 cursor-pointer">Whatsapp Utility</span>
@@ -62,8 +72,11 @@ export function renderCreditsCard(creditsBalance) {
           </div>
 
           <!-- WhatsApp Marketing -->
-          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition">
-            <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.whatsappMarketing}</span>
+          <div class="bg-surface-container-lowest rounded-xl p-space-md border border-outline-variant/20 shadow-sm flex flex-col justify-between min-h-[108px] hover:shadow transition relative overflow-visible">
+            <div class="flex items-center justify-between">
+              <span class="text-3xl font-extrabold text-on-surface">${creditsBalance.whatsappMarketing}</span>
+              ${renderInfoTooltip("Used for customer loyalty promotions, festival greetings, and win-back offers.", "right")}
+            </div>
             <div class="flex items-center gap-1.5 text-xs font-bold text-on-surface mt-2">
               <span class="material-symbols-outlined text-[#DB2777] text-lg">call</span>
               <span class="text-on-surface underline decoration-dashed decoration-secondary/40 cursor-pointer">Whatsapp Marketing</span>

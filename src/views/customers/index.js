@@ -1,6 +1,7 @@
 // Customer Insights View Module with co-located event listeners
 import { store } from '../../state/store.js';
 import { exportToCSV } from '../../utils/exportCsv.js';
+import { renderInfoTooltip } from '../../utils/tooltip.js';
 
 export function renderCustomerInsights(state, filters = {}) {
   const { customers } = state;
@@ -33,15 +34,20 @@ export function renderCustomerInsights(state, filters = {}) {
     filtered.sort((a, b) => b.numericPoints - a.numericPoints);
   }
 
-  // Compute segment counts
-  const vipCount = customers.filter(c => c.tier === 'VIP').length;
-  const frequentCount = customers.filter(c => c.tier === 'Frequent').length;
+  // Compute segment counts with real categorizations
+  const vipCount = customers.filter(c => c.tier === 'VIP' || (c.numericSpend >= 10000)).length;
+  const frequentCount = customers.filter(c => c.tier === 'Frequent' || c.tier === 'Regular' || (c.visits >= 2 && c.numericSpend < 10000)).length;
   const atRiskCount = customers.filter(c => c.tier === 'At Risk').length;
-  const newCount = customers.filter(c => c.tier === 'New').length;
-  const totalSpend = customers.reduce((sum, c) => sum + c.numericSpend, 0);
+  const newCount = customers.filter(c => c.tier === 'New' || c.visits <= 1).length;
+  
+  const totalSpend = customers.reduce((sum, c) => sum + (c.numericSpend || 0), 0);
+  const totalVisits = customers.reduce((sum, c) => sum + (c.visits || 0), 0);
+  const totalPoints = customers.reduce((sum, c) => sum + (c.numericPoints || 0), 0);
   const avgSpend = customers.length ? Math.round(totalSpend / customers.length) : 0;
-  const avgVisits = customers.length ? (customers.reduce((sum, c) => sum + c.visits, 0) / customers.length).toFixed(1) : 0;
-  const avgCheckSize = customers.length ? Math.round(totalSpend / customers.reduce((sum, c) => sum + c.visits, 0)) : 0;
+  const avgVisits = customers.length ? (totalVisits / customers.length).toFixed(1) : '0.0';
+  const avgCheckSize = totalVisits > 0 ? Math.round(totalSpend / totalVisits) : 0;
+  const repeatDiners = customers.filter(c => (c.visits || 0) > 1).length;
+  const repeatRate = customers.length > 0 ? Math.round((repeatDiners / customers.length) * 100) : 0;
 
   return `
     <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto pb-16">
@@ -104,7 +110,7 @@ export function renderCustomerInsights(state, filters = {}) {
         </button>
       </div>
 
-      ${activeTab === 'overview' ? renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend) : ''}
+      ${activeTab === 'overview' ? renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate) : ''}
       ${activeTab === 'rfm' ? renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount) : ''}
       ${activeTab === 'lifecycle' ? renderLifecycleTab(customers, vipCount, frequentCount, atRiskCount, newCount) : ''}
       ${activeTab === 'customerlist' ? renderCustomerListTab(filtered, filters, selectedTier, sortBy) : ''}
@@ -114,90 +120,152 @@ export function renderCustomerInsights(state, filters = {}) {
   `;
 }
 
-function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend) {
+function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate) {
+  // Aggregate real dish data from all registered customers and orders
+  const dishCounts = {};
+  customers.forEach(c => {
+    if (c.recentOrders && Array.isArray(c.recentOrders)) {
+      c.recentOrders.forEach(ord => {
+        if (ord.items) {
+          const itemsList = String(ord.items).split(/[,+•&]/).map(s => s.trim()).filter(Boolean);
+          itemsList.forEach(item => {
+            dishCounts[item] = (dishCounts[item] || 0) + 1;
+          });
+        }
+      });
+    }
+    if (c.favoriteDish && c.favoriteDish !== 'Chef Special' && c.favoriteDish !== 'None') {
+      dishCounts[c.favoriteDish] = (dishCounts[c.favoriteDish] || 0) + 1;
+    }
+  });
+
+  const topDishes = Object.entries(dishCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
+  const activePointsHolders = customers.filter(c => (c.numericPoints || 0) > 0).length;
+  const activePointsPct = customers.length ? Math.round((activePointsHolders / customers.length) * 100) : 0;
+  const singleVisitDiners = customers.filter(c => (c.visits || 0) <= 1).length;
+  const singleVisitPct = customers.length ? Math.round((singleVisitDiners / customers.length) * 100) : 0;
+
   return `
     <!-- Overview Analytics Dashboard -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Guests</span>
+      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm relative overflow-visible">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Total Guests</span>
+          ${renderInfoTooltip("Total unique customers that visited your store during the selected period.")}
+        </div>
         <div class="text-3xl font-black text-gray-900 mt-1">${customers.length}</div>
-        <p class="text-xs text-emerald-600 font-bold mt-1 flex items-center gap-0.5">
-          <span class="material-symbols-outlined text-xs">trending_up</span> +12 this week
+        <p class="text-xs text-slate-500 font-bold mt-1 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full ${customers.length > 0 ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+          <span>${customers.length === 1 ? '1 registered diner' : `${customers.length} registered diners`}</span>
         </p>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Average Check Size</span>
+
+      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm relative overflow-visible">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Average Check Size</span>
+          ${renderInfoTooltip("Average spending amount per dining bill or settled order across all customer visits.")}
+        </div>
         <div class="text-3xl font-black text-gray-900 mt-1">₹${avgCheckSize.toLocaleString()}</div>
-        <p class="text-xs text-emerald-600 font-bold mt-1">+8% vs last month</p>
+        <p class="text-xs text-slate-500 font-medium mt-1">
+          ${totalVisits > 0 ? `Across ${totalVisits} completed bill${totalVisits === 1 ? '' : 's'}` : 'Awaiting bill transactions'}
+        </p>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Average Visits / Guest</span>
+
+      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm relative overflow-visible">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Average Visits / Guest</span>
+          ${renderInfoTooltip("Average frequency of dining visits per customer, measuring guest loyalty and repeat visit habits.")}
+        </div>
         <div class="text-3xl font-black text-gray-900 mt-1">${avgVisits}</div>
-        <p class="text-xs text-emerald-600 font-bold mt-1">Highest in QSR benchmark</p>
+        <p class="text-xs text-emerald-600 font-bold mt-1">
+          ${repeatDiners > 0 ? `${repeatDiners} repeat guest${repeatDiners === 1 ? '' : 's'} (${repeatRate}%)` : `${customers.length} first-time diner${customers.length === 1 ? '' : 's'}`}
+        </p>
       </div>
-      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Lifetime Guest Revenue</span>
+
+      <div class="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm relative overflow-visible">
+        <div class="flex items-center justify-between">
+          <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Lifetime Guest Revenue</span>
+          ${renderInfoTooltip("Cumulative total revenue generated by all enrolled loyalty members across their lifetime dining history.")}
+        </div>
         <div class="text-3xl font-black text-primary mt-1">₹${totalSpend.toLocaleString()}</div>
-        <p class="text-xs text-gray-500 mt-1">Across all segments</p>
+        <p class="text-xs text-slate-500 font-medium mt-1">
+          ${totalPoints > 0 ? `${totalPoints.toLocaleString()} points held by diners` : '10% loyalty accrual active'}
+        </p>
       </div>
     </div>
 
     <!-- Segment Breakdown -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 border border-purple-200 shadow-sm">
+      <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 border border-purple-200 shadow-sm relative overflow-visible">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-primary">VIP Spenders</span>
-          <span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
-            <span class="material-symbols-outlined text-primary text-base">diamond</span>
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary text-base">diamond</span>
+            </span>
+            ${renderInfoTooltip("High-value patrons with ₹10,000+ lifetime spend who generate the largest share of restaurant profits.")}
+          </div>
         </div>
         <div class="text-3xl font-black text-gray-900 mt-2">${vipCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">Avg spend ₹${customers.filter(c => c.tier === 'VIP').length ? Math.round(customers.filter(c => c.tier === 'VIP').reduce((s,c) => s + c.numericSpend, 0) / (vipCount || 1)).toLocaleString() : 0}</p>
+        <p class="text-xs text-gray-500 mt-1">Avg spend ₹${vipCount > 0 ? Math.round(customers.filter(c => c.tier === 'VIP' || c.numericSpend >= 10000).reduce((s,c) => s + c.numericSpend, 0) / vipCount).toLocaleString() : 0}</p>
         <div class="mt-3 w-full bg-purple-100 rounded-full h-1.5">
           <div class="bg-primary h-1.5 rounded-full" style="width: ${customers.length ? Math.round(vipCount / customers.length * 100) : 0}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(vipCount / customers.length * 100) : 0}% of total base</span>
       </div>
 
-      <div class="bg-gradient-to-br from-teal-50 to-white rounded-2xl p-5 border border-teal-200 shadow-sm">
+      <div class="bg-gradient-to-br from-teal-50 to-white rounded-2xl p-5 border border-teal-200 shadow-sm relative overflow-visible">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-[#00796B]">Frequent Diners</span>
-          <span class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[#00796B] text-base">restaurant</span>
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[#00796B] text-base">restaurant</span>
+            </span>
+            ${renderInfoTooltip("Consistent diners who visit 2+ times, demonstrating solid habit and brand affinity.")}
+          </div>
         </div>
         <div class="text-3xl font-black text-gray-900 mt-2">${frequentCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">Visiting twice monthly with steady repeat orders</p>
+        <p class="text-xs text-gray-500 mt-1">${frequentCount > 0 ? 'Visiting 2+ times with steady repeat orders' : 'Diners who return for 2+ meals'}</p>
         <div class="mt-3 w-full bg-teal-100 rounded-full h-1.5">
           <div class="bg-[#00796B] h-1.5 rounded-full" style="width: ${customers.length ? Math.round(frequentCount / customers.length * 100) : 0}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(frequentCount / customers.length * 100) : 0}% of total base</span>
       </div>
 
-      <div class="bg-gradient-to-br from-rose-50 to-white rounded-2xl p-5 border border-rose-200 shadow-sm">
+      <div class="bg-gradient-to-br from-rose-50 to-white rounded-2xl p-5 border border-rose-200 shadow-sm relative overflow-visible">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Slipping Away</span>
-          <span class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
-            <span class="material-symbols-outlined text-rose-600 text-base">warning</span>
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-rose-600 text-base">warning</span>
+            </span>
+            ${renderInfoTooltip("Previously active guests who have not visited in over 30 days and are eligible for win-back campaigns.")}
+          </div>
         </div>
         <div class="text-3xl font-black text-gray-900 mt-2">${atRiskCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">No visit in 30+ days. Win-back eligible.</p>
+        <p class="text-xs text-gray-500 mt-1">${atRiskCount > 0 ? 'No visit in 30+ days. Win-back eligible' : 'No churning guests currently'}</p>
         <div class="mt-3 w-full bg-rose-100 rounded-full h-1.5">
           <div class="bg-rose-500 h-1.5 rounded-full" style="width: ${customers.length ? Math.round(atRiskCount / customers.length * 100) : 0}%"></div>
         </div>
         <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(atRiskCount / customers.length * 100) : 0}% of total base</span>
       </div>
 
-      <div class="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-5 border border-amber-200 shadow-sm">
+      <div class="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-5 border border-amber-200 shadow-sm relative overflow-visible">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold uppercase tracking-wider text-amber-700">New Signups</span>
-          <span class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-            <span class="material-symbols-outlined text-amber-700 text-base">person_add</span>
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-amber-700 text-base">person_add</span>
+            </span>
+            ${renderInfoTooltip("First-time customers who registered with your loyalty program within the past 30 days.")}
+          </div>
         </div>
         <div class="text-3xl font-black text-gray-900 mt-2">${newCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">Joined within last 30 days</p>
+        <p class="text-xs text-gray-500 mt-1">First-time loyalty members</p>
         <div class="mt-3 w-full bg-amber-100 rounded-full h-1.5">
           <div class="bg-amber-500 h-1.5 rounded-full" style="width: ${customers.length ? Math.round(newCount / customers.length * 100) : 0}%"></div>
         </div>
@@ -209,63 +277,81 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
     <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
       <h3 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
         <span class="material-symbols-outlined text-primary text-lg">insights</span>
-        Guest Retention & Spend Trends
+        Guest Retention & Real Loyalty Metrics
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="space-y-3">
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-gray-500 font-medium">30-Day Return Rate</span>
-            <span class="font-bold text-emerald-700">68.4%</span>
+        <!-- Real Retention Progress Bars -->
+        <div class="space-y-4">
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="text-gray-600 font-medium">Repeat Diner Rate</span>
+              <span class="font-bold text-emerald-700">${repeatRate}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-emerald-500 h-2 rounded-full transition-all" style="width: ${Math.max(repeatRate, 2)}%"></div>
+            </div>
+            <span class="text-[10px] text-gray-400 mt-1 block">${repeatDiners} of ${customers.length} guests returned for 2+ visits</span>
           </div>
-          <div class="w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-emerald-500 h-2 rounded-full transition-all" style="width: 68%"></div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="text-gray-600 font-medium">Active Points Holders</span>
+              <span class="font-bold text-blue-700">${activePointsPct}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: ${Math.max(activePointsPct, 2)}%"></div>
+            </div>
+            <span class="text-[10px] text-gray-400 mt-1 block">${activePointsHolders} of ${customers.length} diners hold spendable rewards</span>
           </div>
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-gray-500 font-medium">60-Day Return Rate</span>
-            <span class="font-bold text-blue-700">82.1%</span>
-          </div>
-          <div class="w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: 82%"></div>
-          </div>
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-gray-500 font-medium">90-Day Return Rate</span>
-            <span class="font-bold text-purple-700">91.5%</span>
-          </div>
-          <div class="w-full bg-gray-100 rounded-full h-2">
-            <div class="bg-purple-500 h-2 rounded-full transition-all" style="width: 91%"></div>
+
+          <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+              <span class="text-gray-600 font-medium">First-Time Diners</span>
+              <span class="font-bold text-amber-700">${singleVisitPct}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2">
+              <div class="bg-amber-500 h-2 rounded-full transition-all" style="width: ${Math.max(singleVisitPct, 2)}%"></div>
+            </div>
+            <span class="text-[10px] text-gray-400 mt-1 block">${singleVisitDiners} diner${singleVisitDiners === 1 ? '' : 's'} on initial welcome stage</span>
           </div>
         </div>
+
+        <!-- Top Performing Dishes -->
         <div class="space-y-3">
-          <span class="text-xs font-bold text-gray-800 block">Top Performing Dishes by Loyalty</span>
-          <div class="space-y-2">
-            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl text-xs">
-              <span class="font-bold text-gray-800">Truffle Tagliolini</span>
-              <span class="font-black text-primary">₹2,840 avg</span>
+          <span class="text-xs font-bold text-gray-800 block">Top Ordered Dishes by Diners</span>
+          ${topDishes.length > 0 ? `
+            <div class="space-y-2">
+              ${topDishes.map(d => `
+                <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl text-xs">
+                  <span class="font-bold text-gray-800">${d.name}</span>
+                  <span class="font-black text-primary">${d.count} ${d.count === 1 ? 'order' : 'orders'}</span>
+                </div>
+              `).join('')}
             </div>
-            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl text-xs">
-              <span class="font-bold text-gray-800">Burrata Rustica</span>
-              <span class="font-black text-primary">₹1,950 avg</span>
+          ` : `
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xs text-slate-500 space-y-1">
+              <span class="material-symbols-outlined text-2xl text-slate-400">restaurant_menu</span>
+              <p class="font-bold text-slate-700">Awaiting POS Dish Data</p>
+              <p class="text-[11px] text-slate-400 leading-tight">Top ordered menu items will populate dynamically as cashier terminals punch bills.</p>
             </div>
-            <div class="flex items-center justify-between p-2.5 bg-gray-50 rounded-xl text-xs">
-              <span class="font-bold text-gray-800">Wagyu Ribeye</span>
-              <span class="font-black text-primary">₹3,400 avg</span>
-            </div>
-          </div>
+          `}
         </div>
+
+        <!-- Real Loyalty Program Impact -->
         <div class="space-y-3">
           <span class="text-xs font-bold text-gray-800 block">Loyalty Program Impact</span>
-          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2">
-            <div class="flex items-center gap-2 text-xs text-emerald-800 font-bold">
-              <span class="material-symbols-outlined text-sm">trending_up</span>
-              32% more repeat visits since launch
+          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-3">
+            <div class="flex items-center gap-2 text-xs text-emerald-900 font-bold">
+              <span class="material-symbols-outlined text-base text-emerald-600">payments</span>
+              <span>₹${totalSpend.toLocaleString()} Captured Loyalty Revenue</span>
             </div>
-            <div class="flex items-center gap-2 text-xs text-emerald-800 font-bold">
-              <span class="material-symbols-outlined text-sm">payments</span>
-              ₹18.4L incremental revenue
+            <div class="flex items-center gap-2 text-xs text-emerald-900 font-bold">
+              <span class="material-symbols-outlined text-base text-emerald-600">stars</span>
+              <span>${totalPoints.toLocaleString()} Total Member Points Accrued</span>
             </div>
-            <div class="flex items-center gap-2 text-xs text-emerald-800 font-bold">
-              <span class="material-symbols-outlined text-sm">group</span>
-              4.8x customer lifetime value growth
+            <div class="flex items-center gap-2 text-xs text-emerald-900 font-bold">
+              <span class="material-symbols-outlined text-base text-emerald-600">repeat</span>
+              <span>${repeatRate}% Repeat Diner Retention Rate</span>
             </div>
           </div>
         </div>
@@ -306,7 +392,7 @@ function renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount)
           </div>
           <p class="text-xs text-gray-500 mb-3">Recent buyers who visit frequently and spend the most. Your best customers.</p>
           <div class="space-y-2">
-            ${customers.filter(c => c.tier === 'VIP' && c.visits > 15).map(c => `
+            ${customers.filter(c => (c.tier === 'VIP' || c.numericSpend >= 5000) && c.visits >= 2).map(c => `
               <div class="flex items-center gap-2.5 p-2 bg-emerald-50/50 rounded-lg text-xs">
                 <div class="w-7 h-7 rounded-full ${c.avatarBg} font-bold text-[10px] flex items-center justify-center shrink-0">${c.initials}</div>
                 <div class="flex-1">
@@ -316,6 +402,7 @@ function renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount)
                 <span class="font-black text-emerald-700">${c.lifetimeSpend}</span>
               </div>
             `).join('')}
+            ${customers.filter(c => (c.tier === 'VIP' || c.numericSpend >= 5000) && c.visits >= 2).length === 0 ? '<p class="text-xs text-gray-400 italic">No champions yet. Diners with 2+ visits and high spend will qualify here.</p>' : ''}
           </div>
         </div>
 
@@ -330,7 +417,7 @@ function renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount)
           </div>
           <p class="text-xs text-gray-500 mb-3">Consistently purchasing customers with solid frequency and spend.</p>
           <div class="space-y-2">
-            ${customers.filter(c => c.tier === 'Frequent' || (c.tier === 'VIP' && c.visits <= 15)).map(c => `
+            ${customers.filter(c => (c.tier === 'Frequent' || c.tier === 'Regular' || c.visits >= 2) && c.numericSpend < 5000).map(c => `
               <div class="flex items-center gap-2.5 p-2 bg-blue-50/50 rounded-lg text-xs">
                 <div class="w-7 h-7 rounded-full ${c.avatarBg} font-bold text-[10px] flex items-center justify-center shrink-0">${c.initials}</div>
                 <div class="flex-1">
@@ -340,6 +427,7 @@ function renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount)
                 <span class="font-black text-blue-700">${c.lifetimeSpend}</span>
               </div>
             `).join('')}
+            ${customers.filter(c => (c.tier === 'Frequent' || c.tier === 'Regular' || c.visits >= 2) && c.numericSpend < 5000).length === 0 ? '<p class="text-xs text-gray-400 italic">No repeat diners in this category yet.</p>' : ''}
           </div>
         </div>
 
@@ -379,19 +467,19 @@ function renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount)
             </div>
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">High R • Low F • Low M</span>
           </div>
-          <p class="text-xs text-gray-500 mb-3">Recently signed up guests with first few transactions. Nurture them!</p>
+          <p class="text-xs text-gray-500 mb-3">Recently signed up guests with first transactions. Nurture them!</p>
           <div class="space-y-2">
-            ${customers.filter(c => c.tier === 'New').map(c => `
+            ${customers.filter(c => c.tier === 'New' || c.visits <= 1).map(c => `
               <div class="flex items-center gap-2.5 p-2 bg-amber-50/50 rounded-lg text-xs">
                 <div class="w-7 h-7 rounded-full ${c.avatarBg} font-bold text-[10px] flex items-center justify-center shrink-0">${c.initials}</div>
                 <div class="flex-1">
                   <span class="font-bold text-gray-900">${c.name}</span>
-                  <span class="text-gray-400 ml-1">${c.visits} visits</span>
+                  <span class="text-gray-400 ml-1">${c.visits} visit${c.visits === 1 ? '' : 's'}</span>
                 </div>
                 <span class="font-black text-amber-700">${c.lifetimeSpend}</span>
               </div>
             `).join('')}
-            ${customers.filter(c => c.tier === 'New').length === 0 ? '<p class="text-xs text-gray-400 italic">No new signups in this period.</p>' : ''}
+            ${customers.filter(c => c.tier === 'New' || c.visits <= 1).length === 0 ? '<p class="text-xs text-gray-400 italic">No new signups in this period.</p>' : ''}
           </div>
         </div>
       </div>
@@ -489,12 +577,12 @@ function renderLifecycleTab(customers, vipCount, frequentCount, atRiskCount, new
                 </div>
                 <div>
                   <div class="text-sm font-bold text-gray-900">Brand Advocates</div>
-                  <div class="text-[11px] text-gray-500">Actively referring new guests</div>
+                  <div class="text-[11px] text-gray-500">Repeat diners with high lifetime value</div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="text-2xl font-black text-emerald-800">${Math.max(1, Math.round(vipCount * 0.4))}</div>
-                <div class="text-[10px] text-emerald-600 font-bold">Top referrers</div>
+                <div class="text-2xl font-black text-emerald-800">${customers.filter(c => (c.visits >= 2 && c.numericSpend >= 2000) || c.tier === 'VIP').length}</div>
+                <div class="text-[10px] text-emerald-600 font-bold">${Math.round(customers.filter(c => (c.visits >= 2 && c.numericSpend >= 2000) || c.tier === 'VIP').length / total * 100)}% of base</div>
               </div>
             </div>
           </div>

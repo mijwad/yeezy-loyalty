@@ -9,7 +9,7 @@ export function renderSidebar(currentPath = 'dashboard') {
     { path: 'smart-insights', label: 'Smart Insights', icon: 'insights' },
     { path: 'campaigns', label: 'Campaigns', icon: 'campaign' },
     { path: 'customer-insights', label: 'Customer Insights', icon: 'group' },
-    { path: 'petpooja-setup', label: 'Petpooja POS', icon: 'point_of_sale', badge: store.getState().isPetpoojaIntegrated ? 'Connected' : 'Setup' },
+    { path: 'integrations', label: 'Apps & Integrations', icon: 'hub', badge: store.getState().isPetpoojaIntegrated ? 'Connected' : 'Active' },
     { path: 'loyalty', label: 'Loyalty', icon: 'card_membership', badge: 'Active' },
     { path: 'auto-campaigns', label: 'Auto Campaigns', icon: 'magic_button' },
     { path: 'feedback', label: 'Feedback', icon: 'reviews' },
@@ -41,6 +41,7 @@ export function renderSidebar(currentPath = 'dashboard') {
         <nav class="px-space-md py-space-sm flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-190px)]">
           ${navItems.map(item => {
             const isActive = currentPath === item.path || 
+              (item.path === 'integrations' && ['integrations', 'apps-integrations', 'petpooja-setup'].includes(currentPath)) ||
               (item.path === 'loyalty' && ['activate-loyalty', 'configurator', 'reminder-expiry', 'channels', 'review-activate'].includes(currentPath));
             
             const activeClasses = 'bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';

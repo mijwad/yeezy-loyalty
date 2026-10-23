@@ -7,6 +7,9 @@ import { renderCustomerDrawer, attachCustomerDrawerListeners } from './CustomerD
 import { renderActivationSuccessModal, attachActivationSuccessModalListeners } from './ActivationSuccessModal.js';
 import { renderRegisterCustomerModal, attachRegisterCustomerModalListeners } from './RegisterCustomerModal.js';
 import { renderPetpoojaIntegrationModal, attachPetpoojaIntegrationModalListeners } from './PetpoojaIntegrationModal.js';
+import { renderYeezyBillModal, attachYeezyBillModalListeners } from './YeezyBillModal.js';
+import { renderAddPosModal, attachAddPosModalListeners } from './AddPosModal.js';
+import { renderWebhookDocsModal, attachWebhookDocsModalListeners } from './WebhookDocsModal.js';
 
 export function renderActiveModal(state, uiState) {
   const { activeModal, amountSpentSlide, selectedCustomer } = uiState;
@@ -15,6 +18,12 @@ export function renderActiveModal(state, uiState) {
   switch (activeModal) {
     case 'petpoojaIntegration':
       return renderPetpoojaIntegrationModal(state);
+    case 'yeezyBillConfig':
+      return renderYeezyBillModal(state);
+    case 'addPosPlatform':
+      return renderAddPosModal(state);
+    case 'webhookDocs':
+      return renderWebhookDocsModal(state);
     case 'registerCustomer':
       return renderRegisterCustomerModal();
     case 'amountSpent':
@@ -39,6 +48,15 @@ export function attachActiveModalListeners(uiState) {
   switch (activeModal) {
     case 'petpoojaIntegration':
       attachPetpoojaIntegrationModalListeners();
+      break;
+    case 'yeezyBillConfig':
+      attachYeezyBillModalListeners();
+      break;
+    case 'addPosPlatform':
+      attachAddPosModalListeners();
+      break;
+    case 'webhookDocs':
+      attachWebhookDocsModalListeners();
       break;
     case 'registerCustomer':
       attachRegisterCustomerModalListeners();

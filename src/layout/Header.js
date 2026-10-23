@@ -84,16 +84,16 @@ export function renderHeader(state) {
           <span>Loyalty Program Active</span>
         </a>
 
-        <!-- Petpooja Marketplace Integration (Exact Reelo flow) -->
-        <button 
+        <!-- Apps & POS Integrations Pill -->
+        <a 
+          href="#integrations"
           id="btn-open-petpooja-setup"
           class="inline-flex items-center gap-1.5 px-3 py-1.5 md:py-2 ${state.isPetpoojaIntegrated ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-surface-container-low hover:bg-surface-container-high text-on-surface border-outline-variant/30'} font-extrabold text-xs rounded-full border transition-all shadow-xs active:scale-95" 
-          type="button"
-          title="${state.isPetpoojaIntegrated ? `Petpooja POS Connected (${state.petpoojaRestID || 'PP_DEL_101'})` : 'Integrate on Petpooja Marketplace'}"
+          title="Manage POS Platforms & Apps"
         >
-          <span class="w-2 h-2 rounded-full ${state.isPetpoojaIntegrated ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}"></span>
-          <span>${state.isPetpoojaIntegrated ? `Petpooja Connected (${state.petpoojaRestID || 'PP_DEL_101'})` : 'Petpooja Setup'}</span>
-        </button>
+          <span class="w-2 h-2 rounded-full ${state.isPetpoojaIntegrated ? 'bg-emerald-500 animate-pulse' : 'bg-[#00c59e]'}"></span>
+          <span>${state.isPetpoojaIntegrated ? `Petpooja POS Live` : 'Apps & POS'}</span>
+        </a>
 
 
 

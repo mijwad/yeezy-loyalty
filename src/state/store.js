@@ -4,7 +4,7 @@ import { apiUrl } from '../config/api.js';
 
 const STORAGE_KEY = 'yeezy_loyalty_state';
 const DATA_VERSION_KEY = 'yeezy_state_version';
-const CURRENT_VERSION = 'v5_production_clean_state';
+const CURRENT_VERSION = 'v6_apps_and_integrations';
 
 class Store {
   constructor() {
@@ -17,11 +17,19 @@ class Store {
 
     const saved = localStorage.getItem(STORAGE_KEY);
     this.state = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(initialData));
+
+    // Ensure integrations exist if loaded from existing storage
+    if (!this.state.posIntegrations) {
+      this.state.posIntegrations = JSON.parse(JSON.stringify(initialData.posIntegrations));
+    }
+    if (!this.state.yeezyBillSettings) {
+      this.state.yeezyBillSettings = JSON.parse(JSON.stringify(initialData.yeezyBillSettings));
+    }
     
     // Non-persisted UI State
     this.uiState = {
       currentRoute: this.getRouteFromHash(),
-      activeModal: null, // 'amountSpent' | 'refill' | 'autoRefill' | 'activationSuccess' | 'customerDrawer' | 'registerCustomer' | 'petpoojaIntegration'
+      activeModal: null, // 'amountSpent' | 'refill' | 'autoRefill' | 'activationSuccess' | 'customerDrawer' | 'registerCustomer' | 'petpoojaIntegration' | 'yeezyBillConfig' | 'addPosPlatform' | 'webhookDocs' | 'connectPosist' | 'connectUrbanPiper'
       selectedCustomer: null,
       amountSpentSlide: 0,
       configuratorStep: 1,
@@ -213,6 +221,47 @@ class Store {
     } catch (err) {
       console.warn('Backend reset call:', err);
     }
+  }
+
+  // POS & Apps Integration helpers
+  addPosIntegration(newIntegration) {
+    this.setState(prev => {
+      const existing = prev.posIntegrations || [];
+      return {
+        ...prev,
+        posIntegrations: [...existing, newIntegration]
+      };
+    });
+  }
+
+  updatePosIntegration(id, updates) {
+    this.setState(prev => {
+      const updated = (prev.posIntegrations || []).map(item => {
+        if (item.id === id) {
+          return { ...item, ...updates };
+        }
+        return item;
+      });
+      return { ...prev, posIntegrations: updated };
+    });
+  }
+
+  deletePosIntegration(id) {
+    this.setState(prev => {
+      return {
+        ...prev,
+        posIntegrations: (prev.posIntegrations || []).filter(item => item.id !== id)
+      };
+    });
+  }
+
+  updateYeezyBillSettings(newSettings) {
+    this.setState(prev => {
+      return {
+        ...prev,
+        yeezyBillSettings: { ...(prev.yeezyBillSettings || {}), ...newSettings }
+      };
+    });
   }
 
   subscribe(listener) {

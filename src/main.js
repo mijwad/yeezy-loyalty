@@ -21,6 +21,7 @@ import {
 import { renderSmartInsightsView } from './views/other/smartInsights.js';
 import { renderLoginView, attachLoginListeners } from './views/auth/login.js';
 import { renderSuperAdminView, attachSuperAdminListeners } from './views/admin/superAdmin.js';
+import { renderAppsIntegrationsView, attachAppsIntegrationsListeners } from './views/integrations/index.js';
 
 class YeezyLoyaltyApp {
   constructor() {
@@ -51,8 +52,15 @@ class YeezyLoyaltyApp {
       const route = this.store.getRouteFromHash();
       if (route === 'petpooja-setup' || route === 'petpooja-integration') {
         this.store.setUIState({
-          currentRoute: 'settings',
+          currentRoute: 'integrations',
           activeModal: 'petpoojaIntegration'
+        });
+        return;
+      }
+      if (route === 'apps-integrations') {
+        this.store.setUIState({
+          currentRoute: 'integrations',
+          activeModal: null
         });
         return;
       }
@@ -66,8 +74,13 @@ class YeezyLoyaltyApp {
     const initialRoute = this.store.getRouteFromHash();
     if (initialRoute === 'petpooja-setup' || initialRoute === 'petpooja-integration') {
       this.store.setUIState({
-        currentRoute: 'settings',
+        currentRoute: 'integrations',
         activeModal: 'petpoojaIntegration'
+      });
+    } else if (initialRoute === 'apps-integrations') {
+      this.store.setUIState({
+        currentRoute: 'integrations',
+        activeModal: null
       });
     }
 
@@ -167,6 +180,10 @@ class YeezyLoyaltyApp {
         break;
       case 'settings':
         mainContentHtml = renderSettingsView(state);
+        break;
+      case 'integrations':
+      case 'apps-integrations':
+        mainContentHtml = renderAppsIntegrationsView(state);
         break;
       default:
         mainContentHtml = renderDashboard(state);
@@ -284,6 +301,10 @@ class YeezyLoyaltyApp {
         break;
       case 'settings':
         attachSettingsListeners();
+        break;
+      case 'integrations':
+      case 'apps-integrations':
+        attachAppsIntegrationsListeners();
         break;
     }
   }
