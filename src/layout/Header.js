@@ -95,16 +95,6 @@ export function renderHeader(state) {
           <span>${state.isPetpoojaIntegrated ? `Petpooja Connected (${state.petpoojaRestID || 'PP_DEL_101'})` : 'Petpooja Setup'}</span>
         </button>
 
-        <!-- POS Billing Terminal CTA Button -->
-        <button 
-          id="btn-open-pos-terminal"
-          class="inline-flex items-center gap-1.5 px-3.5 py-1.5 md:py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs rounded-full transition-all shadow-[0_2px_6px_rgba(245,158,11,0.3)] active:scale-95" 
-          type="button"
-          title="Open Petpooja Cashier POS Terminal"
-        >
-          <span class="material-symbols-outlined text-sm font-bold">point_of_sale</span>
-          <span>⚡ POS Terminal</span>
-        </button>
 
         <!-- Book a Demo CTA Button -->
         <button 
@@ -247,12 +237,6 @@ export function attachHeaderListeners() {
     };
   }
 
-  const posTerminalBtn = document.getElementById('btn-open-pos-terminal');
-  if (posTerminalBtn) {
-    posTerminalBtn.onclick = () => {
-      store.setUIState({ activeModal: 'posTerminal' });
-    };
-  }
 
   const resetZeroBtn = document.getElementById('btn-header-reset-zero');
   if (resetZeroBtn) {

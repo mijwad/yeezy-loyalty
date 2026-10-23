@@ -63,14 +63,23 @@ export function renderPetpoojaIntegrationModal(state) {
               </div>
             </div>
 
+            <div class="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-800 text-left flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-emerald-600 text-base mt-0.5">check_circle</span>
+              <div>
+                <p class="font-extrabold text-xs">Live in Petpooja POS Software</p>
+                <p class="text-[11px] text-emerald-700 mt-0.5 leading-relaxed">
+                  Cashiers will now see available loyalty points and discount vouchers directly in their physical Petpooja POS billing terminal when entering diner phone numbers.
+                </p>
+              </div>
+            </div>
+
             <div class="w-full pt-2 flex flex-col gap-2">
               <button 
-                id="btn-petpooja-open-pos"
+                id="btn-petpooja-close-modal"
                 type="button" 
                 class="w-full py-3 rounded-2xl bg-[#00c59e] hover:bg-[#00b08d] text-white font-extrabold text-xs transition shadow-md flex items-center justify-center gap-2 active:scale-95"
               >
-                <span class="material-symbols-outlined text-sm">point_of_sale</span>
-                <span>Open POS Cashier Terminal & Test Bill</span>
+                <span>Done / Close</span>
               </button>
               <button 
                 id="btn-petpooja-disconnect" 
@@ -341,11 +350,11 @@ export function attachPetpoojaIntegrationModalListeners() {
     };
   }
 
-  // Open POS Terminal from success screen
-  const openPosBtn = document.getElementById('btn-petpooja-open-pos');
-  if (openPosBtn) {
-    openPosBtn.onclick = () => {
-      store.setUIState({ activeModal: 'posTerminal' });
+  // Close modal button
+  const closeModalBtn = document.getElementById('btn-petpooja-close-modal');
+  if (closeModalBtn) {
+    closeModalBtn.onclick = () => {
+      store.setUIState({ activeModal: null });
     };
   }
 }

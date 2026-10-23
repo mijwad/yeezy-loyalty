@@ -599,10 +599,7 @@ function renderCustomerListTab(filtered, filters, selectedTier, sortBy) {
                     <p class="font-extrabold text-sm text-gray-800">No Diners in Directory (0 Guests)</p>
                     <p class="text-xs text-gray-500">Every guest visit, signup, or POS bill will automatically create a live diner profile here.</p>
                     <div class="flex items-center gap-2 mt-2">
-                      <button id="btn-empty-pos" type="button" class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-sm hover:bg-primary/90 transition">
-                        ⚡ Process First POS Bill
-                      </button>
-                      <button id="btn-empty-reg" type="button" class="px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition">
+                      <button id="btn-empty-reg" type="button" class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition shadow-sm active:scale-95">
                         + Register Guest
                       </button>
                     </div>
@@ -828,10 +825,7 @@ export function attachCustomerInsightsListeners() {
     };
   }
 
-  const emptyPosBtn = document.getElementById('btn-empty-pos');
-  if (emptyPosBtn) {
-    emptyPosBtn.onclick = () => store.setUIState({ activeModal: 'posTerminal' });
-  }
+
 
   const emptyRegBtn = document.getElementById('btn-empty-reg');
   if (emptyRegBtn) {

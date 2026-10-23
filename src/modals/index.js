@@ -6,7 +6,6 @@ import { renderAutoRefillModal, attachAutoRefillModalListeners } from './AutoRef
 import { renderBookDemoModal, attachBookDemoModalListeners } from './BookDemoModal.js';
 import { renderCustomerDrawer, attachCustomerDrawerListeners } from './CustomerDrawerModal.js';
 import { renderActivationSuccessModal, attachActivationSuccessModalListeners } from './ActivationSuccessModal.js';
-import { renderPOSTerminalModal, attachPOSTerminalModalListeners } from './POSTerminalModal.js';
 import { renderRegisterCustomerModal, attachRegisterCustomerModalListeners } from './RegisterCustomerModal.js';
 import { renderPetpoojaIntegrationModal, attachPetpoojaIntegrationModalListeners } from './PetpoojaIntegrationModal.js';
 
@@ -17,8 +16,6 @@ export function renderActiveModal(state, uiState) {
   switch (activeModal) {
     case 'petpoojaIntegration':
       return renderPetpoojaIntegrationModal(state);
-    case 'posTerminal':
-      return renderPOSTerminalModal(state);
     case 'registerCustomer':
       return renderRegisterCustomerModal();
     case 'amountSpent':
@@ -45,9 +42,6 @@ export function attachActiveModalListeners(uiState) {
   switch (activeModal) {
     case 'petpoojaIntegration':
       attachPetpoojaIntegrationModalListeners();
-      break;
-    case 'posTerminal':
-      attachPOSTerminalModalListeners();
       break;
     case 'registerCustomer':
       attachRegisterCustomerModalListeners();

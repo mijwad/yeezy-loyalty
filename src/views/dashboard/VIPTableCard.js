@@ -28,11 +28,7 @@ export function renderVIPTableCard(customers) {
           <p class="font-extrabold text-sm text-on-surface">No guest activity recorded yet</p>
           <p class="text-xs text-on-surface-variant max-w-sm">Every new customer visit or POS bill settlement will automatically appear here with real-time lifetime spend and points.</p>
           <div class="flex items-center gap-2 mt-2">
-            <button id="btn-quick-pos-empty" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-sm hover:bg-primary/90 transition active:scale-95">
-              <span class="material-symbols-outlined text-sm">point_of_sale</span>
-              <span>⚡ Process First POS Bill</span>
-            </button>
-            <button id="btn-quick-reg-empty" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest transition">
+            <button id="btn-quick-reg-empty" type="button" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition shadow-sm active:scale-95">
               <span class="material-symbols-outlined text-sm">person_add</span>
               <span>+ Register Guest</span>
             </button>
@@ -101,12 +97,8 @@ export function renderVIPTableCard(customers) {
   `;
 }
 
-export function attachVIPTableListeners() {
-  const quickPosBtn = document.getElementById('btn-quick-pos-empty');
-  if (quickPosBtn) {
-    quickPosBtn.onclick = () => store.setUIState({ activeModal: 'posTerminal' });
-  }
 
+export function attachVIPTableListeners() {
   const quickRegBtn = document.getElementById('btn-quick-reg-empty');
   if (quickRegBtn) {
     quickRegBtn.onclick = () => store.setUIState({ activeModal: 'registerCustomer' });
