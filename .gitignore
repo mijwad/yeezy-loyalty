@@ -7,6 +7,9 @@ node_modules/
 dist/
 dist-ssr/
 *.local
+*.bak
+server/data/*.bak
+database/backups/
 
 # Environment variables
 .env
