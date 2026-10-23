@@ -25,6 +25,21 @@ import { renderSuperAdminView, attachSuperAdminListeners } from './views/admin/s
 class YeezyLoyaltyApp {
   constructor() {
     this.store = store;
+    this.currentLayout = null;
+    this.isUserScrolling = false;
+    this.scrollTimeout = null;
+    this.lastRenderedRoute = null;
+    this.lastRenderedModal = null;
+    this.lastContentHtml = null;
+
+    // Passive scroll detection to prevent any frame drops or sync interruptions
+    window.addEventListener('scroll', () => {
+      this.isUserScrolling = true;
+      if (this.scrollTimeout) clearTimeout(this.scrollTimeout);
+      this.scrollTimeout = setTimeout(() => {
+        this.isUserScrolling = false;
+      }, 250);
+    }, { passive: true });
 
     // React to store state changes
     this.store.subscribe(() => {
@@ -59,10 +74,12 @@ class YeezyLoyaltyApp {
     // Initial background sync with Petpooja POS & backend database
     this.store.syncWithBackend();
 
-    // Continuous 4-second heartbeat to automatically reflect cashier POS bills in real time
+    // Smooth, scroll-safe background sync (only runs when tab is active and user is not scrolling)
     setInterval(() => {
-      this.store.syncWithBackend();
-    }, 4000);
+      if (document.visibilityState === 'visible' && !this.isUserScrolling) {
+        this.store.syncWithBackend();
+      }
+    }, 12000);
 
     this.render();
   }
@@ -71,7 +88,7 @@ class YeezyLoyaltyApp {
     const appEl = document.getElementById('app');
     if (!appEl) return;
 
-    // Capture active element before innerHTML re-render to preserve user cursor & focus
+    // Capture active element before re-render to preserve user cursor & focus
     const activeEl = document.activeElement;
     let activeSelector = null;
     let selStart = null;
@@ -90,106 +107,153 @@ class YeezyLoyaltyApp {
     const uiState = this.store.getUIState();
     const route = uiState.currentRoute;
 
-    // Full screen login view (without sidebar/header)
+    // Full screen login view
     if (route === 'login') {
-      appEl.innerHTML = renderLoginView();
-      attachLoginListeners();
+      if (this.currentLayout !== 'login') {
+        this.currentLayout = 'login';
+        appEl.innerHTML = renderLoginView();
+        attachLoginListeners();
+      }
       return;
     }
 
     const isConfiguratorMode = route === 'configurator';
 
-    let mainContentHtml = '';
-
     if (isConfiguratorMode) {
-      mainContentHtml = renderConfigurator(state, uiState.configuratorStep, uiState.configuratorPanel);
-    } else {
-      switch (route) {
-        case 'super-admin':
-          mainContentHtml = renderSuperAdminView(state);
-          break;
-        case 'dashboard':
-          mainContentHtml = renderDashboard(state);
-          break;
-        case 'smart-insights':
-          mainContentHtml = renderSmartInsightsView(state);
-          break;
-        case 'customer-insights':
-          mainContentHtml = renderCustomerInsights(state, uiState.customerFilters);
-          break;
-        case 'loyalty':
-        case 'activate-loyalty':
-          mainContentHtml = renderActivateLoyalty(state);
-          break;
-        case 'campaigns':
-          mainContentHtml = renderCampaignsView(state);
-          break;
-        case 'auto-campaigns':
-          mainContentHtml = renderAutoCampaignsView(state);
-          break;
-        case 'qr-codes':
-          mainContentHtml = renderQRCodesView(state);
-          break;
-        case 'feedback':
-          mainContentHtml = renderFeedbackView();
-          break;
-        case 'referrals':
-          mainContentHtml = renderReferralsView();
-          break;
-        case 'settings':
-          mainContentHtml = renderSettingsView(state);
-          break;
-        default:
-          mainContentHtml = renderDashboard(state);
-      }
+      this.currentLayout = 'configurator';
+      appEl.innerHTML = `
+        <div class="min-h-screen bg-[#f5f8f9]">
+          ${renderConfigurator(state, uiState.configuratorStep, uiState.configuratorPanel)}
+          ${renderActiveModal(state, uiState)}
+        </div>
+      `;
+      this.attachEventListeners(route, true, uiState);
+      return;
+    }
+
+    // Generate main view content
+    let mainContentHtml = '';
+    switch (route) {
+      case 'super-admin':
+        mainContentHtml = renderSuperAdminView(state);
+        break;
+      case 'dashboard':
+        mainContentHtml = renderDashboard(state);
+        break;
+      case 'smart-insights':
+        mainContentHtml = renderSmartInsightsView(state);
+        break;
+      case 'customer-insights':
+        mainContentHtml = renderCustomerInsights(state, uiState.customerFilters);
+        break;
+      case 'loyalty':
+      case 'activate-loyalty':
+        mainContentHtml = renderActivateLoyalty(state);
+        break;
+      case 'campaigns':
+        mainContentHtml = renderCampaignsView(state);
+        break;
+      case 'auto-campaigns':
+        mainContentHtml = renderAutoCampaignsView(state);
+        break;
+      case 'qr-codes':
+        mainContentHtml = renderQRCodesView(state);
+        break;
+      case 'feedback':
+        mainContentHtml = renderFeedbackView();
+        break;
+      case 'referrals':
+        mainContentHtml = renderReferralsView();
+        break;
+      case 'settings':
+        mainContentHtml = renderSettingsView(state);
+        break;
+      default:
+        mainContentHtml = renderDashboard(state);
     }
 
     const modalHtml = renderActiveModal(state, uiState);
+    const mainViewEl = document.getElementById('main-content-view');
+    const modalsRootEl = document.getElementById('modals-root');
 
-    if (isConfiguratorMode) {
-      appEl.innerHTML = `
-        <div class="min-h-screen bg-[#f5f8f9]">
-          ${mainContentHtml}
-          ${modalHtml}
-        </div>
-      `;
-    } else {
-      appEl.innerHTML = `
-        <div class="min-h-screen bg-background font-body-md text-on-surface antialiased flex flex-col">
-          <!-- Desktop Sidebar -->
-          <div class="hidden md:block">
-            ${renderSidebar(route)}
-          </div>
-          
-          <!-- Mobile Sidebar Drawer -->
-          <div id="mobile-sidebar-drawer" class="${uiState.mobileSidebarOpen ? 'block' : 'hidden'} md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm">
-            <div class="w-64 h-full bg-white relative">
-              ${renderSidebar(route)}
-              <button id="close-mobile-sidebar-btn" class="absolute top-4 right-4 text-slate-700 p-1" type="button">
-                <span class="material-symbols-outlined text-2xl">close</span>
-              </button>
-            </div>
-          </div>
+    // In-place fast path: Shell is already mounted! Update only view or modal, keeping scroll intact!
+    if (this.currentLayout === 'standard' && mainViewEl && modalsRootEl) {
+      // Update Main View only if content or route changed
+      if (this.lastRenderedRoute !== route || this.lastContentHtml !== mainContentHtml) {
+        mainViewEl.innerHTML = mainContentHtml;
+        this.lastContentHtml = mainContentHtml;
+        this.lastRenderedRoute = route;
+        this.attachViewListeners(route);
 
-          <!-- Main Layout Area with Left Padding for Sidebar -->
-          <div class="md:pl-64 flex-1 flex flex-col min-h-screen">
-            ${renderHeader(state)}
+        // Update active class on sidebar links
+        document.querySelectorAll('#main-sidebar a, #mobile-sidebar-drawer a').forEach(a => {
+          const href = a.getAttribute('href');
+          if (href === `#${route}`) {
+            a.classList.add('bg-primary', 'text-white', 'shadow-sm');
+            a.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-high');
+          } else {
+            a.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+            a.classList.add('text-on-surface-variant', 'hover:bg-surface-container-high');
+          }
+        });
+      }
 
-            <main class="w-full pt-16 bg-background flex-1 pb-16">
-              ${mainContentHtml}
-            </main>
-          </div>
+      // Update Modal container only if active modal changed
+      const currentModalKey = uiState.activeModal || 'none';
+      if (this.lastRenderedModal !== currentModalKey) {
+        modalsRootEl.innerHTML = modalHtml;
+        this.lastRenderedModal = currentModalKey;
+        attachActiveModalListeners(uiState);
+      }
 
-          <!-- Modals Container -->
-          ${modalHtml}
-        </div>
-      `;
+      this.restoreInputFocus(activeSelector, selStart, selEnd);
+      return;
     }
 
-    // Attach listeners modularly based on current view
-    this.attachEventListeners(route, isConfiguratorMode, uiState);
+    // First mount of standard shell
+    this.currentLayout = 'standard';
+    this.lastRenderedRoute = route;
+    this.lastRenderedModal = uiState.activeModal || 'none';
+    this.lastContentHtml = mainContentHtml;
 
-    // Restore focus if active element was an input/textarea
+    appEl.innerHTML = `
+      <div id="app-shell" class="min-h-screen bg-background font-body-md text-on-surface antialiased flex flex-col">
+        <!-- Desktop Sidebar -->
+        <div class="hidden md:block">
+          ${renderSidebar(route)}
+        </div>
+        
+        <!-- Mobile Sidebar Drawer -->
+        <div id="mobile-sidebar-drawer" class="${uiState.mobileSidebarOpen ? 'block' : 'hidden'} md:hidden fixed inset-0 z-50 bg-black/60">
+          <div class="w-64 h-full bg-white relative">
+            ${renderSidebar(route)}
+            <button id="close-mobile-sidebar-btn" class="absolute top-4 right-4 text-slate-700 p-1" type="button">
+              <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Layout Area with Left Padding for Sidebar -->
+        <div class="md:pl-64 flex-1 flex flex-col min-h-screen">
+          ${renderHeader(state)}
+
+          <main id="main-content-view" class="w-full pt-16 bg-background flex-1 pb-16">
+            ${mainContentHtml}
+          </main>
+        </div>
+
+        <!-- Modals Container -->
+        <div id="modals-root">
+          ${modalHtml}
+        </div>
+      </div>
+    `;
+
+    this.attachEventListeners(route, false, uiState);
+    this.restoreInputFocus(activeSelector, selStart, selEnd);
+  }
+
+  restoreInputFocus(activeSelector, selStart, selEnd) {
     if (activeSelector) {
       const restored = document.querySelector(activeSelector);
       if (restored && (restored.tagName === 'INPUT' || restored.tagName === 'TEXTAREA')) {
@@ -203,31 +267,34 @@ class YeezyLoyaltyApp {
     }
   }
 
+  attachViewListeners(route) {
+    switch (route) {
+      case 'super-admin':
+        attachSuperAdminListeners();
+        break;
+      case 'dashboard':
+        attachDashboardListeners();
+        break;
+      case 'customer-insights':
+        attachCustomerInsightsListeners();
+        break;
+      case 'loyalty':
+      case 'activate-loyalty':
+        attachActivateLoyaltyListeners();
+        break;
+      case 'settings':
+        attachSettingsListeners();
+        break;
+    }
+  }
+
   attachEventListeners(route, isConfiguratorMode, uiState) {
     if (isConfiguratorMode) {
       attachConfiguratorListeners();
     } else {
       attachSidebarListeners();
       attachHeaderListeners();
-
-      switch (route) {
-        case 'super-admin':
-          attachSuperAdminListeners();
-          break;
-        case 'dashboard':
-          attachDashboardListeners();
-          break;
-        case 'customer-insights':
-          attachCustomerInsightsListeners();
-          break;
-        case 'loyalty':
-        case 'activate-loyalty':
-          attachActivateLoyaltyListeners();
-          break;
-        case 'settings':
-          attachSettingsListeners();
-          break;
-      }
+      this.attachViewListeners(route);
     }
 
     attachActiveModalListeners(uiState);

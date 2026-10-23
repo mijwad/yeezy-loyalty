@@ -44,7 +44,7 @@ export function renderCustomerInsights(state, filters = {}) {
   const avgCheckSize = customers.length ? Math.round(totalSpend / customers.reduce((sum, c) => sum + c.visits, 0)) : 0;
 
   return `
-    <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto animate-fade-in pb-16">
+    <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto pb-16">
       
       <!-- Header Title & Subtitle -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

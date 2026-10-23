@@ -10,8 +10,8 @@ export function renderHighlightsRow(stats) {
           <span class="material-symbols-outlined text-primary text-base">bolt</span>
           Today's Highlights
         </h2>
-        <span class="text-[11px] text-on-surface-variant font-medium flex items-center gap-1">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="text-[11px] text-on-surface-variant font-medium flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]"></span>
           Live Syncing • Just now
         </span>
       </div>

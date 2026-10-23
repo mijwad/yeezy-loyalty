@@ -5,7 +5,7 @@ import { apiUrl } from '../../config/api.js';
 
 export function renderSuperAdminView(state) {
   return `
-    <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto animate-fade-in pb-16">
+    <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto pb-16">
       
       <!-- Top Title & Quick Actions -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -60,11 +60,11 @@ class Store {
 
   // Update business state (persisted)
   setState(updater, options = {}) {
-    if (typeof updater === 'function') {
-      this.state = updater(this.state);
-    } else {
-      this.state = { ...this.state, ...updater };
+    const nextState = typeof updater === 'function' ? updater(this.state) : { ...this.state, ...updater };
+    if (nextState === this.state) {
+      return; // No change: skip disk writes and DOM re-renders
     }
+    this.state = nextState;
     this.saveState();
     if (!options.silent) {
       this.notify();
@@ -73,11 +73,22 @@ class Store {
 
   // Update transient UI state (not persisted)
   setUIState(updater) {
-    if (typeof updater === 'function') {
-      this.uiState = updater(this.uiState);
+    const nextUIState = typeof updater === 'function' ? updater(this.uiState) : { ...this.uiState, ...updater };
+    let changed = false;
+    const prevKeys = Object.keys(this.uiState);
+    const nextKeys = Object.keys(nextUIState);
+    if (prevKeys.length !== nextKeys.length) {
+      changed = true;
     } else {
-      this.uiState = { ...this.uiState, ...updater };
+      for (const key of nextKeys) {
+        if (this.uiState[key] !== nextUIState[key]) {
+          changed = true;
+          break;
+        }
+      }
     }
+    if (!changed) return;
+    this.uiState = nextUIState;
     this.notify();
   }
 

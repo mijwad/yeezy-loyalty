@@ -189,6 +189,19 @@
       "favoriteDish": "Chef Special",
       "lastVisit": "Today",
       "joinedDate": "2026-10-23"
+    },
+    {
+      "id": "cust_1792769539525",
+      "name": "mijwad",
+      "phone": "9745830506",
+      "email": "9745830506@guest.yeezy.app",
+      "tier": "New",
+      "pointsBalance": 100,
+      "lifetimeSpend": 0,
+      "visits": 0,
+      "favoriteDish": "Chef Special",
+      "lastVisit": "Just now",
+      "joinedDate": "2026-10-23"
     }
   ],
   "loyaltyLedger": [
@@ -291,6 +304,16 @@
       "orderId": null,
       "reason": "Welcome bonus upon first POS bill registration",
       "createdAt": "2026-10-23T13:20:59.764Z"
+    },
+    {
+      "id": "ledg_1792769539525",
+      "customerId": "cust_1792769539525",
+      "type": "BONUS_WELCOME",
+      "pointsDelta": 100,
+      "balanceAfter": 100,
+      "orderId": null,
+      "reason": "Welcome bonus upon first POS bill registration",
+      "createdAt": "2026-10-23T15:32:19.525Z"
     }
   ],
   "orders": [
@@ -718,9 +741,223 @@
       "selectedOptionId": "OPT_100_OFF",
       "pointsLocked": 100,
       "discountAmount": 100
+    },
+    "red_sess_1792769539527_pl6toq": {
+      "sessionToken": "red_sess_1792769539527_pl6toq",
+      "customerId": "cust_1792769539525",
+      "customerPhone": "9745830506",
+      "orderId": "ORD-1792769539525",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 385,
+      "discountableAmount": 385,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 100,
+      "maxDiscountAmount": 100,
+      "availableOptions": [
+        {
+          "id": "OPT_100_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "100₹ off on entire purchase (100)",
+          "description": "Deduct ₹100 from bill (burn 100 pts)",
+          "pointsToBurn": 100,
+          "discountInr": 100,
+          "isRecommended": true,
+          "eligible": true
+        },
+        {
+          "id": "OPT_TIER_tier-1",
+          "tierId": "tier-1",
+          "type": "TIER_VOUCHER",
+          "label": "Get a free coffee or dessert",
+          "description": "Cost: 500 pts • Needs 400 more pts",
+          "pointsToBurn": 500,
+          "discountInr": 250,
+          "eligible": false
+        },
+        {
+          "id": "OPT_TIER_tier-2",
+          "tierId": "tier-2",
+          "type": "TIER_VOUCHER",
+          "label": "You're special. Get ₹125 off",
+          "description": "Cost: 1000 pts • Needs 900 more pts",
+          "pointsToBurn": 1000,
+          "discountInr": 125,
+          "eligible": false
+        },
+        {
+          "id": "OPT_TIER_tier-3",
+          "tierId": "tier-3",
+          "type": "TIER_VOUCHER",
+          "label": "VIP Celebration: Flat 15% OFF entire bill",
+          "description": "Cost: 1500 pts • Needs 1400 more pts",
+          "pointsToBurn": 1500,
+          "discountInr": 58,
+          "eligible": false
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 100 pts",
+          "maxPoints": 100,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-23T15:32:19.527Z"
     }
   },
   "webhookLogs": [
+    {
+      "id": "log_1792769539528_qkf3l",
+      "timestamp": "2026-10-23T15:32:19.528Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1792769539525",
+      "status": "SUCCESS",
+      "payload": {
+        "customer_phone": "9745830506",
+        "customer_name": "mijwad",
+        "bill_amount": 385
+      },
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "cust_1792769539525",
+          "name": "mijwad",
+          "phone": "9745830506",
+          "tier": "New",
+          "visits": 0,
+          "points_balance": 100,
+          "points_value_inr": 100,
+          "favorite_dish": "Chef Special"
+        },
+        "bill_context": {
+          "order_id": "ORD-1792769539525",
+          "table_no": "T-1",
+          "bill_amount": 385,
+          "discountable_amount": 385,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 192.5,
+          "estimated_points_to_earn": 38
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1792769539527_pl6toq",
+          "is_eligible": true,
+          "max_redeemable_points": 100,
+          "max_discount_amount": 100,
+          "requires_otp": false,
+          "message": "mijwad has 100 points available. Maximum eligible discount is ₹100."
+        },
+        "available_points": 100,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_TIER_tier-1",
+            "tierId": "tier-1",
+            "type": "TIER_VOUCHER",
+            "label": "Get a free coffee or dessert",
+            "description": "Cost: 500 pts • Needs 400 more pts",
+            "pointsToBurn": 500,
+            "discountInr": 250,
+            "eligible": false
+          },
+          {
+            "id": "OPT_TIER_tier-2",
+            "tierId": "tier-2",
+            "type": "TIER_VOUCHER",
+            "label": "You're special. Get ₹125 off",
+            "description": "Cost: 1000 pts • Needs 900 more pts",
+            "pointsToBurn": 1000,
+            "discountInr": 125,
+            "eligible": false
+          },
+          {
+            "id": "OPT_TIER_tier-3",
+            "tierId": "tier-3",
+            "type": "TIER_VOUCHER",
+            "label": "VIP Celebration: Flat 15% OFF entire bill",
+            "description": "Cost: 1500 pts • Needs 1400 more pts",
+            "pointsToBurn": 1500,
+            "discountInr": 58,
+            "eligible": false
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 100 pts",
+            "maxPoints": 100,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_TIER_tier-1",
+            "tierId": "tier-1",
+            "type": "TIER_VOUCHER",
+            "label": "Get a free coffee or dessert",
+            "description": "Cost: 500 pts • Needs 400 more pts",
+            "pointsToBurn": 500,
+            "discountInr": 250,
+            "eligible": false
+          },
+          {
+            "id": "OPT_TIER_tier-2",
+            "tierId": "tier-2",
+            "type": "TIER_VOUCHER",
+            "label": "You're special. Get ₹125 off",
+            "description": "Cost: 1000 pts • Needs 900 more pts",
+            "pointsToBurn": 1000,
+            "discountInr": 125,
+            "eligible": false
+          },
+          {
+            "id": "OPT_TIER_tier-3",
+            "tierId": "tier-3",
+            "type": "TIER_VOUCHER",
+            "label": "VIP Celebration: Flat 15% OFF entire bill",
+            "description": "Cost: 1500 pts • Needs 1400 more pts",
+            "pointsToBurn": 1500,
+            "discountInr": 58,
+            "eligible": false
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 100 pts",
+            "maxPoints": 100,
+            "eligible": true
+          }
+        ]
+      },
+      "errorMessage": null
+    },
     {
       "id": "log_1792767702975_tt6g9",
       "timestamp": "2026-10-23T15:01:42.976Z",

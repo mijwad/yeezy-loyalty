@@ -2,13 +2,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @layer base {
-  html, body {
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
     margin: 0;
     padding: 0;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     background-color: #fbf8fc;
     color: #1b1b1e;
-    overscroll-behavior: none;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -28,10 +36,10 @@
   background: #7b7487;
 }
 
-/* Animations */
+/* Smooth, Non-Blinking Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0.98; }
+  to { opacity: 1; }
 }
 
 @keyframes slideInRight {
@@ -45,7 +53,13 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.1s ease-out forwards;
+}
+
+.hardware-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .animate-slide-right {

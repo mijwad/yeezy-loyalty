@@ -7,7 +7,7 @@ export function renderHeader(state) {
   const { activeOutlet, outlets, user } = state;
 
   return `
-    <header class="fixed top-0 left-0 md:left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg border-b border-outline-variant/20">
+    <header class="fixed top-0 left-0 md:left-64 right-0 h-16 bg-white/98 shadow-[0_1px_4px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg border-b border-outline-variant/20 hardware-accelerated">
       <!-- Left: Outlet Selector & Navigation Link -->
       <div class="flex items-center gap-space-md">
         <!-- Mobile hamburger -->

@@ -12,7 +12,7 @@ export function renderDashboard(state) {
   const currentStats = timeFilter === 'yesterday' ? yesterdayStats : todayStats;
 
   return `
-    <div class="px-space-md md:px-space-lg flex flex-col gap-space-lg animate-fade-in pb-12">
+    <div class="px-space-md md:px-space-lg flex flex-col gap-space-lg pb-12">
       <!-- Top Action Bar with Greeting, Outlet Badge & Dynamic Filter -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
         <div>
