@@ -1,6 +1,7 @@
 // Customers & Guest Directory REST Router
 import { Router } from 'express';
 import { posStore } from '../db/store.js';
+import { syncCustomerToSupabase } from '../db/supabase.js';
 
 export const customersRouter = Router();
 
@@ -101,6 +102,9 @@ customersRouter.post('/', (req, res) => {
   const customer = posStore.getOrCreateCustomer(phone, name);
   if (email) customer.email = email;
   posStore.persist();
+
+  // Async mirror to Supabase
+  syncCustomerToSupabase(customer);
 
   return res.status(201).json({
     status: 'success',

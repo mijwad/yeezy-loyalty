@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { posStore } from '../db/store.js';
+import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
 
 export const posRouter = Router();
 
@@ -418,6 +419,10 @@ posRouter.post('/petpooja/orders/save', (req, res) => {
   };
   posStore.data.orders.unshift(savedOrder);
   posStore.persist();
+
+  // Async mirror to Supabase Cloud PostgreSQL
+  syncCustomerToSupabase(customer);
+  syncOrderToSupabase(savedOrder);
 
   // 5. Generate simulated WhatsApp message invoice
   const simulatedNotification = {

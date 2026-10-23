@@ -35,7 +35,7 @@
       "primaryRestID": "PP_DEL_101",
       "outletsCount": 1,
       "totalDiners": 4,
-      "lifetimeSales": 3510
+      "lifetimeSales": 3650
     }
   ],
   "users": [
@@ -170,11 +170,11 @@
       "phone": "9687344309",
       "email": "9687344309@guest.yeezy.app",
       "tier": "New",
-      "pointsBalance": 100,
-      "lifetimeSpend": 0,
-      "visits": 0,
+      "pointsBalance": 14,
+      "lifetimeSpend": 140,
+      "visits": 1,
       "favoriteDish": "Chef Special",
-      "lastVisit": "Just now",
+      "lastVisit": "Today",
       "joinedDate": "2026-10-23"
     },
     {
@@ -192,6 +192,26 @@
     }
   ],
   "loyaltyLedger": [
+    {
+      "id": "ledg_1792767702959_o97uq",
+      "customerId": "cust_1792760927251",
+      "type": "EARN_PURCHASE",
+      "pointsDelta": 14,
+      "balanceAfter": 14,
+      "orderId": "cmvl3lolf0008hs68jwc3t5cd",
+      "reason": "Points earned on Bill #48 (Net ₹140)",
+      "createdAt": "2026-10-23T15:01:42.959Z"
+    },
+    {
+      "id": "ledg_1792767702958_lg9z1",
+      "customerId": "cust_1792760927251",
+      "type": "REDEEM_BURN",
+      "pointsDelta": -100,
+      "balanceAfter": 0,
+      "orderId": "cmvl3lolf0008hs68jwc3t5cd",
+      "reason": "Points redeemed for ₹100 discount on Bill #48",
+      "createdAt": "2026-10-23T15:01:42.958Z"
+    },
     {
       "id": "ledg_1792761659765_zs7eu",
       "customerId": "cust_1792761659764",
@@ -274,6 +294,29 @@
     }
   ],
   "orders": [
+    {
+      "orderId": "cmvl3lolf0008hs68jwc3t5cd",
+      "billNo": "48",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "cust_1792760927251",
+      "customerName": "Anushree M",
+      "customerPhone": "9687344309",
+      "financials": {
+        "subtotal": 140,
+        "tax": 0,
+        "grossAmount": 140,
+        "loyaltyDiscount": 100,
+        "netPaid": 140,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 100,
+      "pointsEarned": 14,
+      "newBalance": 14,
+      "settledAt": "2026-10-23T15:01:42.960Z"
+    },
     {
       "orderId": "PP-LIVE-TEST-7711",
       "billNo": "BILL/7711",
@@ -670,7 +713,7 @@
           "eligible": true
         }
       ],
-      "status": "LOCKED_PENDING_PAYMENT",
+      "status": "COMPLETED_SETTLED",
       "createdAt": "2026-10-23T15:01:22.482Z",
       "selectedOptionId": "OPT_100_OFF",
       "pointsLocked": 100,
@@ -678,6 +721,47 @@
     }
   },
   "webhookLogs": [
+    {
+      "id": "log_1792767702975_tt6g9",
+      "timestamp": "2026-10-23T15:01:42.976Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "cmvl3lolf0008hs68jwc3t5cd",
+      "status": "SUCCESS",
+      "payload": {
+        "order_id": "cmvl3lolf0008hs68jwc3t5cd",
+        "bill_no": "48",
+        "customer": {
+          "phone": "9687344309",
+          "name": "Valued Guest"
+        },
+        "financials": {
+          "net_paid": 140,
+          "loyalty_discount": 100
+        },
+        "redemption_session_token": "red_sess_1792767682482_41fvcw"
+      },
+      "response": {
+        "status": "success",
+        "order_id": "cmvl3lolf0008hs68jwc3t5cd",
+        "bill_no": "48",
+        "customer": {
+          "name": "Anushree M",
+          "phone": "9687344309",
+          "tier": "New",
+          "points_earned": 14,
+          "points_burned": 100,
+          "new_balance": 14
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "9687344309",
+          "sent": true,
+          "message": "Hello Anushree M! 🎉 Thank you for dining with us at Downtown Bistro. You earned 14 Yeezy loyalty points on Bill #48. Your new total balance is 14 points. Redeem rewards on your next visit!"
+        }
+      },
+      "errorMessage": null
+    },
     {
       "id": "log_1792767690074_kn7s1",
       "timestamp": "2026-10-23T15:01:30.074Z",
