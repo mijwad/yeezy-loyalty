@@ -254,24 +254,17 @@ function renderActivityTab(customer) {
       <!-- Timeline Records -->
       <div class="space-y-4">
         ${orders.length > 0 ? orders.map((ord, idx) => renderOrderActivityCard(ord, idx, orders.length)).join('') : `
-          <!-- Empty State when customer has no orders yet -->
-          <div class="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-center space-y-3">
-            <div class="w-12 h-12 rounded-full bg-slate-200/80 text-slate-500 mx-auto flex items-center justify-center">
+          <!-- Production Empty State when customer has no orders yet -->
+          <div class="p-6 bg-slate-50 rounded-2xl border border-slate-200/70 text-center space-y-2">
+            <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
               <span class="material-symbols-outlined text-2xl">receipt_long</span>
             </div>
             <div>
               <h5 class="text-sm font-bold text-slate-800">No Orders Captured Yet</h5>
-              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                Orders and reward redemptions will automatically appear here in real-time as bills are settled in Yeezy Bill or Petpooja POS.
+              <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                Orders and reward redemptions will automatically appear here in real-time as bills are settled on your POS terminal.
               </p>
             </div>
-            <button 
-              id="btn-simulate-order"
-              type="button" 
-              class="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition shadow-sm"
-            >
-              Simulate Test Dining Bill (₹850)
-            </button>
           </div>
         `}
 
@@ -403,7 +396,6 @@ export function attachCustomerDrawerListeners() {
             const content = document.getElementById('customerTabContent');
             if (content) {
               content.innerHTML = renderActivityTab(customer);
-              attachActivityListeners(customer);
             }
           }
         }
@@ -459,15 +451,12 @@ export function attachCustomerDrawerListeners() {
       tabPersonaBtn.className = 'px-6 py-2 rounded-full text-xs font-bold transition-all text-slate-300 hover:text-white';
       
       tabContent.innerHTML = renderActivityTab(customer);
-      attachActivityListeners(customer);
     };
   }
 
   // Attach tab-specific listeners
   if (currentTab === 'persona') {
     attachPersonaListeners(customer);
-  } else {
-    attachActivityListeners(customer);
   }
 }
 
@@ -518,38 +507,3 @@ function attachPersonaListeners(customer) {
   }
 }
 
-function attachActivityListeners(customer) {
-  // Simulate Order button
-  const simBtn = document.getElementById('btn-simulate-order');
-  if (simBtn) {
-    simBtn.onclick = () => {
-      const newOrder = {
-        id: `POS-${Math.floor(1000 + Math.random() * 9000)}`,
-        date: new Date().toISOString(),
-        items: 'Paneer Makhani x 1, Garlic Naan x 3, Gulab Jamun x 2',
-        total: '₹850',
-        pointsEarned: 85,
-        pointsBurned: 50,
-        loyaltyDiscount: 50,
-        tableNo: 'Table T-2',
-        paymentMode: 'UPI'
-      };
-
-      if (!customer.recentOrders) customer.recentOrders = [];
-      customer.recentOrders.unshift(newOrder);
-      customer.visits = (customer.visits || 0) + 1;
-      const curSpend = parseInt(String(customer.lifetimeSpend || '0').replace(/\D/g, '') || 0) + 850;
-      customer.lifetimeSpend = `₹${curSpend.toLocaleString()}`;
-      customer.numericSpend = curSpend;
-
-      fetchedOrders = customer.recentOrders;
-      window.showToast?.(`Simulated POS bill #${newOrder.id} with ₹50 points redeemed & 85 pts earned!`);
-      
-      const content = document.getElementById('customerTabContent');
-      if (content) {
-        content.innerHTML = renderActivityTab(customer);
-        attachActivityListeners(customer);
-      }
-    };
-  }
-}

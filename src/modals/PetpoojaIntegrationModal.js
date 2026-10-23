@@ -193,24 +193,6 @@ export function renderPetpoojaIntegrationModal(state) {
                 </div>
               </div>
             </div>
-
-            <!-- Helper Simulator Accordion -->
-            <div class="mt-2 pt-3 border-t border-slate-300/60">
-              <div class="bg-white/80 rounded-2xl p-3 border border-slate-200 flex items-center justify-between text-xs">
-                <div class="flex items-center gap-2">
-                  <span class="material-symbols-outlined text-amber-500 text-base">bolt</span>
-                  <span class="font-bold text-slate-800">Petpooja POS Simulator</span>
-                </div>
-                <button 
-                  id="btn-simulate-petpooja-handshake" 
-                  type="button" 
-                  class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-black text-white text-[11px] font-bold transition"
-                >
-                  ${isSimulatingPetpooja ? 'Sending...' : '⚡ Simulate "I am interested"'}
-                </button>
-              </div>
-            </div>
-
           </div>
         `}
 
@@ -300,29 +282,6 @@ export function attachPetpoojaIntegrationModalListeners() {
         isVerifying = false;
         window.showToast('🎉 Integration successful! Petpooja is now linked.');
       }
-    };
-  }
-
-  // Simulator helper: Simulate Petpooja clicking "I am interested"
-  const simBtn = document.getElementById('btn-simulate-petpooja-handshake');
-  if (simBtn) {
-    simBtn.onclick = async () => {
-      isSimulatingPetpooja = true;
-      store.notify();
-
-      const keyVal = store.getState().reeloKey || '89146762-bc2a-4be4-ba5f-8c0aef3a358e';
-
-      try {
-        await fetch(apiUrl('/api/v1/pos/petpooja/marketplace/handshake'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reelo_key: keyVal, restID: 'PP_DEL_101' })
-        });
-      } catch (_) {}
-
-      isSimulatingPetpooja = false;
-      window.showToast('Petpooja handshake received! Now click "Complete Integration".');
-      store.notify();
     };
   }
 

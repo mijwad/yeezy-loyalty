@@ -265,22 +265,13 @@ export function renderAppsIntegrationsView(state) {
                     <span>${item.isLive ? 'Manage Petpooja POS' : 'Connect Petpooja (3 Steps)'}</span>
                   </button>
                 ` : isYeezyBill ? `
-                  <div class="flex gap-2 w-full">
-                    <button 
-                      type="button" 
-                      class="btn-trigger-yeezy-bill flex-1 py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
-                    >
-                      <span class="material-symbols-outlined text-sm">tune</span>
-                      <span>Configure Yeezy Bill</span>
-                    </button>
-                    <button 
-                      type="button" 
-                      class="btn-quick-punch-bill py-2.5 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 font-bold text-xs transition shadow-xs active:scale-95"
-                      title="Simulate 1-click test bill"
-                    >
-                      <span class="material-symbols-outlined text-sm">bolt</span>
-                    </button>
-                  </div>
+                  <button 
+                    type="button" 
+                    class="btn-trigger-yeezy-bill w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-600 hover:from-purple-800 hover:to-indigo-700 text-white font-bold text-xs transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95"
+                  >
+                    <span class="material-symbols-outlined text-sm">tune</span>
+                    <span>Configure Yeezy Bill</span>
+                  </button>
                 ` : isCustomPos ? `
                   <button 
                     type="button" 
@@ -408,24 +399,6 @@ export function attachAppsIntegrationsListeners() {
     };
   });
 
-  // Quick punch test bill for Yeezy Bill
-  document.querySelectorAll('.btn-quick-punch-bill').forEach(btn => {
-    btn.onclick = async () => {
-      showToast('Punching test bill on Yeezy Bill terminal...');
-      try {
-        const res = await fetch(apiUrl('/api/v1/pos/simulate'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: '9876543210', name: 'Sarah Jenkins', amount: 850, discount: 0 })
-        });
-        await res.json();
-        await store.syncWithBackend();
-        showToast('Yeezy Bill order settled! Sarah Jenkins earned 85 loyalty points.');
-      } catch (e) {
-        showToast('Yeezy Bill order punched successfully!');
-      }
-    };
-  });
 
   // Custom POS trigger
   document.querySelectorAll('.btn-trigger-webhook-docs').forEach(btn => {

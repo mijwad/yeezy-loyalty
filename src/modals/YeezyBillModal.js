@@ -126,35 +126,7 @@ export function renderYeezyBillModal(state) {
             </label>
           </div>
 
-          <!-- Interactive POS Bill Simulator -->
-          <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-200 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="font-black text-purple-950 text-xs flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-base text-purple-700">bolt</span>
-                Quick Test: Simulate Yeezy Bill Order
-              </span>
-              <span class="text-[10px] font-bold text-purple-700 bg-purple-200/60 px-2 py-0.5 rounded-full">Zero Latency</span>
-            </div>
-            <p class="text-[11px] text-purple-900/80">Simulate a customer order punched directly on the Yeezy Bill terminal to verify live loyalty accrual.</p>
-            <div class="flex gap-2">
-              <button 
-                id="btn-yb-simulate-small"
-                type="button" 
-                class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5"
-              >
-                <span>Punch ₹650 Bill</span>
-                <span class="text-[10px] bg-purple-800/40 px-1.5 py-0.5 rounded">+65 pts</span>
-              </button>
-              <button 
-                id="btn-yb-simulate-large"
-                type="button" 
-                class="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5"
-              >
-                <span>Punch ₹2,400 Bill</span>
-                <span class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded">+240 pts</span>
-              </button>
-            </div>
-          </div>
+
 
         </div>
 
@@ -186,8 +158,6 @@ export function attachYeezyBillModalListeners() {
   const closeBtn = document.getElementById('btn-close-yeezy-bill-modal');
   const footerCloseBtn = document.getElementById('btn-yb-close-footer');
   const saveBtn = document.getElementById('btn-yb-save-settings');
-  const simSmallBtn = document.getElementById('btn-yb-simulate-small');
-  const simLargeBtn = document.getElementById('btn-yb-simulate-large');
 
   const closeModal = () => store.setUIState({ activeModal: null });
 
@@ -212,39 +182,4 @@ export function attachYeezyBillModalListeners() {
       closeModal();
     };
   }
-
-  const runSimulation = async (amount) => {
-    if (isSimulatingBill) return;
-    isSimulatingBill = true;
-
-    try {
-      showToast(`Punching ₹${amount} order on Yeezy Bill terminal...`);
-      const phone = '9876543210';
-      const name = 'Sarah Jenkins';
-
-      const res = await fetch(apiUrl('/api/v1/pos/simulate'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, name, amount, discount: 0 })
-      });
-      const data = await res.json();
-
-      if (data.status === 'success' || data.success) {
-        await store.syncWithBackend();
-        showToast(`Order settled! Sarah Jenkins earned ${Math.round(amount * 0.1)} points on Yeezy Bill.`);
-        closeModal();
-      } else {
-        showToast('Order recorded locally on Yeezy Bill terminal.');
-        closeModal();
-      }
-    } catch (e) {
-      showToast(`Yeezy Bill simulated: ₹${amount} order credited points.`);
-      closeModal();
-    } finally {
-      isSimulatingBill = false;
-    }
-  };
-
-  if (simSmallBtn) simSmallBtn.onclick = () => runSimulation(650);
-  if (simLargeBtn) simLargeBtn.onclick = () => runSimulation(2400);
 }
