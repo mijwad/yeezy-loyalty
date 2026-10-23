@@ -1,0 +1,14 @@
+# Render Infrastructure as Code Blueprint
+services:
+  - type: web
+    name: yeezy-loyalty-platform
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000

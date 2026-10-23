@@ -1,0 +1,574 @@
+// Prisma Schema for Yeezy Loyalty Platform
+// Multi-Tenant Architecture with Petpooja & POS Engine
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SuperAdminRole {
+  SUPER_ADMIN
+  SUPPORT_AGENT
+  FINANCE_AUDITOR
+  SYSTEM_ENGINEER
+}
+
+enum TenantStatus {
+  PENDING_ONBOARDING
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum OutletStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum UserTenantRole {
+  BRAND_OWNER
+  BRAND_MANAGER
+  OUTLET_MANAGER
+  CASHIER
+  MARKETING_LEAD
+}
+
+enum LoyaltyProgramType {
+  AMOUNT_SPENT_POINTS
+  CASHBACK_PERCENTAGE
+  VISIT_STAMPS
+  TIERED_VIP
+}
+
+enum PosSystemType {
+  PETPOOJA
+  POSIST
+  URBANPIPER
+  DOTPE
+  PINELABS
+  TOAST
+  SQUARE
+  CUSTOM_WEBHOOK
+}
+
+enum PosSyncStatus {
+  PENDING
+  CONNECTED
+  DISCONNECTED
+  AUTHENTICATION_ERROR
+  PAUSED
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAID_SETTLED
+  VOIDED_CANCELLED
+  REFUNDED
+}
+
+enum RedemptionStatus {
+  QUOTED
+  LOCKED_PENDING_PAYMENT
+  REDEEMED_CONFIRMED
+  REVERSED_UNLOCKED
+  EXPIRED
+}
+
+enum LedgerEntryType {
+  EARN_BILL_SETTLEMENT
+  BURN_DISCOUNT_REDEMPTION
+  BONUS_SIGNUP
+  BONUS_BIRTHDAY
+  BONUS_REFERRAL
+  MANUAL_CREDIT_ADMIN
+  MANUAL_DEBIT_ADMIN
+  REVERSAL_ORDER_CANCELLED
+  POINTS_EXPIRATION
+}
+
+enum ChannelType {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+enum CreditTransactionType {
+  TOPUP_PURCHASE
+  USAGE_DEDUCTION
+  PROMOTIONAL_CREDIT
+  REFUND_CREDIT
+}
+
+// ----------------------------------------------------------------------------
+// 1. SUPER ADMIN LAYER
+// ----------------------------------------------------------------------------
+
+model SuperAdmin {
+  id                String               @id @default(uuid()) @db.Uuid
+  fullName          String               @map("full_name") @db.VarChar(120)
+  email             String               @unique @db.VarChar(255)
+  passwordHash      String               @map("password_hash") @db.VarChar(255)
+  phoneNumber       String?              @map("phone_number") @db.VarChar(20)
+  role              SuperAdminRole       @default(SUPER_ADMIN)
+  isActive          Boolean              @default(true) @map("is_active")
+  twoFactorSecret   String?              @map("two_factor_secret") @db.VarChar(128)
+  twoFactorEnabled  Boolean              @default(false) @map("two_factor_enabled")
+  lastLoginAt       DateTime?            @map("last_login_at") @db.Timestamptz
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+
+  auditLogs         SuperAdminAuditLog[]
+  creditLedgers     TenantCreditLedger[]
+
+  @@map("super_admins")
+}
+
+model SuperAdminAuditLog {
+  id             String      @id @default(uuid()) @db.Uuid
+  superAdminId   String?     @map("super_admin_id") @db.Uuid
+  action         String      @db.VarChar(100)
+  targetTenantId String?     @map("target_tenant_id") @db.Uuid
+  ipAddress      String?     @map("ip_address")
+  userAgent      String?     @map("user_agent")
+  payloadBefore  Json?       @map("payload_before")
+  payloadAfter   Json?       @map("payload_after")
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  superAdmin     SuperAdmin? @relation(fields: [superAdminId], references: [id], onDelete: SetNull)
+
+  @@map("super_admin_audit_logs")
+}
+
+// ----------------------------------------------------------------------------
+// 2. MULTI-TENANCY: BRANDS & OUTLETS
+// ----------------------------------------------------------------------------
+
+model Tenant {
+  id                      String              @id @default(uuid()) @db.Uuid
+  code                    String              @unique @db.VarChar(50)
+  name                    String              @db.VarChar(150)
+  logoUrl                 String?             @map("logo_url")
+  legalEntityName         String?             @map("legal_entity_name") @db.VarChar(200)
+  taxGstin                String?             @map("tax_gstin") @db.VarChar(30)
+  status                  TenantStatus        @default(ACTIVE)
+  billingPlan             String              @default("PRO_GROWTH") @map("billing_plan") @db.VarChar(50)
+  subscriptionRenewsAt    DateTime?           @map("subscription_renews_at") @db.Timestamptz
+  primaryContactName      String?             @map("primary_contact_name") @db.VarChar(120)
+  primaryContactEmail     String              @map("primary_contact_email") @db.VarChar(255)
+  primaryContactPhone     String              @map("primary_contact_phone") @db.VarChar(20)
+
+  // Credits Balances
+  smsCreditsBalance       Int                 @default(100) @map("sms_credits_balance")
+  emailCreditsBalance     Int                 @default(100) @map("email_credits_balance")
+  whatsappUtilityCredits  Int                 @default(100) @map("whatsapp_utility_credits")
+  whatsappMarketingCredits Int                @default(100) @map("whatsapp_marketing_credits")
+  autoRefillEnabled       Boolean             @default(false) @map("auto_refill_enabled")
+  autoRefillThreshold     Int?                @default(50) @map("auto_refill_threshold")
+  autoRefillPackSize      Int?                @default(1000) @map("auto_refill_pack_size")
+
+  currency                String              @default("INR") @db.VarChar(10)
+  timezone                String              @default("Asia/Kolkata") @db.VarChar(50)
+  createdAt               DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt               DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  outlets                 Outlet[]
+  users                   TenantUser[]
+  loyaltyProgram          LoyaltyProgram?
+  customers               Customer[]
+  orders                  Order[]
+  posIntegrations         PosIntegration[]
+  redemptionSessions      LoyaltyRedemptionSession[]
+  ledgerTransactions      LoyaltyLedgerTransaction[]
+  creditLedgers           TenantCreditLedger[]
+
+  @@map("tenants")
+}
+
+model Outlet {
+  id                 String              @id @default(uuid()) @db.Uuid
+  tenantId           String              @map("tenant_id") @db.Uuid
+  code               String              @db.VarChar(50)
+  name               String              @db.VarChar(150)
+  status             OutletStatus        @default(ACTIVE)
+  phone              String?             @db.VarChar(20)
+  email              String?             @db.VarChar(255)
+  addressLine1       String              @map("address_line1") @db.VarChar(255)
+  addressLine2       String?             @map("address_line2") @db.VarChar(255)
+  city               String              @db.VarChar(100)
+  state              String              @db.VarChar(100)
+  pincode            String              @db.VarChar(20)
+  latitude           Decimal?            @db.Decimal(10, 7)
+  longitude          Decimal?            @db.Decimal(10, 7)
+  qrCodeToken        String?             @unique @map("qr_code_token") @db.VarChar(64)
+  tableCount         Int?                @default(20) @map("table_count")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant             Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users              TenantUser[]
+  posIntegrations    PosIntegration[]
+  orders             Order[]
+  redemptionSessions LoyaltyRedemptionSession[]
+  ledgerTransactions LoyaltyLedgerTransaction[]
+  firstVisitedBy     Customer[]          @relation("CustomerFirstOutlet")
+
+  @@unique([tenantId, code])
+  @@map("outlets")
+}
+
+model TenantUser {
+  id           String         @id @default(uuid()) @db.Uuid
+  tenantId     String         @map("tenant_id") @db.Uuid
+  outletId     String?        @map("outlet_id") @db.Uuid
+  fullName     String         @map("full_name") @db.VarChar(120)
+  email        String         @db.VarChar(255)
+  phoneNumber  String?        @map("phone_number") @db.VarChar(20)
+  passwordHash String         @map("password_hash") @db.VarChar(255)
+  role         UserTenantRole @default(OUTLET_MANAGER)
+  isActive     Boolean        @default(true) @map("is_active")
+  posPinHash   String?        @map("pos_pin_hash") @db.VarChar(128)
+  lastLoginAt  DateTime?      @map("last_login_at") @db.Timestamptz
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  outlet       Outlet?        @relation(fields: [outletId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, email])
+  @@map("tenant_users")
+}
+
+// ----------------------------------------------------------------------------
+// 3. POS INTEGRATION LAYER (PETPOOJA ADAPTER)
+// ----------------------------------------------------------------------------
+
+model PosIntegration {
+  id                         String         @id @default(uuid()) @db.Uuid
+  tenantId                   String         @map("tenant_id") @db.Uuid
+  outletId                   String         @map("outlet_id") @db.Uuid
+  posType                    PosSystemType  @default(PETPOOJA) @map("pos_type")
+  syncStatus                 PosSyncStatus  @default(CONNECTED) @map("sync_status")
+
+  // Petpooja Identifiers
+  petpoojaRestId             String         @map("petpooja_rest_id") @db.VarChar(100)
+  petpoojaAppKey             String?        @map("petpooja_app_key") @db.VarChar(255)
+  petpoojaAppSecret          String?        @map("petpooja_app_secret") @db.VarChar(255)
+  petpoojaAccessToken        String?        @map("petpooja_access_token")
+
+  // Webhook / HMAC
+  posApiBaseUrl              String?        @map("pos_api_base_url")
+  webhookSecretKey           String         @map("webhook_secret_key") @db.VarChar(255)
+  inboundWebhookUrl          String?        @map("inbound_webhook_url")
+
+  // Rule Overrides for POS Terminal
+  allowPointsRedemption      Boolean        @default(true) @map("allow_points_redemption")
+  allowPointsAccrual         Boolean        @default(true) @map("allow_points_accrual")
+  requireOtpForRedemption    Boolean        @default(false) @map("require_otp_for_redemption")
+  minBillAmountForRedemption Decimal        @default(100.00) @map("min_bill_amount_for_redemption") @db.Decimal(12, 2)
+  maxBillPercentageDiscount  Decimal        @default(50.00) @map("max_bill_percentage_discount") @db.Decimal(5, 2)
+
+  lastSyncHeartbeatAt        DateTime?      @map("last_sync_heartbeat_at") @db.Timestamptz
+  metadata                   Json?          @default("{}")
+  createdAt                  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  outlet                     Outlet         @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  webhookLogs                PosWebhookLog[]
+
+  @@unique([outletId, posType])
+  @@unique([posType, petpoojaRestId])
+  @@index([posType, petpoojaRestId], name: "idx_pos_integrations_petpooja")
+  @@map("pos_integrations")
+}
+
+model PosWebhookLog {
+  id                         String         @id @default(uuid()) @db.Uuid
+  posIntegrationId           String?        @map("pos_integration_id") @db.Uuid
+  posType                    PosSystemType  @map("pos_type")
+  eventType                  String         @map("event_type") @db.VarChar(100)
+  idempotencyKey             String?        @unique @map("idempotency_key") @db.VarChar(255)
+  headers                    Json?
+  payload                    Json
+  responseStatus             Int?           @map("response_status")
+  responseBody               Json?          @map("response_body")
+  processingTimeMs           Int?           @map("processing_time_ms")
+  errorMessage               String?        @map("error_message")
+  isProcessedSuccessfully    Boolean        @default(false) @map("is_processed_successfully")
+  createdAt                  DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  posIntegration             PosIntegration? @relation(fields: [posIntegrationId], references: [id], onDelete: SetNull)
+
+  @@index([idempotencyKey], name: "idx_pos_logs_idempotency")
+  @@index([createdAt(sort: Desc)], name: "idx_pos_logs_created")
+  @@map("pos_webhook_logs")
+}
+
+// ----------------------------------------------------------------------------
+// 4. LOYALTY PROGRAM & TIERS
+// ----------------------------------------------------------------------------
+
+model LoyaltyProgram {
+  id                         String             @id @default(uuid()) @db.Uuid
+  tenantId                   String             @unique @map("tenant_id") @db.Uuid
+  programName                String             @default("Vanguard Rewards") @map("program_name") @db.VarChar(150)
+  programType                LoyaltyProgramType @default(AMOUNT_SPENT_POINTS) @map("program_type")
+  isActive                   Boolean            @default(true) @map("is_active")
+
+  // Earn Rules
+  spendAmountUnit            Decimal            @default(100.00) @map("spend_amount_unit") @db.Decimal(12, 2)
+  pointsEarnedPerUnit        Decimal            @default(10.00) @map("points_earned_per_unit") @db.Decimal(12, 2)
+
+  // Burn Rules
+  pointRedemptionValueInCash Decimal            @default(1.00) @map("point_redemption_value_in_cash") @db.Decimal(12, 2)
+  minPointsToBurn            Int                @default(50) @map("min_points_to_burn")
+  maxPointsBurnPerBill       Int?               @default(1000) @map("max_points_burn_per_bill")
+
+  // Expiration & Incentives
+  pointsExpiryMonths         Int                @default(12) @map("points_expiry_months")
+  sendExpiryReminderDays     Int                @default(30) @map("send_expiry_reminder_days")
+  welcomeBonusPoints         Int                @default(50) @map("welcome_bonus_points")
+  birthdayBonusPoints        Int                @default(100) @map("birthday_bonus_points")
+  referralBonusPoints        Int                @default(100) @map("referral_bonus_points")
+  excludeTaxesFromAccrual    Boolean            @default(true) @map("exclude_taxes_from_accrual")
+  excludeDiscountedItems     Boolean            @default(true) @map("exclude_discounted_items")
+
+  createdAt                  DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                  DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tiers                      LoyaltyTier[]
+
+  @@map("loyalty_programs")
+}
+
+model LoyaltyTier {
+  id               String         @id @default(uuid()) @db.Uuid
+  loyaltyProgramId String         @map("loyalty_program_id") @db.Uuid
+  tierName         String         @map("tier_name") @db.VarChar(60)
+  tierLevel        Int            @map("tier_level")
+  minAnnualSpend   Decimal        @default(0.00) @map("min_annual_spend") @db.Decimal(12, 2)
+  pointsMultiplier Decimal        @default(1.00) @map("points_multiplier") @db.Decimal(4, 2)
+  perksDescription String?        @map("perks_description")
+  cardBadgeColor   String?        @default("#7C3AED") @map("card_badge_color") @db.VarChar(30)
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+
+  loyaltyProgram   LoyaltyProgram @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+  customers        Customer[]
+
+  @@unique([loyaltyProgramId, tierLevel])
+  @@unique([loyaltyProgramId, tierName])
+  @@map("loyalty_tiers")
+}
+
+// ----------------------------------------------------------------------------
+// 5. CUSTOMER IDENTITY & RFM
+// ----------------------------------------------------------------------------
+
+model Customer {
+  id                     String                     @id @default(uuid()) @db.Uuid
+  tenantId               String                     @map("tenant_id") @db.Uuid
+  currentTierId          String?                    @map("current_tier_id") @db.Uuid
+  firstOutletId          String?                    @map("first_outlet_id") @db.Uuid
+
+  phoneNumber            String                     @map("phone_number") @db.VarChar(20)
+  countryCode            String                     @default("+91") @map("country_code") @db.VarChar(5)
+  fullName               String?                    @map("full_name") @db.VarChar(120)
+  email                  String?                    @db.VarChar(255)
+  gender                 String?                    @db.VarChar(20)
+  dateOfBirth            DateTime?                  @map("date_of_birth") @db.Date
+  anniversaryDate        DateTime?                  @map("anniversary_date") @db.Date
+
+  // Balances
+  pointsBalance          Decimal                    @default(0.00) @map("points_balance") @db.Decimal(12, 2)
+  lifetimePointsEarned   Decimal                    @default(0.00) @map("lifetime_points_earned") @db.Decimal(12, 2)
+  lifetimePointsRedeemed Decimal                    @default(0.00) @map("lifetime_points_redeemed") @db.Decimal(12, 2)
+  lifetimeSpend          Decimal                    @default(0.00) @map("lifetime_spend") @db.Decimal(14, 2)
+  totalVisitsCount       Int                        @default(0) @map("total_visits_count")
+
+  firstVisitAt           DateTime?                  @map("first_visit_at") @db.Timestamptz
+  lastVisitAt            DateTime?                  @map("last_visit_at") @db.Timestamptz
+  rfmSegment             String?                    @default("NEW_GUEST") @map("rfm_segment") @db.VarChar(50)
+
+  isWhatsappOptIn        Boolean                    @default(true) @map("is_whatsapp_opt_in")
+  isSmsOptIn             Boolean                    @default(true) @map("is_sms_opt_in")
+  isBlocked              Boolean                    @default(false) @map("is_blocked")
+  notes                  String?
+  createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                 Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  currentTier            LoyaltyTier?               @relation(fields: [currentTierId], references: [id], onDelete: SetNull)
+  firstOutlet            Outlet?                    @relation("CustomerFirstOutlet", fields: [firstOutletId], references: [id], onDelete: SetNull)
+  orders                 Order[]
+  redemptionSessions     LoyaltyRedemptionSession[]
+  ledgerTransactions     LoyaltyLedgerTransaction[]
+
+  @@unique([tenantId, phoneNumber])
+  @@index([tenantId, phoneNumber], name: "idx_customers_tenant_phone")
+  @@map("customers")
+}
+
+// ----------------------------------------------------------------------------
+// 6. ORDERS, ITEMS & REDEMPTION SESSIONS (POS INTEGRATION)
+// ----------------------------------------------------------------------------
+
+model Order {
+  id                     String                     @id @default(uuid()) @db.Uuid
+  tenantId               String                     @map("tenant_id") @db.Uuid
+  outletId               String                     @map("outlet_id") @db.Uuid
+  customerId             String?                    @map("customer_id") @db.Uuid
+
+  posSystem              PosSystemType              @default(PETPOOJA) @map("pos_system")
+  posOrderId             String                     @map("pos_order_id") @db.VarChar(100)
+  posBillNo              String                     @map("pos_bill_no") @db.VarChar(100)
+  tableNo                String?                    @map("table_no") @db.VarChar(50)
+  serverName             String?                    @map("server_name") @db.VarChar(100)
+  orderType              String?                    @default("DINE_IN") @map("order_type") @db.VarChar(50)
+
+  subtotalAmount         Decimal                    @map("subtotal_amount") @db.Decimal(12, 2)
+  taxAmount              Decimal                    @default(0.00) @map("tax_amount") @db.Decimal(12, 2)
+  serviceCharge          Decimal                    @default(0.00) @map("service_charge") @db.Decimal(12, 2)
+  grossBillAmount        Decimal                    @map("gross_bill_amount") @db.Decimal(12, 2)
+
+  loyaltyDiscountAmount  Decimal                    @default(0.00) @map("loyalty_discount_amount") @db.Decimal(12, 2)
+  otherDiscountsAmount   Decimal                    @default(0.00) @map("other_discounts_amount") @db.Decimal(12, 2)
+  totalDiscountAmount    Decimal                    @default(0.00) @map("total_discount_amount") @db.Decimal(12, 2)
+
+  netPayableAmount       Decimal                    @map("net_payable_amount") @db.Decimal(12, 2)
+  paymentMode            String?                    @map("payment_mode") @db.VarChar(50)
+
+  eligibleSpendForPoints Decimal                    @default(0.00) @map("eligible_spend_for_points") @db.Decimal(12, 2)
+  pointsEarnedOnBill     Decimal                    @default(0.00) @map("points_earned_on_bill") @db.Decimal(12, 2)
+  pointsRedeemedOnBill   Decimal                    @default(0.00) @map("points_redeemed_on_bill") @db.Decimal(12, 2)
+
+  status                 OrderStatus                @default(PAID_SETTLED)
+  posCreatedAt           DateTime                   @map("pos_created_at") @db.Timestamptz
+  createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                 Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  outlet                 Outlet                     @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  customer               Customer?                  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items                  OrderItem[]
+  redemptionSessions     LoyaltyRedemptionSession[]
+  ledgerTransactions     LoyaltyLedgerTransaction[]
+
+  @@unique([outletId, posSystem, posOrderId])
+  @@index([outletId, posBillNo], name: "idx_orders_outlet_pos_bill")
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  orderId        String   @map("order_id") @db.Uuid
+  posItemId      String?  @map("pos_item_id") @db.VarChar(100)
+  itemName       String   @map("item_name") @db.VarChar(200)
+  categoryName   String?  @map("category_name") @db.VarChar(100)
+  quantity       Decimal  @default(1.00) @db.Decimal(8, 2)
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(12, 2)
+  totalPrice     Decimal  @map("total_price") @db.Decimal(12, 2)
+  isTaxable      Boolean  @default(true) @map("is_taxable")
+  isDiscountable Boolean  @default(true) @map("is_discountable")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model LoyaltyRedemptionSession {
+  id                    String                     @id @default(uuid()) @db.Uuid
+  tenantId              String                     @map("tenant_id") @db.Uuid
+  outletId              String                     @map("outlet_id") @db.Uuid
+  customerId            String                     @map("customer_id") @db.Uuid
+  orderId               String?                    @map("order_id") @db.Uuid
+
+  posSessionToken       String                     @unique @map("pos_session_token") @db.VarChar(120)
+  billAmountSnapshot    Decimal                    @map("bill_amount_snapshot") @db.Decimal(12, 2)
+
+  pointsRequested       Decimal                    @map("points_requested") @db.Decimal(12, 2)
+  discountAmountOffered Decimal                    @map("discount_amount_offered") @db.Decimal(12, 2)
+
+  otpCode               String?                    @map("otp_code") @db.VarChar(10)
+  otpExpiresAt          DateTime?                  @map("otp_expires_at") @db.Timestamptz
+  isOtpVerified         Boolean                    @default(false) @map("is_otp_verified")
+
+  status                RedemptionStatus           @default(QUOTED)
+  lockedAt              DateTime?                  @map("locked_at") @db.Timestamptz
+  redeemedAt            DateTime?                  @map("redeemed_at") @db.Timestamptz
+  cancelledAt           DateTime?                  @map("cancelled_at") @db.Timestamptz
+  expiresAt             DateTime                   @map("expires_at") @db.Timestamptz
+
+  createdAt             DateTime                   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime                   @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant                Tenant                     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  outlet                Outlet                     @relation(fields: [outletId], references: [id], onDelete: Cascade)
+  customer              Customer                   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order                 Order?                     @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  ledgerTransactions    LoyaltyLedgerTransaction[]
+
+  @@index([posSessionToken], name: "idx_redemption_token")
+  @@index([status, expiresAt], name: "idx_redemption_status_expiry")
+  @@map("loyalty_redemption_sessions")
+}
+
+// ----------------------------------------------------------------------------
+// 7. DOUBLE-ENTRY POINTS LEDGER & CREDITS LEDGER
+// ----------------------------------------------------------------------------
+
+model LoyaltyLedgerTransaction {
+  id                  String                    @id @default(uuid()) @db.Uuid
+  tenantId            String                    @map("tenant_id") @db.Uuid
+  customerId          String                    @map("customer_id") @db.Uuid
+  outletId            String?                   @map("outlet_id") @db.Uuid
+  orderId             String?                   @map("order_id") @db.Uuid
+  redemptionSessionId String?                   @map("redemption_session_id") @db.Uuid
+
+  entryType           LedgerEntryType           @map("entry_type")
+  pointsDelta         Decimal                   @map("points_delta") @db.Decimal(12, 2)
+  balanceAfter        Decimal                   @map("balance_after") @db.Decimal(12, 2)
+
+  idempotencyKey      String                    @unique @map("idempotency_key") @db.VarChar(255)
+  description         String                    @db.VarChar(255)
+
+  expiresAt           DateTime?                 @map("expires_at") @db.Timestamptz
+  isExpired           Boolean                   @default(false) @map("is_expired")
+  metadata            Json?                     @default("{}")
+  createdAt           DateTime                  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant              Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer            Customer                  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  outlet              Outlet?                   @relation(fields: [outletId], references: [id], onDelete: SetNull)
+  order               Order?                    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  redemptionSession   LoyaltyRedemptionSession? @relation(fields: [redemptionSessionId], references: [id], onDelete: SetNull)
+
+  @@index([customerId, createdAt(sort: Desc)], name: "idx_ledger_customer_created")
+  @@map("loyalty_ledger_transactions")
+}
+
+model TenantCreditLedger {
+  id                    String                @id @default(uuid()) @db.Uuid
+  tenantId              String                @map("tenant_id") @db.Uuid
+  channel               ChannelType
+  transactionType       CreditTransactionType @map("transaction_type")
+  creditsDelta          Int                   @map("credits_delta")
+  balanceAfter          Int                   @map("balance_after")
+  referenceId           String?               @map("reference_id") @db.VarChar(100)
+  description           String                @db.VarChar(255)
+  createdBySuperAdminId String?               @map("created_by_super_admin_id") @db.Uuid
+  createdAt             DateTime              @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant                Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  superAdmin            SuperAdmin?           @relation(fields: [createdBySuperAdminId], references: [id], onDelete: SetNull)
+
+  @@map("tenant_credit_ledger")
+}
