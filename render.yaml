@@ -17,4 +17,4 @@ services:
       - key: SUPABASE_URL
         value: https://mwwfsyyqqnkpvdgtqmyz.supabase.co
       - key: SUPABASE_KEY
-        value: sb_publishable_l3VJygSx_AxtavnHQnF4Ow_Jg8mANyl
+        sync: false

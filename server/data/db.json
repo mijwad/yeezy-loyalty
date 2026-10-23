@@ -43,7 +43,7 @@
       "id": "usr_super_01",
       "name": "Master Super Admin",
       "email": "admin@yeezy.com",
-      "password": "admin123",
+      "passwordHash": "$2b$10$o1YGarWPl4SX22Gbb5kxEOYolz5uyxyWKq9F7q7CY6iMRM17ZHWwi",
       "role": "SUPER_ADMIN",
       "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
     },
@@ -51,7 +51,7 @@
       "id": "usr_owner_01",
       "name": "Alex Rivera",
       "email": "alex.rivera@downtownbistro.com",
-      "password": "owner123",
+      "passwordHash": "$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_yeezy_01",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Alex+Rivera"
@@ -60,7 +60,7 @@
       "id": "usr_owner_02",
       "name": "Riyaz Amlani",
       "email": "riyaz@smokehousedeli.in",
-      "password": "owner123",
+      "passwordHash": "$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_smokehouse_02",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import { DEFAULT_LOYALTY_CONFIG, validateLoyaltyConfig } from '../../lib/loyalty/config.js';
 import { normalizePhone, calculateLedgerBalance, evaluateTier } from '../../lib/loyalty/engine.js';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,7 +93,7 @@ class POSDataStore {
         id: 'usr_super_01',
         name: 'Master Super Admin',
         email: 'admin@yeezy.com',
-        password: 'admin123',
+        passwordHash: '$2b$10$o1YGarWPl4SX22Gbb5kxEOYolz5uyxyWKq9F7q7CY6iMRM17ZHWwi',
         role: 'SUPER_ADMIN',
         avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80'
       },
@@ -100,7 +101,7 @@ class POSDataStore {
         id: 'usr_owner_01',
         name: 'Alex Rivera',
         email: 'alex.rivera@downtownbistro.com',
-        password: 'owner123',
+        passwordHash: '$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq',
         role: 'RESTAURANT_OWNER',
         tenantId: 'ten_yeezy_01',
         avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPpV2wxw7i8SswByK1AqA_9McvWIk_klOo56Mqrga1PI0CEw0fTKSqVwyxbrIgPKYg69ZUQ1S3q7NMu5Aj6DJ026ke_Us2wN53ZRe5J2t0IjzPF7oRAMjNUxtS68SVby7B23Q3wjaEZANCRikHN0nga7Qjgvj66aE3Eu_Ee2P27BJ38n5Se6Rc6gFfErhrGdi9oNKjsegbnlGejUYcelstKMKxah37AADbD_20vqtcTdA3guZfx_z3eQ'
@@ -109,7 +110,7 @@ class POSDataStore {
         id: 'usr_owner_02',
         name: 'Riyaz Amlani',
         email: 'riyaz@smokehousedeli.in',
-        password: 'owner123',
+        passwordHash: '$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq',
         role: 'RESTAURANT_OWNER',
         tenantId: 'ten_smokehouse_02',
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80'
@@ -318,7 +319,21 @@ class POSDataStore {
                             (cleanId === 'alex' && u.id === 'usr_owner_01') ||
                             (cleanId === 'riyaz' && u.id === 'usr_owner_02') ||
                             (emailPrefix && emailPrefix === cleanId);
-      return (matchEmail || matchUsername) && u.password === cleanPass;
+      if (!matchEmail && !matchUsername) return false;
+
+      // Verify bcrypt hash (with transparent legacy plaintext upgrade)
+      if (u.passwordHash) {
+        return bcrypt.compareSync(cleanPass, u.passwordHash);
+      } else if (u.password) {
+        const matches = (u.password === cleanPass);
+        if (matches) {
+          u.passwordHash = bcrypt.hashSync(cleanPass, 10);
+          delete u.password;
+          this.persist();
+        }
+        return matches;
+      }
+      return false;
     });
     if (!user) return null;
 
@@ -392,7 +407,7 @@ class POSDataStore {
       id: tenant.ownerId,
       name: ownerName.trim(),
       email: cleanEmail,
-      password: (password || 'owner123').trim(),
+      passwordHash: bcrypt.hashSync((password || 'owner123').trim(), 10),
       role: 'RESTAURANT_OWNER',
       tenantId: tenant.id,
       avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(ownerName.trim())}`

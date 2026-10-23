@@ -3,10 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://mwwfsyyqqnkpvdgtqmyz.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_l3VJygSx_AxtavnHQnF4Ow_Jg8mANyl';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
+
+if (!isSupabaseConfigured && process.env.NODE_ENV === 'production') {
+  console.warn('[Security Warning] SUPABASE_URL or SUPABASE_KEY missing in production environment. Live DB sync disabled.');
+}
 
 export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_KEY)
