@@ -1,4 +1,4 @@
-// Login Screen View Module
+// Production Login Screen View Module
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
 import { apiUrl } from '../../config/api.js';
@@ -18,52 +18,22 @@ export function renderLoginView() {
             Y
           </div>
           <h1 class="text-2xl font-black text-gray-900 tracking-tight">Yeezy Loyalty Platform</h1>
-          <p class="text-xs text-gray-500 mt-1 font-medium">Sign in to your restaurant operator or super admin account</p>
-        </div>
-
-        <!-- Quick 1-Click Demo Login Switcher -->
-        <div class="mb-6 p-3.5 rounded-2xl bg-purple-50/80 border border-purple-100 relative z-10">
-          <span class="text-[10px] uppercase font-black text-primary tracking-wider block mb-2 text-center">
-            ⚡ Quick Demo 1-Click Credentials
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <button 
-              id="btn-quick-admin" 
-              type="button" 
-              class="py-2 px-2.5 rounded-xl bg-white border border-purple-200 hover:border-primary text-gray-800 text-[11px] font-bold transition shadow-xs flex flex-col items-center"
-            >
-              <span class="text-amber-600 font-extrabold flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">shield_person</span> Super Admin
-              </span>
-              <span class="text-[9px] text-gray-400 mt-0.5">admin@yeezy.com</span>
-            </button>
-
-            <button 
-              id="btn-quick-owner" 
-              type="button" 
-              class="py-2 px-2.5 rounded-xl bg-white border border-purple-200 hover:border-primary text-gray-800 text-[11px] font-bold transition shadow-xs flex flex-col items-center"
-            >
-              <span class="text-teal-700 font-extrabold flex items-center gap-1">
-                <span class="material-symbols-outlined text-xs">storefront</span> Restaurant Owner
-              </span>
-              <span class="text-[9px] text-gray-400 mt-0.5">alex.rivera@...</span>
-            </button>
-          </div>
+          <p class="text-xs text-gray-500 mt-1 font-medium">Sign in to your restaurant operator or admin account</p>
         </div>
 
         <!-- Login Form -->
         <form id="login-form" class="space-y-4 relative z-10">
           <div>
-            <label class="text-xs font-bold text-gray-700 block mb-1.5">Email Address</label>
+            <label class="text-xs font-bold text-gray-700 block mb-1.5">Username or Email</label>
             <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">mail</span>
+              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">person</span>
               <input 
-                id="login-email" 
-                type="email" 
+                id="login-username" 
+                type="text" 
                 required 
-                value="alex.rivera@downtownbistro.com" 
-                placeholder="name@restaurant.com" 
-                class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium"
+                autocomplete="username"
+                placeholder="admin or name@restaurant.com" 
+                class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
               >
             </div>
           </div>
@@ -71,7 +41,7 @@ export function renderLoginView() {
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label class="text-xs font-bold text-gray-700">Password</label>
-              <a href="javascript:void(0)" class="text-[11px] text-primary hover:underline font-bold" onclick="window.showToast('Please contact Super Admin for password recovery')">Forgot?</a>
+              <a href="javascript:void(0)" class="text-[11px] text-primary hover:underline font-bold" onclick="window.showToast('Please contact platform administrator for password recovery')">Forgot?</a>
             </div>
             <div class="relative">
               <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">lock</span>
@@ -79,9 +49,9 @@ export function renderLoginView() {
                 id="login-password" 
                 type="password" 
                 required 
-                value="owner123" 
+                autocomplete="current-password"
                 placeholder="••••••••" 
-                class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium"
+                class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
               >
             </div>
           </div>
@@ -100,8 +70,8 @@ export function renderLoginView() {
 
         <!-- Footer notes -->
         <div class="mt-6 pt-5 border-t border-gray-100 text-center relative z-10">
-          <p class="text-[11px] text-gray-500">
-            Restaurant Owner accounts are provisioned exclusively by the platform <strong class="text-gray-800">Super Admin</strong>.
+          <p class="text-[11px] text-gray-400">
+            Enterprise restaurant & franchise loyalty management system.
           </p>
         </div>
 
@@ -112,35 +82,17 @@ export function renderLoginView() {
 
 export function attachLoginListeners() {
   const form = document.getElementById('login-form');
-  const emailInput = document.getElementById('login-email');
+  const usernameInput = document.getElementById('login-username');
   const passwordInput = document.getElementById('login-password');
   const submitBtn = document.getElementById('btn-submit-login');
-
-  const quickAdmin = document.getElementById('btn-quick-admin');
-  if (quickAdmin) {
-    quickAdmin.onclick = () => {
-      if (emailInput) emailInput.value = 'admin@yeezy.com';
-      if (passwordInput) passwordInput.value = 'admin123';
-      showToast('Filled Super Admin demo credentials');
-    };
-  }
-
-  const quickOwner = document.getElementById('btn-quick-owner');
-  if (quickOwner) {
-    quickOwner.onclick = () => {
-      if (emailInput) emailInput.value = 'alex.rivera@downtownbistro.com';
-      if (passwordInput) passwordInput.value = 'owner123';
-      showToast('Filled Restaurant Owner demo credentials');
-    };
-  }
 
   if (form) {
     form.onsubmit = async (e) => {
       e.preventDefault();
-      const email = emailInput?.value.trim();
+      const identifier = usernameInput?.value.trim();
       const password = passwordInput?.value.trim();
 
-      if (!email || !password) return;
+      if (!identifier || !password) return;
 
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -151,7 +103,7 @@ export function attachLoginListeners() {
         const res = await fetch(apiUrl('/api/v1/auth/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email: identifier, username: identifier, password })
         });
         const data = await res.json();
 
@@ -177,14 +129,14 @@ export function attachLoginListeners() {
 
           showToast(`Welcome back, ${data.user.name.split(' ')[0]}! (${data.user.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Restaurant Owner'})`);
 
-          // Redirect to appropriate view
+          // Redirect to appropriate view based on authenticated role
           if (data.user.role === 'SUPER_ADMIN') {
             window.location.hash = '#super-admin';
           } else {
             window.location.hash = '#dashboard';
           }
         } else {
-          showToast(data.message || 'Invalid credentials', 'error');
+          showToast(data.message || 'Invalid username/email or password', 'error');
           if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = `<span>Sign In to Yeezy</span><span class="material-symbols-outlined text-base">arrow_forward</span>`;

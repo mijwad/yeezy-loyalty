@@ -169,11 +169,17 @@ class POSDataStore {
     this.persist(data);
     return data;
   }
-  // Authenticate user by email & password
-  authenticate(email, password) {
-    if (!email || !password) return null;
-    const cleanEmail = email.trim().toLowerCase();
-    const user = this.data.users.find(u => u.email.toLowerCase() === cleanEmail && u.password === password.trim());
+  // Authenticate user by username/email & password
+  authenticate(identifier, password) {
+    if (!identifier || !password) return null;
+    const cleanId = identifier.trim().toLowerCase();
+    const cleanPass = password.trim();
+    const user = this.data.users.find(u => {
+      const matchEmail = u.email && u.email.toLowerCase() === cleanId;
+      const matchUsername = (cleanId === 'admin' && u.role === 'SUPER_ADMIN') ||
+                            (cleanId === 'alex' && u.id === 'usr_owner_01');
+      return (matchEmail || matchUsername) && u.password === cleanPass;
+    });
     if (!user) return null;
 
     let tenant = null;

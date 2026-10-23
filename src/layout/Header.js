@@ -185,12 +185,7 @@ export function renderHeader(state) {
                   <span class="material-symbols-outlined text-base text-amber-600">shield_person</span>
                   <span>Super Admin Console</span>
                 </a>
-              ` : `
-                <a href="#super-admin" class="flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low text-on-surface transition">
-                  <span class="material-symbols-outlined text-base">swap_horiz</span>
-                  <span>Switch to Super Admin</span>
-                </a>
-              `}
+              ` : ''}
               <a href="#settings" class="flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low text-on-surface transition">
                 <span class="material-symbols-outlined text-base">settings</span>
                 <span>Platform Settings</span>

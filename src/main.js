@@ -148,6 +148,11 @@ class YeezyLoyaltyApp {
     let mainContentHtml = '';
     switch (route) {
       case 'super-admin':
+        if (state.user?.role !== 'SUPER_ADMIN') {
+          window.showToast?.('Access Denied: Super Admin account required');
+          window.location.hash = '#dashboard';
+          return;
+        }
         mainContentHtml = renderSuperAdminView(state);
         break;
       case 'dashboard':

@@ -6,16 +6,17 @@ export const authRouter = Router();
 
 // POST /api/v1/auth/login
 authRouter.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email || req.body.username;
+  const password = req.body.password;
 
   if (!email || !password) {
-    return res.status(400).json({ status: 'error', message: 'Email and password are required' });
+    return res.status(400).json({ status: 'error', message: 'Username or email and password are required' });
   }
 
   const authenticated = posStore.authenticate(email, password);
 
   if (!authenticated) {
-    return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
+    return res.status(401).json({ status: 'error', message: 'Invalid username/email or password' });
   }
 
   const token = `yzy_tok_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
