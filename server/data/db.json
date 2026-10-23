@@ -21,6 +21,21 @@
       "outletsCount": 1,
       "totalDiners": 0,
       "lifetimeSales": 0
+    },
+    {
+      "id": "ten_smokehouse_02",
+      "name": "Smoke House Deli",
+      "brandName": "Smoke House Deli",
+      "ownerId": "usr_owner_02",
+      "ownerName": "Riyaz Amlani",
+      "ownerEmail": "riyaz@smokehousedeli.in",
+      "plan": "GROWTH",
+      "active": true,
+      "createdAt": "2026-02-15T10:00:00Z",
+      "primaryRestID": "PP_MUM_303",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0
     }
   ],
   "users": [
@@ -40,6 +55,15 @@
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_yeezy_01",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Alex+Rivera"
+    },
+    {
+      "id": "usr_owner_02",
+      "name": "Riyaz Amlani",
+      "email": "riyaz@smokehousedeli.in",
+      "password": "owner123",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "ten_smokehouse_02",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"
     }
   ],
   "outlets": [
@@ -54,6 +78,17 @@
       "isMarketplaceConnected": true,
       "marketplaceConnectedAt": "2026-10-23T13:07:37.203Z",
       "tenantId": "ten_yeezy_01"
+    },
+    {
+      "id": "out_03",
+      "restID": "PP_MUM_303",
+      "tenantId": "ten_smokehouse_02",
+      "name": "Smoke House Deli - Bandra",
+      "address": "Pali Hill, Bandra West, Mumbai",
+      "active": true,
+      "appKey": "sec_live_5d1a99bb84",
+      "reeloKey": "a87b1c34-92e1-45fe-8910-c4e9f5632190",
+      "isMarketplaceConnected": false
     }
   ],
   "loyaltyProgram": {

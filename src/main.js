@@ -120,13 +120,18 @@ class YeezyLoyaltyApp {
     const uiState = this.store.getUIState();
     const route = uiState.currentRoute;
 
+    // Require authentication: redirect unauthenticated users to #login
+    const token = localStorage.getItem('yeezy_auth_token');
+    if (!token && route !== 'login') {
+      window.location.hash = '#login';
+      return;
+    }
+
     // Full screen login view
     if (route === 'login') {
-      if (this.currentLayout !== 'login') {
-        this.currentLayout = 'login';
-        appEl.innerHTML = renderLoginView();
-        attachLoginListeners();
-      }
+      this.currentLayout = 'login';
+      appEl.innerHTML = renderLoginView();
+      attachLoginListeners();
       return;
     }
 

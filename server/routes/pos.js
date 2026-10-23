@@ -28,8 +28,9 @@ posRouter.post(['/loyalty/inquire', '/petpooja/loyalty/inquire'], (req, res) => 
     }
 
   const outlet = posStore.data.outlets.find(o => o.restID === restID) || posStore.data.outlets[0];
+  const tenantId = outlet?.tenantId || 'ten_yeezy_01';
   const program = posStore.data.loyaltyProgram;
-  const customer = posStore.getOrCreateCustomer(customer_phone, customer_name);
+  const customer = posStore.getOrCreateCustomer(customer_phone, customer_name, tenantId);
 
   const billTotal = parseFloat(bill_amount) || 0;
   const discountable = parseFloat(discountable_amount || bill_amount) || billTotal;
@@ -322,9 +323,11 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
     });
   }
 
+  const outlet = posStore.data.outlets.find(o => o.restID === restID) || posStore.data.outlets[0];
+  const tenantId = outlet?.tenantId || 'ten_yeezy_01';
   const phone = customerInput?.phone || '9876543210';
   const name = customerInput?.name || 'Guest';
-  const customer = posStore.getOrCreateCustomer(phone, name);
+  const customer = posStore.getOrCreateCustomer(phone, name, tenantId);
 
   const program = posStore.data.loyaltyProgram;
   const netPaid = parseFloat(req.body.net_paid ?? financials?.net_paid ?? financials?.gross_amount ?? 0);
@@ -402,6 +405,7 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   // 4. Save Ingested Order Record
   const savedOrder = {
     orderId: order_id,
+    tenantId: tenantId || outlet?.tenantId || 'ten_yeezy_01',
     billNo: bill_no || `BILL-${order_id}`,
     restID: restID || 'PP_DEL_101',
     tableNo: table_no || 'T-1',

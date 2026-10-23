@@ -290,9 +290,8 @@ export function attachHeaderListeners() {
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) {
     logoutBtn.onclick = () => {
-      localStorage.removeItem('yeezy_auth_token');
       showToast('Signed out of Yeezy');
-      window.location.hash = '#login';
+      store.logout();
     };
   }
 

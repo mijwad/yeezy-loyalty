@@ -9,6 +9,7 @@ import { loyaltyRouter } from './routes/loyalty.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { posStore } from './db/store.js';
+import { authMiddleware } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -31,6 +32,9 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// Automatic Multi-Tenant Session & Token Resolver
+app.use('/api', authMiddleware);
 
 // API Routes
 app.use('/api/v1/auth', authRouter);

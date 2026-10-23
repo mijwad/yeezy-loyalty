@@ -16,6 +16,7 @@ if (!fs.existsSync(DATA_DIR)) {
 
 class POSDataStore {
   constructor() {
+    this.sessions = {};
     this.data = this.loadInitialData();
   }
 
@@ -34,58 +35,84 @@ class POSDataStore {
       data = {};
     }
 
-    // Initialize Tenants if missing
     if (!data.tenants || !Array.isArray(data.tenants)) {
-      data.tenants = [
-        {
-          id: 'ten_yeezy_01',
-          name: 'Downtown Bistro Group',
-          brandName: 'Downtown Bistro',
-          ownerId: 'usr_owner_01',
-          ownerName: 'Alex Rivera',
-          ownerEmail: 'alex.rivera@downtownbistro.com',
-          plan: 'ENTERPRISE',
-          active: true,
-          createdAt: '2026-01-10T10:00:00Z',
-          primaryRestID: 'PP_DEL_101',
-          outletsCount: 1,
-          totalDiners: 0,
-          lifetimeSales: 0
-        }
-      ];
+      data.tenants = [];
     }
+    const defaultTenants = [
+      {
+        id: 'ten_yeezy_01',
+        name: 'Downtown Bistro Group',
+        brandName: 'Downtown Bistro',
+        ownerId: 'usr_owner_01',
+        ownerName: 'Alex Rivera',
+        ownerEmail: 'alex.rivera@downtownbistro.com',
+        plan: 'ENTERPRISE',
+        active: true,
+        createdAt: '2026-01-10T10:00:00Z',
+        primaryRestID: 'PP_DEL_101',
+        outletsCount: 1,
+        totalDiners: 0,
+        lifetimeSales: 0
+      },
+      {
+        id: 'ten_smokehouse_02',
+        name: 'Smoke House Deli',
+        brandName: 'Smoke House Deli',
+        ownerId: 'usr_owner_02',
+        ownerName: 'Riyaz Amlani',
+        ownerEmail: 'riyaz@smokehousedeli.in',
+        plan: 'GROWTH',
+        active: true,
+        createdAt: '2026-02-15T10:00:00Z',
+        primaryRestID: 'PP_MUM_303',
+        outletsCount: 1,
+        totalDiners: 0,
+        lifetimeSales: 0
+      }
+    ];
+    defaultTenants.forEach(dt => {
+      if (!data.tenants.some(t => t.id === dt.id)) {
+        data.tenants.push(dt);
+      }
+    });
 
     // Initialize Users (Super Admin and Restaurant Owners)
     if (!data.users || !Array.isArray(data.users)) {
-      data.users = [
-        {
-          id: 'usr_super_01',
-          name: 'Master Super Admin',
-          email: 'admin@yeezy.com',
-          password: 'admin123',
-          role: 'SUPER_ADMIN',
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80'
-        },
-        {
-          id: 'usr_owner_01',
-          name: 'Alex Rivera',
-          email: 'alex.rivera@downtownbistro.com',
-          password: 'owner123',
-          role: 'RESTAURANT_OWNER',
-          tenantId: 'ten_yeezy_01',
-          avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPpV2wxw7i8SswByK1AqA_9McvWIk_klOo56Mqrga1PI0CEw0fTKSqVwyxbrIgPKYg69ZUQ1S3q7NMu5Aj6DJ026ke_Us2wN53ZRe5J2t0IjzPF7oRAMjNUxtS68SVby7B23Q3wjaEZANCRikHN0nga7Qjgvj66aE3Eu_Ee2P27BJ38n5Se6Rc6gFfErhrGdi9oNKjsegbnlGejUYcelstKMKxah37AADbD_20vqtcTdA3guZfx_z3eQ'
-        },
-        {
-          id: 'usr_owner_02',
-          name: 'Riyaz Amlani',
-          email: 'riyaz@smokehousedeli.in',
-          password: 'owner123',
-          role: 'RESTAURANT_OWNER',
-          tenantId: 'ten_smokehouse_02',
-          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80'
-        }
-      ];
+      data.users = [];
     }
+    const defaultUsers = [
+      {
+        id: 'usr_super_01',
+        name: 'Master Super Admin',
+        email: 'admin@yeezy.com',
+        password: 'admin123',
+        role: 'SUPER_ADMIN',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80'
+      },
+      {
+        id: 'usr_owner_01',
+        name: 'Alex Rivera',
+        email: 'alex.rivera@downtownbistro.com',
+        password: 'owner123',
+        role: 'RESTAURANT_OWNER',
+        tenantId: 'ten_yeezy_01',
+        avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPpV2wxw7i8SswByK1AqA_9McvWIk_klOo56Mqrga1PI0CEw0fTKSqVwyxbrIgPKYg69ZUQ1S3q7NMu5Aj6DJ026ke_Us2wN53ZRe5J2t0IjzPF7oRAMjNUxtS68SVby7B23Q3wjaEZANCRikHN0nga7Qjgvj66aE3Eu_Ee2P27BJ38n5Se6Rc6gFfErhrGdi9oNKjsegbnlGejUYcelstKMKxah37AADbD_20vqtcTdA3guZfx_z3eQ'
+      },
+      {
+        id: 'usr_owner_02',
+        name: 'Riyaz Amlani',
+        email: 'riyaz@smokehousedeli.in',
+        password: 'owner123',
+        role: 'RESTAURANT_OWNER',
+        tenantId: 'ten_smokehouse_02',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80'
+      }
+    ];
+    defaultUsers.forEach(du => {
+      if (!data.users.some(u => u.email === du.email)) {
+        data.users.push(du);
+      }
+    });
 
     // Fallback tenant object
     if (!data.tenant) {
@@ -169,6 +196,32 @@ class POSDataStore {
     this.persist(data);
     return data;
   }
+  createSession(user) {
+    const token = `yzy_tok_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const session = {
+      token,
+      userId: user.id,
+      tenantId: user.tenantId,
+      user,
+      createdAt: Date.now()
+    };
+    this.sessions[token] = session;
+    return token;
+  }
+
+  getSession(token) {
+    if (!token) return null;
+    return this.sessions[token] || null;
+  }
+
+  destroySession(token) {
+    if (token && this.sessions[token]) {
+      delete this.sessions[token];
+      return true;
+    }
+    return false;
+  }
+
   // Authenticate user by username/email & password
   authenticate(identifier, password) {
     if (!identifier || !password) return null;
@@ -177,7 +230,8 @@ class POSDataStore {
     const user = this.data.users.find(u => {
       const matchEmail = u.email && u.email.toLowerCase() === cleanId;
       const matchUsername = (cleanId === 'admin' && u.role === 'SUPER_ADMIN') ||
-                            (cleanId === 'alex' && u.id === 'usr_owner_01');
+                            (cleanId === 'alex' && u.id === 'usr_owner_01') ||
+                            (cleanId === 'riyaz' && u.id === 'usr_owner_02');
       return (matchEmail || matchUsername) && u.password === cleanPass;
     });
     if (!user) return null;
@@ -186,7 +240,8 @@ class POSDataStore {
     if (user.tenantId) {
       tenant = this.data.tenants.find(t => t.id === user.tenantId);
     }
-    return {
+    const assignedOutlets = this.data.outlets.filter(o => !user.tenantId || o.tenantId === user.tenantId);
+    const sanitizedUser = {
       id: user.id,
       name: user.name,
       email: user.email,
@@ -194,8 +249,13 @@ class POSDataStore {
       avatar: user.avatar,
       tenantId: user.tenantId || null,
       tenantName: tenant ? tenant.name : 'Yeezy Global Admin',
-      primaryRestID: tenant ? tenant.primaryRestID : 'PP_DEL_101',
-      assignedOutlets: this.data.outlets
+      primaryRestID: tenant ? tenant.primaryRestID : (assignedOutlets[0]?.restID || 'PP_DEL_101'),
+      assignedOutlets
+    };
+    const token = this.createSession(sanitizedUser);
+    return {
+      user: sanitizedUser,
+      token
     };
   }
 
@@ -276,14 +336,19 @@ class POSDataStore {
     }
   }
 
-  // Find customer by phone or create if new
-  getOrCreateCustomer(phone, name = 'Valued Guest') {
+  // Find customer by phone or create if new (strictly scoped to tenant)
+  getOrCreateCustomer(phone, name = 'Valued Guest', tenantId = null) {
     const cleanPhone = String(phone).replace(/\D/g, '').slice(-10);
-    let customer = this.data.customers.find(c => c.phone.slice(-10) === cleanPhone);
+    const targetTenantId = tenantId || (this.data.tenants[0]?.id || 'ten_yeezy_01');
+    let customer = this.data.customers.find(c => 
+      (c.tenantId === targetTenantId || (!c.tenantId && targetTenantId === 'ten_yeezy_01')) && 
+      c.phone.slice(-10) === cleanPhone
+    );
 
     if (!customer) {
       customer = {
-        id: `cust_${Date.now()}`,
+        id: `cust_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        tenantId: targetTenantId,
         name: name || `Guest (${cleanPhone.slice(-4)})`,
         phone: cleanPhone,
         email: `${cleanPhone}@guest.yeezy.app`,
@@ -300,6 +365,7 @@ class POSDataStore {
       if (customer.pointsBalance > 0) {
         this.data.loyaltyLedger.push({
           id: `ledg_${Date.now()}`,
+          tenantId: targetTenantId,
           customerId: customer.id,
           type: 'BONUS_WELCOME',
           pointsDelta: customer.pointsBalance,
@@ -329,8 +395,8 @@ class POSDataStore {
     }
   }
 
-  // Record an append-only transaction in double-entry ledger
-  recordLedgerEntry({ customerId, type, pointsDelta, orderId = null, reason = '' }) {
+  // Record an append-only transaction in double-entry ledger scoped by tenant
+  recordLedgerEntry({ customerId, type, pointsDelta, orderId = null, reason = '', tenantId = null }) {
     const customer = this.data.customers.find(c => c.id === customerId);
     if (!customer) throw new Error(`Customer ${customerId} not found`);
 
@@ -339,6 +405,7 @@ class POSDataStore {
 
     const entry = {
       id: `ledg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      tenantId: tenantId || customer.tenantId || 'ten_yeezy_01',
       customerId,
       type, // 'EARN_PURCHASE' | 'REDEEM_BURN' | 'REVERSAL_VOID' | 'MANUAL_ADJUST' | 'BONUS_WELCOME'
       pointsDelta,

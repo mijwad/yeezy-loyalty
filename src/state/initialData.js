@@ -20,6 +20,7 @@ export const initialData = {
   outlets: [
     { id: '1', name: 'Downtown Bistro', address: '124 Market St, Suite 100', active: true, restID: 'PP_DEL_101' }
   ],
+  customers: [],
 
   // Petpooja Marketplace Integration (Exact Reelo flow)
   isPetpoojaIntegrated: false,

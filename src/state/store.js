@@ -1,10 +1,10 @@
-// Central Reactive Store for Yeezy Loyalty Platform
+// Central Reactive Store for Yeezy Loyalty Platform (Production Multi-Tenant)
 import { initialData } from './initialData.js';
 import { apiUrl } from '../config/api.js';
 
 const STORAGE_KEY = 'yeezy_loyalty_state';
 const DATA_VERSION_KEY = 'yeezy_state_version';
-const CURRENT_VERSION = 'v6_apps_and_integrations';
+const CURRENT_VERSION = 'v7_multi_tenant_isolation';
 
 class Store {
   constructor() {
@@ -15,10 +15,32 @@ class Store {
       localStorage.setItem(DATA_VERSION_KEY, CURRENT_VERSION);
     }
 
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const savedAuthUser = this.getSavedAuthUser();
+    const saved = localStorage.getItem(this.getTenantStorageKey(savedAuthUser?.tenantId));
+    
     this.state = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(initialData));
 
-    // Ensure integrations exist if loaded from existing storage
+    // Ensure state belongs to currently logged-in user if saved session exists
+    if (savedAuthUser) {
+      this.state.user = {
+        id: savedAuthUser.id,
+        name: savedAuthUser.name,
+        email: savedAuthUser.email,
+        role: savedAuthUser.role,
+        tenantId: savedAuthUser.tenantId,
+        tenantName: savedAuthUser.tenantName,
+        avatar: savedAuthUser.avatar || this.state.user.avatar
+      };
+      this.state.activeOutlet = savedAuthUser.primaryRestID === 'PP_DEL_101'
+        ? 'Downtown Bistro'
+        : (savedAuthUser.tenantName || 'Main Outlet');
+
+      if (savedAuthUser.assignedOutlets && savedAuthUser.assignedOutlets.length > 0) {
+        this.state.outlets = savedAuthUser.assignedOutlets;
+      }
+    }
+
+    // Ensure integrations exist if loaded from storage
     if (!this.state.posIntegrations) {
       this.state.posIntegrations = JSON.parse(JSON.stringify(initialData.posIntegrations));
     }
@@ -29,7 +51,7 @@ class Store {
     // Non-persisted UI State
     this.uiState = {
       currentRoute: this.getRouteFromHash(),
-      activeModal: null, // 'amountSpent' | 'refill' | 'autoRefill' | 'activationSuccess' | 'customerDrawer' | 'registerCustomer' | 'petpoojaIntegration' | 'yeezyBillConfig' | 'addPosPlatform' | 'webhookDocs' | 'connectPosist' | 'connectUrbanPiper'
+      activeModal: null,
       selectedCustomer: null,
       amountSpentSlide: 0,
       configuratorStep: 1,
@@ -46,6 +68,19 @@ class Store {
     this.subscribers = new Set();
   }
 
+  getSavedAuthUser() {
+    try {
+      const raw = localStorage.getItem('yeezy_auth_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  getTenantStorageKey(tenantId) {
+    return tenantId ? `yeezy_state_${tenantId}` : STORAGE_KEY;
+  }
+
   getRouteFromHash() {
     return window.location.hash.replace('#', '') || 'dashboard';
   }
@@ -58,9 +93,22 @@ class Store {
     return this.uiState;
   }
 
+  getAuthHeaders() {
+    const token = localStorage.getItem('yeezy_auth_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (this.state.user?.tenantId) {
+      headers['x-tenant-id'] = this.state.user.tenantId;
+    }
+    return headers;
+  }
+
   saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      const key = this.getTenantStorageKey(this.state.user?.tenantId);
+      localStorage.setItem(key, JSON.stringify(this.state));
     } catch (e) {
       console.error('Failed to save state to localStorage', e);
     }
@@ -70,7 +118,7 @@ class Store {
   setState(updater, options = {}) {
     const nextState = typeof updater === 'function' ? updater(this.state) : { ...this.state, ...updater };
     if (nextState === this.state) {
-      return; // No change: skip disk writes and DOM re-renders
+      return;
     }
     this.state = nextState;
     this.saveState();
@@ -100,108 +148,133 @@ class Store {
     this.notify();
   }
 
-  // Live 2-way sync bridge with Petpooja POS & backend database
+  // Set Authenticated User and initialize clean, isolated state for that restaurant
+  async loginUser(user, token) {
+    localStorage.setItem('yeezy_auth_token', token);
+    localStorage.setItem('yeezy_auth_user', JSON.stringify(user));
+
+    // Initialize clean fresh state template for the new restaurant
+    const freshState = JSON.parse(JSON.stringify(initialData));
+    freshState.user = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      tenantName: user.tenantName,
+      avatar: user.avatar || freshState.user.avatar
+    };
+
+    freshState.activeOutlet = user.primaryRestID === 'PP_DEL_101' 
+      ? 'Downtown Bistro' 
+      : (user.tenantName || 'Main Outlet');
+
+    if (user.assignedOutlets && user.assignedOutlets.length > 0) {
+      freshState.outlets = user.assignedOutlets;
+    }
+
+    // Replace current state entirely to prevent state cross-contamination
+    this.state = freshState;
+    this.uiState.selectedCustomer = null;
+    this.uiState.activeModal = null;
+    this.saveState();
+    this.notify();
+
+    // Pull real tenant data from backend immediately
+    await this.syncWithBackend();
+  }
+
+  // Sign out and wipe sensitive cached memory
+  logout() {
+    const token = localStorage.getItem('yeezy_auth_token');
+    if (token) {
+      fetch(apiUrl('/api/v1/auth/logout'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(() => {});
+    }
+
+    const currentTenantId = this.state.user?.tenantId;
+    localStorage.removeItem('yeezy_auth_token');
+    localStorage.removeItem('yeezy_auth_user');
+    if (currentTenantId) {
+      localStorage.removeItem(`yeezy_state_${currentTenantId}`);
+    }
+    localStorage.removeItem(STORAGE_KEY);
+
+    // Reset whole in-memory state back to clean initial state
+    this.state = JSON.parse(JSON.stringify(initialData));
+    this.uiState.activeModal = null;
+    this.uiState.selectedCustomer = null;
+    this.uiState.customerFilters = {
+      activeTab: 'customerlist',
+      searchTerm: '',
+      selectedTier: 'all',
+      sortBy: 'spend_desc'
+    };
+    
+    this.notify();
+    window.location.hash = '#login';
+  }
+
+  // Live 2-way sync bridge with Petpooja POS & backend database (strictly scoped by tenant)
   async syncWithBackend() {
     try {
+      const headers = this.getAuthHeaders();
       const [statsRes, custRes] = await Promise.all([
-        fetch(apiUrl('/api/v1/dashboard/stats')).then(r => r.json()),
-        fetch(apiUrl('/api/v1/customers')).then(r => r.json())
+        fetch(apiUrl('/api/v1/dashboard/stats'), { headers }).then(r => r.json()),
+        fetch(apiUrl('/api/v1/customers'), { headers }).then(r => r.json())
       ]);
 
       if (statsRes?.status === 'success' && custRes?.status === 'success') {
         const backendCustomers = custRes.customers || [];
         const todayStats = statsRes.todayStats;
 
-        this.setState(prev => {
-          const mergedCustomers = [...prev.customers];
-
-          backendCustomers.forEach(bc => {
-            const cleanPhone = String(bc.phone).slice(-10);
-            const idx = mergedCustomers.findIndex(c => c.phone.slice(-10) === cleanPhone);
-
-            const initials = bc.name
-              ? bc.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-              : 'VG';
-
-            const formatted = {
-              id: bc.id,
-              name: bc.name,
-              email: bc.email || `${cleanPhone}@guest.yeezy.app`,
-              phone: `+91 ${cleanPhone}`,
-              initials,
-              avatarBg: 'bg-primary text-on-primary',
-              tier: bc.tier || 'New',
-              tierBadge: bc.tier === 'VIP' ? 'bg-amber-100 text-amber-800' : 'bg-surface-container-high text-on-surface',
-              visits: bc.visits || 0,
-              lifetimeSpend: `₹${(bc.lifetimeSpend || 0).toLocaleString()}`,
-              numericSpend: bc.lifetimeSpend || 0,
-              pointsBalance: `${bc.pointsBalance || 0} pts`,
-              numericPoints: bc.pointsBalance || 0,
-              favoriteDish: bc.favoriteDish || 'Chef Special',
-              lastVisit: bc.lastVisit || 'Today',
-              lastVisitDate: new Date().toISOString().slice(0, 10),
-              status: (bc.visits || 0) > 0 ? 'Active' : 'New Guest',
-              joinedDate: bc.joinedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-              totalRedeemed: (bc.totalRedeemed || 0) > 0 ? `${bc.totalRedeemed} Rewards` : '0 Rewards',
-              recentOrders: bc.recentOrders || []
-            };
-
-            if (idx >= 0) {
-              mergedCustomers[idx] = { ...mergedCustomers[idx], ...formatted };
-            } else {
-              mergedCustomers.unshift(formatted);
-            }
-          });
-
-          // Check if data actually changed to prevent unnecessary redraws
-          const salesChanged = prev.todayStats.sales !== todayStats.sales;
-          const ordersChanged = prev.todayStats.orders !== todayStats.orders;
-          const custCountChanged = prev.customers.length !== mergedCustomers.length;
-          const pointsChanged = prev.todayStats.pointsIssued !== todayStats.pointsIssued;
-
-          if (!salesChanged && !ordersChanged && !custCountChanged && !pointsChanged) {
-            return prev;
-          }
-
-          // Update business highlights chart W1 bar
-          const updatedHighlights = { ...prev.businessHighlights };
-          if (updatedHighlights.tabs) {
-            const salesTab = { ...updatedHighlights.tabs.sales };
-            salesTab.totalDisplay = `₹${todayStats.sales.toLocaleString()}`;
-            salesTab.bars[0] = { label: 'W1', value: Math.min(100, Math.round((todayStats.sales / 5000) * 100) || 25), amount: `₹${todayStats.sales.toLocaleString()}` };
-            updatedHighlights.tabs.sales = salesTab;
-
-            const ordersTab = { ...updatedHighlights.tabs.orders };
-            ordersTab.totalDisplay = `${todayStats.orders}`;
-            ordersTab.bars[0] = { label: 'W1', value: Math.min(100, todayStats.orders * 15), amount: `${todayStats.orders} orders` };
-            updatedHighlights.tabs.orders = ordersTab;
-
-            const custTab = { ...updatedHighlights.tabs.customers };
-            custTab.totalDisplay = `${mergedCustomers.length}`;
-            custTab.bars[0] = { label: 'W1', value: Math.min(100, mergedCustomers.length * 20), amount: `${mergedCustomers.length} diners` };
-            updatedHighlights.tabs.customers = custTab;
-          }
+        const formattedCustomers = backendCustomers.map(bc => {
+          const cleanPhone = String(bc.phone).slice(-10);
+          const initials = bc.name
+            ? bc.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+            : 'VG';
 
           return {
-            ...prev,
-            customers: mergedCustomers,
-            businessHighlights: updatedHighlights,
-            todayStats: {
-              ...prev.todayStats,
-              sales: todayStats.sales,
-              orders: todayStats.orders,
-              customers: mergedCustomers.length,
-              pointsIssued: todayStats.pointsIssued,
-              rewardsRedeemed: todayStats.rewardsRedeemed,
-              activeMembers: mergedCustomers.length,
-              activeMembersGrowth: `+${mergedCustomers.length}`,
-              repeatVisitRate: todayStats.repeatVisitRate,
-              loyaltyRoi: todayStats.loyaltyRoi
-            }
+            id: bc.id,
+            tenantId: bc.tenantId || this.state.user?.tenantId,
+            name: bc.name,
+            email: bc.email || `${cleanPhone}@guest.yeezy.app`,
+            phone: `+91 ${cleanPhone}`,
+            initials,
+            avatarBg: 'bg-primary text-on-primary',
+            tier: bc.tier || 'New',
+            tierBadge: bc.tier === 'VIP' ? 'bg-amber-100 text-amber-800' : 'bg-surface-container-high text-on-surface',
+            visits: bc.visits || 0,
+            lifetimeSpend: `₹${(bc.lifetimeSpend || 0).toLocaleString()}`,
+            numericSpend: bc.lifetimeSpend || 0,
+            pointsBalance: `${bc.pointsBalance || 0} pts`,
+            numericPoints: bc.pointsBalance || 0,
+            favoriteDish: bc.favoriteDish || 'Chef Special',
+            lastVisit: bc.lastVisit || 'Today',
+            lastVisitDate: new Date().toISOString().slice(0, 10),
+            status: (bc.visits || 0) > 0 ? 'Active' : 'New Guest',
+            joinedDate: bc.joinedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+            totalRedeemed: (bc.totalRedeemed || 0) > 0 ? `${bc.totalRedeemed} Rewards` : '0 Rewards',
+            recentOrders: bc.recentOrders || []
           };
-        }, { silent: false });
+        });
+
+        // Set state replacing customers with clean tenant array (NO cross-tenant leaking)
+        this.setState(prev => ({
+          ...prev,
+          activeOutlet: statsRes.activeOutlet || statsRes.restaurantName || prev.activeOutlet,
+          customers: formattedCustomers,
+          todayStats: {
+            ...prev.todayStats,
+            ...todayStats
+          }
+        }), { silent: false });
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('Backend sync failed:', err);
+    }
   }
 
   // Reset all platform data to 0
@@ -215,9 +288,11 @@ class Store {
     this.saveState();
     this.notify();
 
-    // Also trigger backend wipe
     try {
-      await fetch(apiUrl('/api/v1/dashboard/reset'), { method: 'POST' });
+      await fetch(apiUrl('/api/v1/dashboard/reset'), { 
+        method: 'POST',
+        headers: this.getAuthHeaders()
+      });
     } catch (err) {
       console.warn('Backend reset call:', err);
     }
