@@ -13,6 +13,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   
   <!-- Tailwind CSS CDN -->
+  <script>
+    (function() {
+      const origWarn = console.warn;
+      console.warn = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        origWarn.apply(console, args);
+      };
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Exact Stitch Theme Tokens Config -->

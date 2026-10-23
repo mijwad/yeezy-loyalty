@@ -313,9 +313,11 @@ class POSDataStore {
     const cleanPass = password.trim();
     const user = this.data.users.find(u => {
       const matchEmail = u.email && u.email.toLowerCase() === cleanId;
+      const emailPrefix = u.email ? u.email.split('@')[0].toLowerCase() : '';
       const matchUsername = (cleanId === 'admin' && u.role === 'SUPER_ADMIN') ||
                             (cleanId === 'alex' && u.id === 'usr_owner_01') ||
-                            (cleanId === 'riyaz' && u.id === 'usr_owner_02');
+                            (cleanId === 'riyaz' && u.id === 'usr_owner_02') ||
+                            (emailPrefix && emailPrefix === cleanId);
       return (matchEmail || matchUsername) && u.password === cleanPass;
     });
     if (!user) return null;
@@ -345,10 +347,111 @@ class POSDataStore {
 
   persist(data = this.data) {
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      if (fs.existsSync(DATA_DIR)) {
+        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+      }
     } catch (err) {
-      console.error('Failed to write db.json:', err);
+      // Serverless or read-only environment
     }
+  }
+
+  createRestaurantTenant({ brandName, ownerName, ownerEmail, password, primaryOutletName, petpoojaRestID }) {
+    if (!brandName || !ownerName || !ownerEmail) {
+      throw new Error('brandName, ownerName, and ownerEmail are required');
+    }
+
+    const cleanEmail = ownerEmail.trim().toLowerCase();
+
+    // Check if user with email already exists
+    if (this.data.users && this.data.users.some(u => u.email && u.email.toLowerCase() === cleanEmail)) {
+      throw new Error(`An account with email '${cleanEmail}' already exists`);
+    }
+
+    // Generate unique IDs
+    const tenantSlug = brandName.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 15) || 'rest';
+    const tenantId = `ten_${tenantSlug}_${Date.now().toString(36)}`;
+    const restId = petpoojaRestID ? petpoojaRestID.trim().toUpperCase() : `PP_${tenantSlug.slice(0, 4).toUpperCase()}_${Math.floor(100 + Math.random() * 900)}`;
+
+    const tenant = {
+      id: tenantId,
+      name: brandName.trim(),
+      brandName: brandName.trim(),
+      ownerId: `usr_${Date.now().toString(36)}`,
+      ownerName: ownerName.trim(),
+      ownerEmail: cleanEmail,
+      plan: 'ENTERPRISE',
+      active: true,
+      createdAt: new Date().toISOString(),
+      primaryRestID: restId,
+      outletsCount: 1,
+      totalDiners: 0,
+      lifetimeSales: 0
+    };
+
+    const user = {
+      id: tenant.ownerId,
+      name: ownerName.trim(),
+      email: cleanEmail,
+      password: (password || 'owner123').trim(),
+      role: 'RESTAURANT_OWNER',
+      tenantId: tenant.id,
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(ownerName.trim())}`
+    };
+
+    const outlet = {
+      id: `out_${Date.now().toString(36)}`,
+      restID: restId,
+      tenantId: tenant.id,
+      name: primaryOutletName ? primaryOutletName.trim() : `${brandName.trim()} Main Outlet`,
+      address: 'Kerala, India',
+      active: true,
+      appKey: `sec_live_${randomUUID().slice(0, 10)}`,
+      reeloKey: randomUUID(),
+      isMarketplaceConnected: false
+    };
+
+    // Ensure collections exist
+    if (!this.data.tenants) this.data.tenants = [];
+    if (!this.data.users) this.data.users = [];
+    if (!this.data.outlets) this.data.outlets = [];
+
+    this.data.tenants.push(tenant);
+    this.data.users.push(user);
+    this.data.outlets.push(outlet);
+
+    // Initialize default loyalty program for this restaurant tenant
+    this.getLoyaltyProgram(tenant.id);
+
+    this.persist();
+
+    return {
+      tenant,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantId
+      },
+      outlet
+    };
+  }
+
+  resetToZero() {
+    this.data.customers = [];
+    this.data.orders = [];
+    this.data.loyaltyMembers = {};
+    this.data.loyaltyLedger = [];
+    this.data.loyaltyReferrals = [];
+    this.data.webhookLogs = [];
+    if (this.data.tenants) {
+      this.data.tenants.forEach(t => {
+        t.totalDiners = 0;
+        t.lifetimeSales = 0;
+      });
+    }
+    this.persist();
+    return true;
   }
 
   // ==========================================
