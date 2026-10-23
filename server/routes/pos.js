@@ -327,8 +327,8 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   const customer = posStore.getOrCreateCustomer(phone, name);
 
   const program = posStore.data.loyaltyProgram;
-  const netPaid = parseFloat(financials?.net_paid || financials?.gross_amount || 0);
-  const loyaltyDiscount = parseFloat(financials?.loyalty_discount || 0);
+  const netPaid = parseFloat(req.body.net_paid ?? financials?.net_paid ?? financials?.gross_amount ?? 0);
+  const loyaltyDiscount = parseFloat(req.body.loyalty_discount ?? financials?.loyalty_discount ?? 0);
 
   // 1. Process Point Burn if a redemption session was active
   let pointsBurned = 0;
