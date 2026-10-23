@@ -12,6 +12,9 @@ export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
+const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const DEFAULT_OUTLET_ID = '00000000-0000-0000-0000-000000000002';
+
 // Async helper to push a customer to Supabase
 export async function syncCustomerToSupabase(customer) {
   if (!supabase) return null;
@@ -19,16 +22,15 @@ export async function syncCustomerToSupabase(customer) {
     const { data, error } = await supabase
       .from('customers')
       .upsert({
-        id: customer.id,
-        phone: customer.phone,
-        name: customer.name,
+        tenant_id: DEFAULT_TENANT_ID,
+        phone_number: customer.phone,
+        full_name: customer.name,
         email: customer.email,
-        tier: customer.tier || 'New',
         points_balance: customer.pointsBalance || 0,
         lifetime_spend: customer.lifetimeSpend || 0,
-        visits_count: customer.visits || 0,
+        total_visits_count: customer.visits || 0,
         updated_at: new Date().toISOString()
-      }, { onConflict: 'phone' });
+      }, { onConflict: 'tenant_id,phone_number' });
 
     if (error) console.warn('[Supabase Customer Sync Notice]', error.message);
     return data;
@@ -45,19 +47,18 @@ export async function syncOrderToSupabase(order) {
     const { data, error } = await supabase
       .from('orders')
       .upsert({
-        id: order.orderId,
-        pos_order_id: order.orderId,
-        bill_number: order.billNo,
-        customer_phone: order.customerPhone,
-        customer_name: order.customerName,
-        subtotal: order.financials?.subtotal || 0,
-        gross_amount: order.financials?.grossAmount || 0,
-        loyalty_discount: order.financials?.loyaltyDiscount || 0,
-        net_paid: order.financials?.netPaid || 0,
-        points_earned: order.pointsEarned || 0,
-        points_burned: order.pointsBurned || 0,
-        settled_at: order.settledAt || new Date().toISOString()
-      }, { onConflict: 'pos_order_id' });
+        tenant_id: DEFAULT_TENANT_ID,
+        outlet_id: DEFAULT_OUTLET_ID,
+        pos_system: 'PETPOOJA',
+        pos_order_id: String(order.orderId),
+        pos_bill_no: String(order.billNo || order.orderId),
+        subtotal_amount: order.financials?.subtotal || 0,
+        gross_bill_amount: order.financials?.grossAmount || 0,
+        loyalty_discount_amount: order.financials?.loyaltyDiscount || 0,
+        net_payable_amount: order.financials?.netPaid || 0,
+        points_earned_on_bill: order.pointsEarned || 0,
+        points_redeemed_on_bill: order.pointsBurned || 0
+      }, { onConflict: 'outlet_id,pos_bill_no' });
 
     if (error) console.warn('[Supabase Order Sync Notice]', error.message);
     return data;

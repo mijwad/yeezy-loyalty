@@ -584,3 +584,60 @@ VALUES (
     '$2a$12$K8yR2u3V2GvC.wX1g3j7nOZ0NqkHl.L4W4L8Y1G6I3h8g5o3K8K2y', -- demo hash
     'SUPER_ADMIN'
 ) ON CONFLICT (email) DO NOTHING;
+
+-- Insert default Tenant Brand
+INSERT INTO tenants (id, code, name, primary_contact_name, primary_contact_email, primary_contact_phone)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'smoke-house-deli',
+    'Smoke House Deli',
+    'Operations Lead',
+    'ops@smokehousedeli.in',
+    '+919876543210'
+) ON CONFLICT (code) DO NOTHING;
+
+-- Insert default Outlet
+INSERT INTO outlets (id, tenant_id, code, name, address_line1, city, state, pincode)
+VALUES (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    'DELHI-CP-01',
+    'Smoke House Deli - Connaught Place',
+    'Block A, Inner Circle',
+    'New Delhi',
+    'Delhi',
+    '110001'
+) ON CONFLICT (tenant_id, code) DO NOTHING;
+
+-- Insert default Petpooja POS Integration
+INSERT INTO pos_integrations (tenant_id, outlet_id, pos_type, petpooja_rest_id, sync_status)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000002',
+    'PETPOOJA',
+    'REST_SMOKEHOUSE_01',
+    'CONNECTED'
+) ON CONFLICT (outlet_id, pos_type) DO NOTHING;
+
+-- Insert demo Customer (Aarav Sharma - 9876543210)
+INSERT INTO customers (tenant_id, phone_number, full_name, email, points_balance, lifetime_spend, total_visits_count)
+VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    '9876543210',
+    'Aarav Sharma',
+    'aarav.sharma@gmail.com',
+    350.00,
+    14850.00,
+    7
+) ON CONFLICT (tenant_id, phone_number) DO NOTHING;
+
+-- ============================================================================
+-- 13. PERMISSIONS & ROW LEVEL SECURITY
+-- ============================================================================
+-- Grant Supabase API roles access to public tables
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+
