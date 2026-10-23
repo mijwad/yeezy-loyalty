@@ -137,8 +137,292 @@
     "autoRefillAmount": 500
   },
   "customers": [],
-  "loyaltyLedger": [],
+  "loyaltyLedger": [
+    {
+      "id": "led_1792794417214_crtqvz",
+      "restaurant_id": "ten_yeezy_01",
+      "member_id": "mem_1792794417205_cl5t2",
+      "order_id": "ORD-LIVE-001",
+      "type": "earn_base",
+      "points": 10,
+      "remaining": 0,
+      "expires_at": "2027-01-21T22:26:57.213Z",
+      "meta": {
+        "order_id": "ORD-LIVE-001",
+        "eligible_paise": 20000,
+        "base_rate_bps": 500,
+        "tier_multiplier": 1,
+        "promo_multiplier": 1,
+        "total_multiplier": 1
+      },
+      "created_at": "2026-10-23T22:26:57.214Z"
+    },
+    {
+      "id": "led_1792794432200_uj1p8d",
+      "restaurant_id": "ten_yeezy_01",
+      "member_id": "mem_1792794417205_cl5t2",
+      "order_id": "ORD-LIVE-002",
+      "type": "earn_base",
+      "points": 110,
+      "remaining": 75,
+      "expires_at": "2027-01-21T22:27:12.199Z",
+      "meta": {
+        "order_id": "ORD-LIVE-002",
+        "eligible_paise": 220000,
+        "base_rate_bps": 500,
+        "tier_multiplier": 1,
+        "promo_multiplier": 1,
+        "total_multiplier": 1
+      },
+      "created_at": "2026-10-23T22:27:12.200Z"
+    },
+    {
+      "id": "led_1792794432200_3kv2xo",
+      "restaurant_id": "ten_yeezy_01",
+      "member_id": "mem_1792794417205_cl5t2",
+      "order_id": "ORD-LIVE-002",
+      "type": "earn_bonus_big_bill",
+      "points": 25,
+      "remaining": 0,
+      "expires_at": "2026-11-22T22:27:12.199Z",
+      "meta": {
+        "order_id": "ORD-LIVE-002",
+        "threshold_paise": 50000,
+        "eligible_paise": 220000
+      },
+      "created_at": "2026-10-23T22:27:12.200Z"
+    },
+    {
+      "id": "led_1792794432201_ds56r6",
+      "restaurant_id": "ten_yeezy_01",
+      "member_id": "mem_1792794417205_cl5t2",
+      "order_id": "ORD-LIVE-002",
+      "type": "earn_bonus_streak",
+      "points": 10,
+      "remaining": 0,
+      "expires_at": "2026-11-22T22:27:12.199Z",
+      "meta": {
+        "order_id": "ORD-LIVE-002",
+        "within_days": 7,
+        "previous_visit_at": "2026-10-23T22:26:57.225Z"
+      },
+      "created_at": "2026-10-23T22:27:12.201Z"
+    },
+    {
+      "id": "led_1792794432239_40ykai",
+      "restaurant_id": "ten_yeezy_01",
+      "member_id": "mem_1792794417205_cl5t2",
+      "order_id": "ORD-LIVE-REDEEM-01",
+      "type": "redeem",
+      "points": -80,
+      "remaining": 0,
+      "expires_at": null,
+      "meta": {
+        "order_id": "ORD-LIVE-REDEEM-01",
+        "discount_paise": 8000,
+        "fifo_allocations": [
+          {
+            "earn_entry_id": "led_1792794432200_3kv2xo",
+            "points_deducted": 25
+          },
+          {
+            "earn_entry_id": "led_1792794432201_ds56r6",
+            "points_deducted": 10
+          },
+          {
+            "earn_entry_id": "led_1792794417214_crtqvz",
+            "points_deducted": 10
+          },
+          {
+            "earn_entry_id": "led_1792794432200_uj1p8d",
+            "points_deducted": 35
+          }
+        ]
+      },
+      "created_at": "2026-10-23T22:27:12.239Z"
+    }
+  ],
   "orders": [],
   "redemptionSessions": {},
-  "webhookLogs": []
+  "webhookLogs": [],
+  "loyaltyPrograms": {
+    "ten_yeezy_01": {
+      "id": "prog_yeezy_01",
+      "restaurant_id": "ten_yeezy_01",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-10-24T00:00:00Z"
+    }
+  },
+  "loyaltyMembers": [
+    {
+      "id": "mem_1792794417205_cl5t2",
+      "restaurant_id": "ten_yeezy_01",
+      "phone_e164": "+919847012345",
+      "name": "Rahul Nair",
+      "tier": "Silver",
+      "joined_at": "2026-10-23T22:26:57.205Z",
+      "last_visit_at": "2026-10-23T22:27:12.202Z",
+      "visit_count": 2,
+      "lifetime_spend_paise": 240000,
+      "referred_by_member_id": null
+    }
+  ],
+  "loyaltyReferrals": [],
+  "loyaltyMultiplierRules": [
+    {
+      "id": "rule_onam",
+      "restaurant_id": "ten_yeezy_01",
+      "name": "Onam Grand Sadhya (2.0x)",
+      "multiplier": 2,
+      "days_of_week": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "start_time": "11:00:00",
+      "end_time": "16:00:00",
+      "start_date": null,
+      "end_date": null,
+      "is_active": true
+    },
+    {
+      "id": "rule_vishu",
+      "restaurant_id": "ten_yeezy_01",
+      "name": "Vishu Kaineettam Special (1.5x)",
+      "multiplier": 1.5,
+      "days_of_week": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "start_time": "11:00:00",
+      "end_time": "23:00:00",
+      "start_date": null,
+      "end_date": null,
+      "is_active": true
+    },
+    {
+      "id": "rule_eid",
+      "restaurant_id": "ten_yeezy_01",
+      "name": "Eid Mubarak Feast (1.75x)",
+      "multiplier": 1.75,
+      "days_of_week": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "start_time": "18:00:00",
+      "end_time": "23:30:00",
+      "start_date": null,
+      "end_date": null,
+      "is_active": true
+    },
+    {
+      "id": "rule_happy_hours",
+      "restaurant_id": "ten_yeezy_01",
+      "name": "Weekday Afternoon Slow-Slot (1.5x)",
+      "multiplier": 1.5,
+      "days_of_week": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "start_time": "14:00:00",
+      "end_time": "18:00:00",
+      "start_date": null,
+      "end_date": null,
+      "is_active": true
+    },
+    {
+      "id": "rule_sunday_sadhya",
+      "restaurant_id": "ten_yeezy_01",
+      "name": "Sunday Family Sadhya (1.25x)",
+      "multiplier": 1.25,
+      "days_of_week": [
+        0
+      ],
+      "start_time": "12:00:00",
+      "end_time": "16:30:00",
+      "start_date": null,
+      "end_date": null,
+      "is_active": true
+    }
+  ],
+  "loyaltyCampaignLog": []
 }

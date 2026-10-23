@@ -15,6 +15,79 @@ export const supabase = isSupabaseConfigured
 const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 const DEFAULT_OUTLET_ID = '00000000-0000-0000-0000-000000000002';
 
+// Push Loyalty Program configuration to Supabase
+export async function syncLoyaltyProgramToSupabase(program) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('loyalty_programs')
+      .upsert({
+        restaurant_id: program.restaurant_id || DEFAULT_TENANT_ID,
+        is_active: program.is_active ?? true,
+        config: program.config,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'restaurant_id' });
+
+    if (error) console.warn('[Supabase Loyalty Program Sync Notice]', error.message);
+    return data;
+  } catch (err) {
+    console.warn('[Supabase Loyalty Program Catch]', err.message);
+    return null;
+  }
+}
+
+// Push Loyalty Member to Supabase
+export async function syncLoyaltyMemberToSupabase(member) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('loyalty_members')
+      .upsert({
+        restaurant_id: member.restaurant_id || DEFAULT_TENANT_ID,
+        phone_e164: member.phone_e164,
+        name: member.name,
+        tier: member.tier || 'Silver',
+        last_visit_at: member.last_visit_at,
+        visit_count: member.visit_count || 0,
+        lifetime_spend_paise: member.lifetime_spend_paise || 0,
+        referred_by_member_id: member.referred_by_member_id || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'restaurant_id,phone_e164' });
+
+    if (error) console.warn('[Supabase Loyalty Member Sync Notice]', error.message);
+    return data;
+  } catch (err) {
+    console.warn('[Supabase Loyalty Member Catch]', err.message);
+    return null;
+  }
+}
+
+// Push Ledger Entry to Supabase
+export async function syncLoyaltyLedgerEntryToSupabase(entry) {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from('loyalty_ledger')
+      .insert({
+        restaurant_id: entry.restaurant_id || DEFAULT_TENANT_ID,
+        member_id: entry.member_id,
+        order_id: entry.order_id || null,
+        type: entry.type,
+        points: entry.points,
+        remaining: entry.remaining || 0,
+        expires_at: entry.expires_at || null,
+        meta: entry.meta || {},
+        created_at: entry.created_at || new Date().toISOString()
+      });
+
+    if (error) console.warn('[Supabase Loyalty Ledger Sync Notice]', error.message);
+    return data;
+  } catch (err) {
+    console.warn('[Supabase Loyalty Ledger Catch]', err.message);
+    return null;
+  }
+}
+
 // Async helper to push a customer to Supabase
 export async function syncCustomerToSupabase(customer) {
   if (!supabase) return null;

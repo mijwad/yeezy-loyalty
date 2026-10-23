@@ -261,7 +261,19 @@ class Store {
           };
         });
 
-        // Set state replacing customers with clean tenant array (NO cross-tenant leaking)
+        // Check if data actually changed before notifying
+        const prevStatsStr = JSON.stringify(this.state.todayStats || {});
+        const nextStatsStr = JSON.stringify(todayStats || {});
+        const hasStatsChanged = prevStatsStr !== nextStatsStr;
+        const hasCustomersChanged = (this.state.customers || []).length !== formattedCustomers.length ||
+          (this.state.customers || []).some((c, i) => c.id !== formattedCustomers[i]?.id || c.numericPoints !== formattedCustomers[i]?.numericPoints);
+
+        if (!hasStatsChanged && !hasCustomersChanged) {
+          // No backend state change, avoid disruptive UI refresh
+          return;
+        }
+
+        // Set state replacing customers with clean tenant array
         this.setState(prev => ({
           ...prev,
           activeOutlet: statsRes.activeOutlet || statsRes.restaurantName || prev.activeOutlet,

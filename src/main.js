@@ -22,6 +22,9 @@ import { renderSmartInsightsView } from './views/other/smartInsights.js';
 import { renderLoginView, attachLoginListeners } from './views/auth/login.js';
 import { renderSuperAdminView, attachSuperAdminListeners } from './views/admin/superAdmin.js';
 import { renderAppsIntegrationsView, attachAppsIntegrationsListeners } from './views/integrations/index.js';
+import { renderBillingScreen, attachBillingScreenListeners } from './views/billing/index.js';
+import { renderCustomerPortal, attachCustomerPortalListeners } from './views/customer/portal.js';
+import { renderLoyaltySettingsView, attachLoyaltySettingsListeners } from './views/settings/loyaltySettings.js';
 
 class YeezyLoyaltyApp {
   constructor() {
@@ -84,15 +87,31 @@ class YeezyLoyaltyApp {
       });
     }
 
+    // Track last user activity to avoid interrupting active interactions
+    this.lastUserActionTime = Date.now();
+    ['keydown', 'mousedown', 'input', 'pointerdown', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, () => { this.lastUserActionTime = Date.now(); }, { passive: true });
+    });
+
     // Initial background sync with Petpooja POS & backend database
     this.store.syncWithBackend();
 
-    // Smooth, scroll-safe background sync (only runs when tab is active and user is not scrolling)
+    // Background sync runs only when user has been idle for at least 15 seconds
     setInterval(() => {
-      if (document.visibilityState === 'visible' && !this.isUserScrolling) {
+      const isIdle = Date.now() - this.lastUserActionTime > 15000;
+      const isInputActive = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+      if (document.visibilityState === 'visible' && !this.isUserScrolling && isIdle && !isInputActive) {
         this.store.syncWithBackend();
       }
-    }, 12000);
+    }, 30000);
+
+    // Sync when returning to tab
+    window.addEventListener('focus', () => {
+      const isInputActive = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+      if (!isInputActive) {
+        this.store.syncWithBackend();
+      }
+    });
 
     this.render();
   }
@@ -120,10 +139,20 @@ class YeezyLoyaltyApp {
     const uiState = this.store.getUIState();
     const route = uiState.currentRoute;
 
-    // Require authentication: redirect unauthenticated users to #login
+    const isPublicCustomerRoute = route === 'customer-portal' || route === 'my-rewards';
+
+    // Require staff authentication for backend dashboard, except login & public customer portal
     const token = localStorage.getItem('yeezy_auth_token');
-    if (!token && route !== 'login') {
+    if (!token && route !== 'login' && !isPublicCustomerRoute) {
       window.location.hash = '#login';
+      return;
+    }
+
+    // Public Customer Portal View
+    if (isPublicCustomerRoute) {
+      this.currentLayout = 'customer-portal';
+      appEl.innerHTML = renderCustomerPortal(state);
+      attachCustomerPortalListeners();
       return;
     }
 
@@ -191,6 +220,18 @@ class YeezyLoyaltyApp {
       case 'settings':
         mainContentHtml = renderSettingsView(state);
         break;
+      case 'billing-terminal':
+      case 'cashier-billing':
+        mainContentHtml = renderBillingScreen(state);
+        break;
+      case 'loyalty-settings':
+      case 'roi-simulator':
+        mainContentHtml = renderLoyaltySettingsView(state);
+        break;
+      case 'customer-portal':
+      case 'my-rewards':
+        mainContentHtml = renderCustomerPortal(state);
+        break;
       case 'integrations':
       case 'apps-integrations':
         mainContentHtml = renderAppsIntegrationsView(state);
@@ -205,6 +246,12 @@ class YeezyLoyaltyApp {
 
     // In-place fast path: Shell is already mounted! Update only view or modal, keeping scroll intact!
     if (this.currentLayout === 'standard' && mainViewEl && modalsRootEl) {
+      // If user is currently focused on an active input/textarea/select on the same route, protect it from being wiped
+      const isInputActive = activeEl && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName);
+      if (isInputActive && this.lastRenderedRoute === route) {
+        return;
+      }
+
       // Update Main View only if content or route changed
       if (this.lastRenderedRoute !== route || this.lastContentHtml !== mainContentHtml) {
         mainViewEl.innerHTML = mainContentHtml;
@@ -311,6 +358,18 @@ class YeezyLoyaltyApp {
         break;
       case 'settings':
         attachSettingsListeners();
+        break;
+      case 'billing-terminal':
+      case 'cashier-billing':
+        attachBillingScreenListeners();
+        break;
+      case 'loyalty-settings':
+      case 'roi-simulator':
+        attachLoyaltySettingsListeners();
+        break;
+      case 'customer-portal':
+      case 'my-rewards':
+        attachCustomerPortalListeners();
         break;
       case 'integrations':
       case 'apps-integrations':
