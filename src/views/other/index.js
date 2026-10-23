@@ -433,94 +433,258 @@ export function renderSettingsView(state) {
         </div>
       </div>
 
-      <!-- Petpooja Marketplace Integration (Exact Reelo 3-Step Setup) -->
-      <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-white rounded-3xl p-6 md:p-8 border-2 border-emerald-300 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="flex items-start gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-[#00c59e] text-white flex items-center justify-center font-black text-2xl shadow-md shrink-0">
-            <span class="material-symbols-outlined text-3xl">storefront</span>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h3 class="text-lg font-black text-slate-900 tracking-tight">Petpooja Marketplace Integration (Reelo Flow)</h3>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black ${state.isPetpoojaIntegrated ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-[#00c59e]/20 text-[#00876c] border border-[#00c59e]/30'} flex items-center gap-1">
-                ${state.isPetpoojaIntegrated ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Connected (PP_DEL_101)' : '3 Simple Steps'}
-              </span>
+      <!-- Yeezy RMS & External POS Integration Hub -->
+      <div class="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
+          <div class="flex items-start gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center font-black text-2xl shadow-lg shrink-0">
+              <span class="material-symbols-outlined text-3xl">cable</span>
             </div>
-            <p class="text-xs text-slate-600 mt-1 max-w-xl leading-relaxed">
-              ${state.isPetpoojaIntegrated 
-                ? 'Your Petpooja POS is actively connected. Real-time cashier inquiries, discount locks, and order sync webhooks are live.'
-                : 'Copy your unique integration key, navigate to Petpooja POS Marketplace ➔ Loyalty Programs ➔ Enter Key and click "Complete Integration".'
-              }
-            </p>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl md:text-2xl font-black tracking-tight">Yeezy RMS & POS Webhook Bridge</h2>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Ready for Yeezy RMS
+                </span>
+              </div>
+              <p class="text-xs text-purple-200 mt-1 max-w-2xl leading-relaxed">
+                Yeezy Loyalty connects seamlessly with your external POS software (such as <strong>Yeezy RMS</strong> or Petpooja). When cashiers settle bills in Yeezy RMS, diner details are queried, points are redeemed, and new loyalty points are credited in real-time.
+              </p>
+            </div>
           </div>
+          <button 
+            id="btn-settings-open-petpooja-setup"
+            type="button" 
+            class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-bold text-xs transition flex items-center gap-1.5 self-start md:self-auto"
+          >
+            <span class="material-symbols-outlined text-sm">integration_instructions</span>
+            <span>Petpooja 3-Step Setup</span>
+          </button>
         </div>
 
-        <button 
-          id="btn-settings-open-petpooja-setup"
-          type="button" 
-          class="px-6 py-3 rounded-2xl ${state.isPetpoojaIntegrated ? 'bg-slate-900 hover:bg-black' : 'bg-[#00c59e] hover:bg-[#00b08d]'} text-white font-extrabold text-xs transition shadow-md flex items-center gap-2 shrink-0 active:scale-95"
-        >
-          <span class="material-symbols-outlined text-sm">${state.isPetpoojaIntegrated ? 'check_circle' : 'integration_instructions'}</span>
-          <span>${state.isPetpoojaIntegrated ? 'View Connected Status' : 'Open 3-Step Petpooja Setup'}</span>
-        </button>
+        <!-- 3-Step Architecture Flow -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center gap-2 text-primary-fixed">
+              <span class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-black">1</span>
+              <h4 class="font-bold text-xs uppercase tracking-wider text-white">Diner Lookup at Checkout</h4>
+            </div>
+            <p class="text-xs text-purple-200/80 leading-relaxed">
+              Cashier enters diner mobile number in <strong>Yeezy RMS</strong>. Yeezy RMS queries Yeezy Loyalty API for points balance, tier, and eligible discount.
+            </p>
+            <code class="text-[10px] font-mono text-emerald-300 block bg-black/40 p-2 rounded-lg">POST /api/v1/loyalty/members/lookup</code>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center gap-2 text-primary-fixed">
+              <span class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-black">2</span>
+              <h4 class="font-bold text-xs uppercase tracking-wider text-white">1-Tap Points Redemption</h4>
+            </div>
+            <p class="text-xs text-purple-200/80 leading-relaxed">
+              Cashier clicks "Redeem Points" in <strong>Yeezy RMS</strong>. Yeezy Loyalty atomically burns points with row-level locks and deducts from the bill.
+            </p>
+            <code class="text-[10px] font-mono text-emerald-300 block bg-black/40 p-2 rounded-lg">POST /api/v1/loyalty/redeem/commit</code>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+            <div class="flex items-center gap-2 text-primary-fixed">
+              <span class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-xs font-black">3</span>
+              <h4 class="font-bold text-xs uppercase tracking-wider text-white">Bill Settlement & Earn</h4>
+            </div>
+            <p class="text-xs text-purple-200/80 leading-relaxed">
+              On bill settlement in <strong>Yeezy RMS</strong>, the order webhook credits earned points into the append-only ledger and sends WhatsApp notification.
+            </p>
+            <code class="text-[10px] font-mono text-emerald-300 block bg-black/40 p-2 rounded-lg">POST /api/v1/loyalty/earn</code>
+          </div>
+        </div>
       </div>
 
-      <!-- POS & Webhook Integration Endpoints Card -->
+      <!-- Live Yeezy RMS Simulator & API Tester -->
       <div class="bg-white rounded-3xl p-6 md:p-8 border border-gray-200 shadow-sm space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-black text-xl">
-              <span class="material-symbols-outlined text-2xl">cable</span>
+              <span class="material-symbols-outlined text-2xl">terminal</span>
             </div>
             <div>
-              <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">POS Integration Endpoints</h3>
-              <p class="text-xs text-gray-500 mt-0.5">Use these URLs to connect your physical POS billing terminal (Petpooja, POSist, or custom RMS)</p>
+              <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">Interactive Yeezy RMS Integration Simulator</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Test how Yeezy RMS communicates with Yeezy Loyalty when a diner pays their bill</p>
             </div>
           </div>
-          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live & Ready
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-1.5 self-start sm:self-auto">
+            <span class="w-2 h-2 rounded-full bg-purple-600"></span> Live Test Console
           </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">1. Loyalty Inquiry Endpoint</span>
-              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <!-- Simulation Inputs -->
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Yeezy RMS Bill Details</h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] font-bold text-gray-600 block mb-1">Diner Phone Number</label>
+                <input 
+                  id="sim-phone" 
+                  type="tel" 
+                  value="9847012345" 
+                  class="w-full px-3 py-2 text-xs font-mono font-bold rounded-xl border border-gray-300 bg-white focus:border-primary"
+                >
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-gray-600 block mb-1">Bill Amount (₹)</label>
+                <input 
+                  id="sim-bill" 
+                  type="number" 
+                  value="500" 
+                  class="w-full px-3 py-2 text-xs font-mono font-bold rounded-xl border border-gray-300 bg-white focus:border-primary"
+                >
+              </div>
             </div>
-            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/loyalty/inquire</p>
-            <p class="text-[11px] text-gray-500 leading-relaxed">Looks up customer points balance and available discount vouchers when cashier enters mobile number.</p>
+
+            <div>
+              <label class="text-[11px] font-bold text-gray-600 block mb-1">Order ID in Yeezy RMS</label>
+              <input 
+                id="sim-order-id" 
+                type="text" 
+                value="RMS-ORD-${Date.now().toString().slice(-6)}" 
+                class="w-full px-3 py-2 text-xs font-mono rounded-xl border border-gray-300 bg-white text-gray-600"
+              >
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 pt-2">
+              <button 
+                id="btn-sim-lookup" 
+                type="button" 
+                class="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <span class="material-symbols-outlined text-sm">search</span>
+                <span>1. Lookup & Discount</span>
+              </button>
+
+              <button 
+                id="btn-sim-earn" 
+                type="button" 
+                class="flex-1 py-2.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <span class="material-symbols-outlined text-sm">receipt_long</span>
+                <span>2. Settle Bill & Earn</span>
+              </button>
+            </div>
           </div>
 
-          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">2. Points Lock / Apply Voucher</span>
-              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+          <!-- Live JSON Output Screen -->
+          <div class="p-5 rounded-2xl bg-slate-950 text-slate-100 font-mono border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Live Response from Yeezy Loyalty Engine</span>
+              <span id="sim-status-badge" class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-bold">READY</span>
             </div>
-            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/loyalty/lock</p>
-            <p class="text-[11px] text-gray-500 leading-relaxed">Locks points when cashier selects voucher and returns net discounted bill total.</p>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">3. Order Settlement / Ledger Save</span>
-              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
-            </div>
-            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/orders/save</p>
-            <p class="text-[11px] text-gray-500 leading-relaxed">Called when cashier settles bill. Credits 10% points, burns redeemed points, and logs to ledger.</p>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">4. Bill Void / Cancellation</span>
-              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
-            </div>
-            <p class="text-xs text-gray-700 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/pos/orders/cancel</p>
-            <p class="text-[11px] text-gray-500 leading-relaxed">Reverses earned and burned points if a bill is cancelled or voided by restaurant manager.</p>
+            <pre id="sim-output" class="text-xs text-emerald-400 overflow-x-auto max-h-56 select-all p-2 bg-slate-900/60 rounded-xl leading-relaxed">// Click "1. Lookup & Discount" or "2. Settle Bill & Earn" above to test API live</pre>
           </div>
         </div>
       </div>
 
+      <!-- Developer REST API Endpoints & Credentials -->
+      <div class="bg-white rounded-3xl p-6 md:p-8 border border-gray-200 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-100 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-xl">
+              <span class="material-symbols-outlined text-2xl">api</span>
+            </div>
+            <div>
+              <h3 class="text-base md:text-lg font-black text-gray-900 tracking-tight">Yeezy RMS API Endpoints & Credentials</h3>
+              <p class="text-xs text-gray-500 mt-0.5">Configure these in your Yeezy RMS restaurant configuration</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 self-start sm:self-auto">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Live REST API
+          </span>
+        </div>
+
+        <!-- Credentials Quick Copy -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-gray-500 block">Restaurant Tenant ID</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-slate-900 select-all">${state.user?.tenantId || 'ten_yeezy_01'}</span>
+              <button 
+                type="button" 
+                class="text-xs text-primary font-bold hover:underline"
+                onclick="navigator.clipboard.writeText('${state.user?.tenantId || 'ten_yeezy_01'}'); window.showToast('Copied Tenant ID!');"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-gray-500 block">Primary Outlet ID</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-slate-900 select-all">${state.user?.primaryRestID || 'PP_DEL_101'}</span>
+              <button 
+                type="button" 
+                class="text-xs text-primary font-bold hover:underline"
+                onclick="navigator.clipboard.writeText('${state.user?.primaryRestID || 'PP_DEL_101'}'); window.showToast('Copied Outlet ID!');"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-1">
+            <span class="text-[10px] uppercase font-bold text-gray-500 block">Base Webhook URL</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono font-bold text-slate-900 select-all truncate max-w-[170px]">${window.location.origin}</span>
+              <button 
+                type="button" 
+                class="text-xs text-primary font-bold hover:underline shrink-0"
+                onclick="navigator.clipboard.writeText('${window.location.origin}'); window.showToast('Copied Base URL!');"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Endpoints Detail Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">1. Diner Lookup & Points Balance</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-800 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/loyalty/members/lookup</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Sends <code>{ phone: "+919847012345" }</code>. Returns member tier, total points, and active offers.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">2. Preview Redeem Discount</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-800 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/loyalty/redeem/preview</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Calculates max 20% bill discount cap and verifies minimum bill threshold before applying.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">3. Commit Points Deduction</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-800 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/loyalty/redeem/commit</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Called when cashier confirms points discount. Runs with row-level locks to prevent double-spending.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-600 uppercase tracking-wider">4. Bill Settlement & Points Credit</span>
+              <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-100 text-blue-800 rounded font-bold">POST</span>
+            </div>
+            <p class="text-xs text-gray-800 font-mono bg-white p-2.5 rounded-xl border border-gray-200 select-all font-bold">/api/v1/loyalty/earn</p>
+            <p class="text-[11px] text-gray-500 leading-relaxed">Called when bill is paid in Yeezy RMS. Credits tier points, streak bonuses, and triggers WhatsApp receipt.</p>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
@@ -532,6 +696,80 @@ export function attachSettingsListeners() {
       store.setUIState({ activeModal: 'petpoojaIntegration' });
     };
   }
+
+  // Live Yeezy RMS Simulator Listeners
+  const simPhone = document.getElementById('sim-phone');
+  const simBill = document.getElementById('sim-bill');
+  const simOrderId = document.getElementById('sim-order-id');
+  const simOutput = document.getElementById('sim-output');
+  const simBadge = document.getElementById('sim-status-badge');
+  const btnLookup = document.getElementById('btn-sim-lookup');
+  const btnEarn = document.getElementById('btn-sim-earn');
+
+  if (btnLookup && simOutput) {
+    btnLookup.onclick = async () => {
+      const phone = simPhone?.value.trim() || '9847012345';
+      const billPaise = Math.round((parseFloat(simBill?.value || '500')) * 100);
+      if (simBadge) {
+        simBadge.innerText = 'LOOKING UP...';
+        simBadge.className = 'px-2 py-0.5 rounded text-[10px] bg-amber-500 text-black font-bold';
+      }
+
+      try {
+        const res = await fetch('/api/v1/loyalty/redeem/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, bill_amount_paise: billPaise })
+        });
+        const data = await res.json();
+        simOutput.innerText = JSON.stringify(data, null, 2);
+        if (simBadge) {
+          simBadge.innerText = res.ok ? '200 OK' : 'FAILED';
+          simBadge.className = res.ok ? 'px-2 py-0.5 rounded text-[10px] bg-emerald-500 text-black font-bold' : 'px-2 py-0.5 rounded text-[10px] bg-red-500 text-white font-bold';
+        }
+        if (res.ok) window.showToast(`Yeezy RMS: Found diner with ${data.member?.points_balance || 0} points!`);
+      } catch (err) {
+        simOutput.innerText = String(err);
+      }
+    };
+  }
+
+  if (btnEarn && simOutput) {
+    btnEarn.onclick = async () => {
+      const phone = simPhone?.value.trim() || '9847012345';
+      const billPaise = Math.round((parseFloat(simBill?.value || '500')) * 100);
+      const orderId = simOrderId?.value.trim() || `RMS-ORD-${Date.now()}`;
+      if (simBadge) {
+        simBadge.innerText = 'SETTLING BILL...';
+        simBadge.className = 'px-2 py-0.5 rounded text-[10px] bg-amber-500 text-black font-bold';
+      }
+
+      try {
+        const res = await fetch('/api/v1/loyalty/earn', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone,
+            order_id: orderId,
+            subtotal_paise: billPaise,
+            order_type: 'dine_in'
+          })
+        });
+        const data = await res.json();
+        simOutput.innerText = JSON.stringify(data, null, 2);
+        if (simBadge) {
+          simBadge.innerText = res.ok ? '200 OK (POINTS CREDITED)' : 'FAILED';
+          simBadge.className = res.ok ? 'px-2 py-0.5 rounded text-[10px] bg-emerald-500 text-black font-bold' : 'px-2 py-0.5 rounded text-[10px] bg-red-500 text-white font-bold';
+        }
+        if (res.ok) {
+          window.showToast(`Yeezy RMS: Bill settled! Credited ${data.points_earned || 0} points! WhatsApp dispatched.`);
+          store.syncWithBackend();
+        }
+      } catch (err) {
+        simOutput.innerText = String(err);
+      }
+    };
+  }
 }
 
-
+export const attachAppsIntegrationsListeners = attachSettingsListeners;

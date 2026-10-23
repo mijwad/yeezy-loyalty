@@ -220,10 +220,6 @@ class YeezyLoyaltyApp {
       case 'settings':
         mainContentHtml = renderSettingsView(state);
         break;
-      case 'billing-terminal':
-      case 'cashier-billing':
-        mainContentHtml = renderBillingScreen(state);
-        break;
       case 'loyalty-settings':
       case 'roi-simulator':
         mainContentHtml = renderLoyaltySettingsView(state);
@@ -232,8 +228,11 @@ class YeezyLoyaltyApp {
       case 'my-rewards':
         mainContentHtml = renderCustomerPortal(state);
         break;
+      case 'billing-terminal':
+      case 'cashier-billing':
       case 'integrations':
       case 'apps-integrations':
+      case 'pos-integration':
         mainContentHtml = renderAppsIntegrationsView(state);
         break;
       default:
