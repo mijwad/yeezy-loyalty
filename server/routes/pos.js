@@ -382,6 +382,12 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   customer.lifetimeSpend += netPaid;
   customer.visits += 1;
   customer.lastVisit = 'Today';
+  if (items && items.length > 0) {
+    const topItem = items[0]?.name || items[0]?.item_name;
+    if (topItem) {
+      customer.favoriteDish = topItem;
+    }
+  }
   posStore.updateCustomerTier(customer);
 
   // Update Tenant aggregate lifetime stats

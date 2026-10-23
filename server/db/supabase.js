@@ -58,9 +58,24 @@ export async function syncOrderToSupabase(order) {
         net_payable_amount: order.financials?.netPaid || 0,
         points_earned_on_bill: order.pointsEarned || 0,
         points_redeemed_on_bill: order.pointsBurned || 0
-      }, { onConflict: 'outlet_id,pos_bill_no' });
+      }, { onConflict: 'outlet_id,pos_bill_no' })
+      .select();
 
     if (error) console.warn('[Supabase Order Sync Notice]', error.message);
+
+    if (data && data.length > 0 && Array.isArray(order.items) && order.items.length > 0) {
+      const orderId = data[0].id;
+      const orderItemsToInsert = order.items.map(item => ({
+        order_id: orderId,
+        pos_item_id: String(item.id || ''),
+        item_name: item.name || item.item_name || 'Item',
+        quantity: parseFloat(item.quantity || 1),
+        unit_price: parseFloat(item.price || item.unit_price || 0),
+        total_price: parseFloat(item.total || item.line_total || (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)) || 0)
+      }));
+      await supabase.from('order_items').insert(orderItemsToInsert);
+    }
+
     return data;
   } catch (err) {
     console.warn('[Supabase Sync Catch]', err.message);
