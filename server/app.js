@@ -15,6 +15,8 @@ import { adminRouter } from './routes/admin.js';
 import { customersRouter } from './routes/customers.js';
 import { dashboardRouter } from './routes/dashboard.js';
 import { marketplaceRouter } from './routes/marketplace.js';
+import { whatsappWebhookRouter } from './routes/whatsappWebhook.js';
+import { whatsappRouter } from './routes/whatsappModule.js';
 import { authMiddleware } from './middleware/auth.js';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
@@ -127,8 +129,14 @@ app.use('/v1', v1PublicRouter);
 // Multi-POS Unified Routes (scalable adapter pattern)
 app.use('/pos', posUnifiedRouter);
 
+// WhatsApp Cloud API Webhook (unauthenticated Meta handshake & event ingestion)
+app.use('/api/whatsapp/webhook', whatsappWebhookRouter);
+
 // Automatic Multi-Tenant Session & Token Resolver (Dashboard & Legacy)
 app.use('/api', authMiddleware);
+
+// WhatsApp Campaign Module (authenticated restaurant management)
+app.use('/api/whatsapp', whatsappRouter);
 
 // API Routes with validation
 app.use('/api/v1/auth', authRouter);
