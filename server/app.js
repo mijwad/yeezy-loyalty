@@ -14,10 +14,12 @@ import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
 import { customersRouter } from './routes/customers.js';
 import { dashboardRouter } from './routes/dashboard.js';
+import { marketplaceRouter } from './routes/marketplace.js';
 import { authMiddleware } from './middleware/auth.js';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
 import { supabaseAdmin } from './db/supabase.js';
+import { posAdapterFactory } from './pos/POSAdapterFactory.js';
 
 dotenv.config();
 
@@ -90,6 +92,9 @@ app.use('/api/v1/customers', validateRequest('customerUpsert'), customersRouter)
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/loyalty', loyaltyRouter);
 app.use('/api/loyalty', loyaltyRouter); // Legacy path
+
+// Marketplace & POS Onboarding Routes (requires authentication)
+app.use('/api/marketplace', marketplaceRouter);
 
 // Metrics endpoint (Prometheus format)
 app.get('/metrics', async (req, res) => {
@@ -171,9 +176,20 @@ if (fs.existsSync(DIST_PATH)) {
         posOrderSave: 'POST /pos/:posSystem/orders/save',
         posCancel: 'POST /pos/:posSystem/orders/cancel',
         publicAPI: 'POST /v1/orders (with API key)',
+        marketplace: {
+          posSystems: 'GET /api/marketplace/pos-systems',
+          outlets: 'GET /api/marketplace/outlets',
+          createOutlet: 'POST /api/marketplace/outlets',
+          connectOutlet: 'POST /api/marketplace/outlets/:outletId/connect',
+          apiKeys: 'GET /api/marketplace/api-keys',
+          createApiKey: 'POST /api/marketplace/api-keys',
+          revokeApiKey: 'DELETE /api/marketplace/api-keys/:keyId',
+          integrationGuide: 'GET /api/marketplace/integration-guide/:posSystem',
+          webhookTest: 'POST /api/marketplace/webhook-test/:posSystem'
+        },
         docs: 'See OpenAPI spec at /openapi.yaml'
       },
-      supportedPOSSystems: ['petpooja'] // Will be dynamic from factory
+      supportedPOSSystems: posAdapterFactory.getRegisteredSystems()
     });
   });
 }

@@ -229,6 +229,31 @@ export const schemas = {
     body: z.object({
       refund_paise: z.number().int().positive()
     })
+  }),
+
+  // Marketplace - Outlet create
+  outletCreate: z.object({
+    body: z.object({
+      name: z.string().min(1).max(256),
+      address: z.string().max(512).optional(),
+      posSystem: z.enum(['petpooja', 'rms', 'toast', 'square', 'custom']),
+      restId: z.string().min(1).max(64),
+      posConfig: z.record(z.unknown()).optional()
+    })
+  }),
+
+  // Marketplace - API key create
+  apiKeyCreate: z.object({
+    body: z.object({
+      name: z.string().min(1).max(128),
+      scopes: z.array(z.enum([
+        'customers:read', 'customers:write',
+        'points:earn', 'points:redeem',
+        'webhooks:read', 'webhooks:write'
+      ])).optional(),
+      expiresInDays: z.number().int().positive().max(3650).optional(), // Max 10 years
+      isTest: z.boolean().optional()
+    })
   })
 };
 

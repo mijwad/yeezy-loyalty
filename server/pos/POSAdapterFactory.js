@@ -3,6 +3,7 @@
  * Manages registration and instantiation of POS adapters
  */
 import { PetpoojaAdapter } from './PetpoojaAdapter.js';
+import { RMSAdapter } from './RMSAdapter.js';
 
 class POSAdapterFactory {
   constructor() {
@@ -70,6 +71,11 @@ export const posAdapterFactory = new POSAdapterFactory();
 posAdapterFactory.register('petpooja', PetpoojaAdapter, {
   webhookSecret: process.env.PETPOOJA_WEBHOOK_SECRET,
   apiKey: process.env.PETPOOJA_API_KEY
+});
+
+posAdapterFactory.register('rms', RMSAdapter, {
+  webhookSecret: process.env.RMS_WEBHOOK_SECRET,
+  apiKey: process.env.RMS_API_KEY
 });
 
 // Export registration function for future POS systems
