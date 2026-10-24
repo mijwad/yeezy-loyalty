@@ -6,11 +6,6 @@ export function renderSidebar(currentPath = 'dashboard') {
   const navItems = [
     ...(userRole === 'SUPER_ADMIN' ? [{ path: 'super-admin', label: 'Super Admin', icon: 'shield_person', badge: 'Admin' }] : []),
     { path: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { path: 'integrations', label: 'Yeezy RMS & POS', icon: 'cable', badge: 'POS API' },
-    { path: 'customer-portal', label: 'Diner Rewards', icon: 'redeem' },
-    { path: 'loyalty-settings', label: 'ROI & Settings', icon: 'finance', badge: 'ROI' },
-    { path: 'smart-insights', label: 'Smart Insights', icon: 'insights' },
-    { path: 'campaigns', label: 'Campaigns', icon: 'campaign' },
     { path: 'customer-insights', label: 'Customer Insights', icon: 'group' },
     { path: 'loyalty', label: 'Loyalty Rules', icon: 'card_membership', badge: 'Active' },
     { path: 'auto-campaigns', label: 'Auto Campaigns', icon: 'magic_button' },
