@@ -482,13 +482,17 @@ export function commitRedeem(params: {
   let pointsRemainingToDeduct = pointsToBurn;
   const allocations: FIFOAllocation[] = [];
 
-  // Sort active earn rows FIFO by earliest expires_at (null expires_at sorted last)
+  // Sort active earn rows FIFO by earliest created_at (earliest earned first)
+  // Null expires_at entries (no expiry) should be consumed last
   const sortedEarnEntries = [...activeEarnEntries]
     .filter(e => e.remaining > 0 && e.points > 0)
     .sort((a, b) => {
+      // Entries with no expiry go to the end
+      if (!a.expires_at && !b.expires_at) return 0;
       if (!a.expires_at) return 1;
       if (!b.expires_at) return -1;
-      return new Date(a.expires_at).getTime() - new Date(b.expires_at).getTime();
+      // For entries with expiry, sort by created_at (FIFO)
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
     });
 
   for (const entry of sortedEarnEntries) {

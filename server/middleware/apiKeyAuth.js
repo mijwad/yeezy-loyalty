@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { supabaseAdmin } from '../db/supabase.js';
+import { supabase, supabaseAdmin } from '../db/supabase.js';
 
 /**
  * Cryptographic API Key Verification Middleware for Public API v1
@@ -32,54 +32,33 @@ export async function apiKeyAuth(req, res, next) {
   const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
   try {
-    const { data: keyRecord, error } = await supabaseAdmin
-      .from('api_keys')
-      .select('restaurant_id, name, scopes, is_test, expires_at, revoked_at')
-      .eq('key_hash', keyHash)
-      .single();
+    const client = supabaseAdmin || supabase;
+    const { data: verifyRes, error } = await client.rpc('fn_verify_api_key', {
+      p_key_hash: keyHash
+    });
 
-    if (error || !keyRecord) {
+    const result = typeof verifyRes === 'string' ? JSON.parse(verifyRes) : verifyRes;
+
+    if (error || !result || !result.valid) {
+      const errCode = result?.error || 'INVALID_API_KEY';
       return res.status(401).json({
         error: {
-          code: 'INVALID_API_KEY',
-          message: 'API key is not recognized'
-        }
-      });
-    }
-
-    if (keyRecord.revoked_at) {
-      return res.status(401).json({
-        error: {
-          code: 'API_KEY_REVOKED',
-          message: 'This API key has been revoked'
-        }
-      });
-    }
-
-    if (keyRecord.expires_at && new Date(keyRecord.expires_at) < new Date()) {
-      return res.status(401).json({
-        error: {
-          code: 'API_KEY_EXPIRED',
-          message: 'This API key has expired'
+          code: errCode,
+          message: errCode === 'API_KEY_REVOKED' ? 'This API key has been revoked'
+                 : errCode === 'API_KEY_EXPIRED' ? 'This API key has expired'
+                 : 'API key is not recognized'
         }
       });
     }
 
     // Attach verified identity
     req.apiKey = {
-      restaurantId: keyRecord.restaurant_id,
-      name: keyRecord.name,
-      scopes: keyRecord.scopes || [],
-      isTest: keyRecord.is_test
+      restaurantId: result.restaurant_id,
+      name: result.name,
+      scopes: result.scopes || [],
+      isTest: result.is_test
     };
-    req.restaurantId = keyRecord.restaurant_id;
-
-    // Asynchronously update last_used_at
-    supabaseAdmin
-      .from('api_keys')
-      .update({ last_used_at: new Date().toISOString() })
-      .eq('key_hash', keyHash)
-      .then();
+    req.restaurantId = result.restaurant_id;
 
     next();
   } catch (err) {

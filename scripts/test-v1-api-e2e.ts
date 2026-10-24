@@ -92,14 +92,16 @@ async function main() {
     const lookupAfterJson = await lookupAfterReserve.json();
     console.log(`   Available Balance after hold: ${lookupAfterJson.customer.available_points} pts`);
     console.log(`   Active Reservations: ${lookupAfterJson.customer.active_reservations_points} pts`);
-    if (lookupAfterJson.customer.available_points !== 65) {
-      throw new Error(`Expected balance 65, got ${lookupAfterJson.customer.available_points}`);
+    const initialBalance = lookupJson.customer.available_points;
+    if (lookupAfterJson.customer.available_points !== initialBalance - 10) {
+      throw new Error(`Expected balance ${initialBalance - 10}, got ${lookupAfterJson.customer.available_points}`);
     }
     console.log('   [PASS] Hold reflected in available balance immediately\n');
 
     // 7. Test Two-Phase Redemption: Commit Points (Idempotent)
     console.log(`7. Testing POST /v1/redemptions/${reservationId}/commit (Finalize on bill pay)...`);
     const commitIdemKey = `idem-commit-${Date.now()}`;
+    const testOrderId = `ORD-COMMIT-${Date.now()}`;
     const commitRes = await fetch(`${baseUrl}/v1/redemptions/${reservationId}/commit`, {
       method: 'POST',
       headers: {
@@ -107,7 +109,7 @@ async function main() {
         'Content-Type': 'application/json',
         'Idempotency-Key': commitIdemKey
       },
-      body: JSON.stringify({ order_id: 'ORD-PROD-LIVE-101' })
+      body: JSON.stringify({ order_id: testOrderId })
     });
     const commitJson = await commitRes.json();
     console.log(`   Status: ${commitRes.status}`, commitJson);
@@ -124,7 +126,7 @@ async function main() {
         'Content-Type': 'application/json',
         'Idempotency-Key': commitIdemKey
       },
-      body: JSON.stringify({ order_id: 'ORD-PROD-LIVE-101' })
+      body: JSON.stringify({ order_id: testOrderId })
     });
     console.log(`   Replay Status: ${commitReplayRes.status}, Replay Header: ${commitReplayRes.headers.get('x-idempotent-replay')}`);
     if (commitReplayRes.status !== 200) {
