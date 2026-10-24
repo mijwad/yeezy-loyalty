@@ -1,0 +1,589 @@
+openapi: 3.1.0
+info:
+  title: Standalone Multi-Tenant Loyalty Platform API
+  version: 1.0.0
+  description: |
+    Public API v1 for POS integration and loyalty management.
+    Rules & Guarantees:
+    - Multi-tenant SaaS: Restaurant identity derived ONLY from verified API key (`lk_live_` or `lk_test_`).
+    - All monetary values are strictly in integer paise (₹1 = 100 paise).
+    - Points are integer amounts.
+    - Two-phase redemption: Reserve (15m TTL) -> Commit / Release.
+    - Safe order processing: `POST /v1/orders` may include `reservation_id` (commits idempotently within 24h grace).
+servers:
+  - url: /v1
+    description: Public API v1 prefix
+security:
+  - BearerAuth: []
+
+paths:
+  /ping:
+    get:
+      summary: Validate API key and return restaurant & program summary
+      operationId: ping
+      tags: [System]
+      responses:
+        '200':
+          description: Key is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramSummaryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /program:
+    get:
+      summary: Public-safe program configuration
+      operationId: getProgram
+      tags: [Program]
+      responses:
+        '200':
+          description: Safe program rules
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgramRulesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /customers/lookup:
+    get:
+      summary: Customer lookup by phone number
+      operationId: lookupCustomer
+      tags: [Customers]
+      parameters:
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Customer phone number in E.164 format (e.g. +919876543210)
+        - name: bill_paise
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Current cart subtotal in paise to compute real-time redemption eligibility
+      responses:
+        '200':
+          description: Customer lookup result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerLookupResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /customers/{phone}:
+    put:
+      summary: Upsert customer profile from POS
+      operationId: upsertCustomer
+      tags: [Customers]
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Customer phone in E.164
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpsertInput'
+      responses:
+        '200':
+          description: Customer upserted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerProfile'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /redemptions/reserve:
+    post:
+      summary: Reserve points for a bill with a 15-minute TTL
+      operationId: reserveRedemption
+      tags: [Redemptions]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationInput'
+      responses:
+        '201':
+          description: Points held successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /redemptions/{id}/commit:
+    post:
+      summary: Finalize and commit reserved points when bill is paid (Idempotent)
+      operationId: commitRedemption
+      tags: [Redemptions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Reservation UUID
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                order_id:
+                  type: string
+                  description: Final POS order ID
+      responses:
+        '200':
+          description: Reservation committed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          description: Reservation expired past grace window or invalid state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                expired:
+                  value:
+                    error:
+                      code: RESERVATION_EXPIRED
+                      message: Reservation has expired past grace window.
+
+  /redemptions/{id}/release:
+    post:
+      summary: Release held points back to customer balance (e.g. cancelled order)
+      operationId: releaseRedemption
+      tags: [Redemptions]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Reservation UUID
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Reservation released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  reservation_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [released]
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /orders:
+    post:
+      summary: Ingest completed order, award points, and optionally commit linked reservation
+      description: |
+        Supports idempotent order ingestion.
+        If `reservation_id` is supplied:
+        - The reservation is committed idempotently.
+        - If the reservation expired within 24 hours, it will still commit if points are available;
+          otherwise, an audit flag is raised for manual review.
+      operationId: processOrder
+      tags: [Orders]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderIngestInput'
+      responses:
+        '200':
+          description: Order processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderProcessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /orders/{id}/refund:
+    post:
+      summary: Reverse points earned/redeemed on an order (full or partial)
+      operationId: refundOrder
+      tags: [Orders]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: POS Order ID
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refund_paise:
+                  type: integer
+                  description: Refund amount in paise (omit for full order refund)
+      responses:
+        '200':
+          description: Refund processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /referrals:
+    post:
+      summary: Register a referral code
+      operationId: createReferral
+      tags: [Referrals]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReferralInput'
+      responses:
+        '201':
+          description: Referral registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key format `lk_live_<hex>` or `lk_test_<hex>`
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Client-provided UUID to safely retry requests without double-processing.
+
+  responses:
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConflictError:
+      description: State conflict or duplicate idempotent request with different payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimitError:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds until quota refills
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: RESERVATION_EXPIRED
+            message:
+              type: string
+              example: Reservation has expired past the 24-hour grace window.
+            details:
+              type: object
+
+    ProgramSummaryResponse:
+      type: object
+      properties:
+        restaurant_id:
+          type: string
+        restaurant_name:
+          type: string
+        is_active:
+          type: boolean
+        point_value_paise:
+          type: integer
+          example: 100
+        earn_base_rate_bps:
+          type: integer
+          example: 500
+
+    ProgramRulesResponse:
+      type: object
+      properties:
+        point_value_paise:
+          type: integer
+        earn:
+          type: object
+        redeem:
+          type: object
+        tiers:
+          type: array
+          items:
+            type: object
+
+    CustomerProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        phone_e164:
+          type: string
+        name:
+          type: string
+        tier:
+          type: string
+        available_points:
+          type: integer
+        active_reservations_points:
+          type: integer
+        lifetime_spend_paise:
+          type: integer
+        visit_count:
+          type: integer
+
+    CustomerLookupResponse:
+      type: object
+      properties:
+        found:
+          type: boolean
+        customer:
+          $ref: '#/components/schemas/CustomerProfile'
+        redemption_eligibility:
+          type: object
+          properties:
+            eligible:
+              type: boolean
+            max_points_allowed:
+              type: integer
+            max_discount_paise:
+              type: integer
+            ineligible_reason:
+              type: string
+
+    CustomerUpsertInput:
+      type: object
+      properties:
+        name:
+          type: string
+        birthday:
+          type: string
+          format: date
+        anniversary:
+          type: string
+          format: date
+
+    ReservationInput:
+      type: object
+      required: [phone, points, bill_paise]
+      properties:
+        phone:
+          type: string
+        points:
+          type: integer
+        bill_paise:
+          type: integer
+        ttl_seconds:
+          type: integer
+          default: 900
+
+    ReservationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        reservation_id:
+          type: string
+          format: uuid
+        points_reserved:
+          type: integer
+        discount_paise:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        remaining_available_balance:
+          type: integer
+
+    CommitResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        reservation_id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+        redeemed_points:
+          type: integer
+        discount_paise:
+          type: integer
+        new_balance:
+          type: integer
+        idempotent:
+          type: boolean
+
+    OrderIngestInput:
+      type: object
+      required: [order_id, phone, subtotal_paise, order_type]
+      properties:
+        order_id:
+          type: string
+        phone:
+          type: string
+        subtotal_paise:
+          type: integer
+        order_type:
+          type: string
+          enum: [dine_in, takeaway, delivery]
+        reservation_id:
+          type: string
+          format: uuid
+          description: Linked reservation to commit with this order
+        discount_paise:
+          type: integer
+        metadata:
+          type: object
+
+    OrderProcessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        order_id:
+          type: string
+        points_earned:
+          type: integer
+        reservation_committed:
+          type: boolean
+        new_balance:
+          type: integer
+        tier:
+          type: string
+        visit_count:
+          type: integer
+
+    RefundResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        order_id:
+          type: string
+        points_reversed:
+          type: integer
+        new_balance:
+          type: integer
+
+    ReferralInput:
+      type: object
+      required: [referral_code, referee_phone]
+      properties:
+        referral_code:
+          type: string
+        referee_phone:
+          type: string
+
+    ReferralResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        referral_id:
+          type: string
+          format: uuid
+        status:
+          type: string

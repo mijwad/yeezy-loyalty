@@ -10,6 +10,7 @@ dist-ssr/
 *.bak
 server/data/*.bak
 database/backups/
+free-claude-code/
 
 # Environment variables
 .env

@@ -1,0 +1,13 @@
+{
+  "name": "@yourbrand/loyalty-sdk",
+  "version": "1.0.0",
+  "description": "Official typed TypeScript SDK for Standalone Multi-Tenant Loyalty Platform",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
