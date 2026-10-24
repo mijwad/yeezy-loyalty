@@ -24,3 +24,9 @@ services:
         value: https://yeezy-loyalty.vercel.app
       - key: CORS_ORIGINS
         value: https://yeezy-loyalty.vercel.app,https://yeezy-loyalty.onrender.com
+      - key: META_APP_ID
+        value: "1449921280434310"
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        value: yeezy_loyalty_webhook_verify_2026

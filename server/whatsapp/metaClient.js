@@ -13,15 +13,26 @@ export class MetaWhatsAppClient {
     this.restaurantId = account.restaurant_id;
     this.phoneNumberId = account.phone_number_id;
     this.wabaId = account.waba_id;
-    this.accessToken = account.access_token;
-    this.webhookSecret = account.webhook_secret || process.env.META_WEBHOOK_APP_SECRET;
+    this.accessToken = account.access_token || process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+    this.webhookSecret = account.webhook_secret || process.env.WHATSAPP_APP_SECRET || process.env.META_WEBHOOK_APP_SECRET;
   }
 
   /**
    * Factory method to load restaurant's credentials from Supabase
    */
   static async forRestaurant(restaurantId) {
+    const envToken = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+
     if (!supabaseAdmin) {
+      if (envToken) {
+        return new MetaWhatsAppClient({
+          restaurant_id: restaurantId,
+          phone_number_id: process.env.META_PHONE_NUMBER_ID || 'default_phone_id',
+          waba_id: process.env.META_WABA_ID || 'default_waba_id',
+          access_token: envToken,
+          status: 'CONNECTED'
+        });
+      }
       throw new Error('Supabase client is not available to load WhatsApp account credentials');
     }
 
@@ -32,6 +43,15 @@ export class MetaWhatsAppClient {
       .single();
 
     if (error || !account) {
+      if (envToken) {
+        return new MetaWhatsAppClient({
+          restaurant_id: restaurantId,
+          phone_number_id: process.env.META_PHONE_NUMBER_ID || 'default_phone_id',
+          waba_id: process.env.META_WABA_ID || 'default_waba_id',
+          access_token: envToken,
+          status: 'CONNECTED'
+        });
+      }
       throw new Error(`WhatsApp Account not found or not connected for restaurant ${restaurantId}`);
     }
 
