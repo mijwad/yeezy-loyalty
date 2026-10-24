@@ -28,12 +28,58 @@ const app = express();
 // Trust proxy for correct IP behind load balancers
 app.set('trust proxy', 1);
 
-// CORS Configuration - restrict to known origins in production
+// Dynamic CORS origin verification allowing production frontends, previews, and local dev
+const envOrigins = [
+  process.env.FRONTEND_URL,
+  ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : [])
+].filter(Boolean).map(o => o.trim());
+
+const allowedOrigins = new Set([
+  'https://yeezy-loyalty.vercel.app',
+  'https://yeezy-loyalty.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:4000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  ...envOrigins
+]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // Allow non-browser requests (curl, server-to-server)
+  if (allowedOrigins.has(origin)) return true;
+  // Allow all vercel preview and production subdomains
+  if (/^https:\/\/([a-zA-Z0-9_-]+\.)*vercel\.app$/.test(origin)) return true;
+  // Allow all onrender subdomains
+  if (/^https:\/\/([a-zA-Z0-9_-]+\.)*onrender\.com$/.test(origin)) return true;
+  // Allow localhost on any port
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
+}
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : true, // Allow all in dev
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'X-Tenant-ID', 'X-Petpooja-Signature'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Idempotency-Key',
+    'X-Tenant-ID',
+    'X-Petpooja-Signature',
+    'X-RMS-Signature',
+    'X-Signature',
+    'X-Requested-With',
+    'X-Request-ID',
+    'Accept'
+  ],
+  exposedHeaders: ['X-Request-ID'],
   maxAge: 86400 // 24 hours
 };
 app.use(cors(corsOptions));

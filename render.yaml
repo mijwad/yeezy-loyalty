@@ -20,3 +20,7 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: FRONTEND_URL
+        value: https://yeezy-loyalty.vercel.app
+      - key: CORS_ORIGINS
+        value: https://yeezy-loyalty.vercel.app,https://yeezy-loyalty.onrender.com
