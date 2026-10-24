@@ -7,11 +7,6 @@ export function renderSidebar(currentPath = 'dashboard') {
     ...(userRole === 'SUPER_ADMIN' ? [{ path: 'super-admin', label: 'Super Admin', icon: 'shield_person', badge: 'Admin' }] : []),
     { path: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: 'customer-insights', label: 'Customer Insights', icon: 'group' },
-    { path: 'loyalty', label: 'Loyalty Rules', icon: 'card_membership', badge: 'Active' },
-    { path: 'auto-campaigns', label: 'Auto Campaigns', icon: 'magic_button' },
-    { path: 'feedback', label: 'Feedback', icon: 'reviews' },
-    { path: 'qr-codes', label: 'QR Codes', icon: 'qr_code_2' },
-    { path: 'referrals', label: 'Referrals', icon: 'share' },
     { path: 'settings', label: 'Settings', icon: 'settings' }
   ];
 
@@ -37,9 +32,7 @@ export function renderSidebar(currentPath = 'dashboard') {
         <!-- Navigation Links -->
         <nav class="px-space-md py-space-sm flex flex-col gap-1 overflow-y-auto max-h-[calc(100vh-190px)]">
           ${navItems.map(item => {
-            const isActive = currentPath === item.path || 
-              (item.path === 'integrations' && ['integrations', 'apps-integrations', 'petpooja-setup'].includes(currentPath)) ||
-              (item.path === 'loyalty' && ['activate-loyalty', 'configurator', 'reminder-expiry', 'channels', 'review-activate'].includes(currentPath));
+            const isActive = currentPath === item.path;
             
             const activeClasses = 'bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
             const inactiveClasses = 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-medium';
