@@ -16,6 +16,12 @@ export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
+export const supabaseAdmin = (SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  ? createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+  : supabase;
+
 const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 const DEFAULT_OUTLET_ID = '00000000-0000-0000-0000-000000000002';
 

@@ -83,6 +83,12 @@ END $$;
 -- 2. TABLES
 -- ============================================================================
 
+-- Clean up empty prototype tables if present from earlier experiments
+DROP TABLE IF EXISTS public.loyalty_redemption_sessions CASCADE;
+DROP TABLE IF EXISTS public.loyalty_ledger_transactions CASCADE;
+DROP TABLE IF EXISTS public.loyalty_tiers CASCADE;
+DROP TABLE IF EXISTS public.loyalty_programs CASCADE;
+
 -- 2.1 LOYALTY PROGRAMS (One per restaurant tenant)
 CREATE TABLE IF NOT EXISTS public.loyalty_programs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

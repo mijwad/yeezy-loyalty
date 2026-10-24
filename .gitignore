@@ -11,6 +11,7 @@ dist-ssr/
 server/data/*.bak
 database/backups/
 free-claude-code/
+scripts/*.sql
 
 # Environment variables
 .env

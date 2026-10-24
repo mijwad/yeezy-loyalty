@@ -15,6 +15,8 @@ import { adminRouter } from './routes/admin.js';
 import { posStore } from './db/store.js';
 import { authMiddleware } from './middleware/auth.js';
 
+import { v1PublicRouter } from './routes/v1Public.js';
+
 dotenv.config();
 
 const app = express();
@@ -29,14 +31,17 @@ app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
-    if (req.path.startsWith('/api')) {
+    if (req.path.startsWith('/api') || req.path.startsWith('/v1')) {
       console.log(`[API] ${req.method} ${req.path} -> ${res.statusCode} (${duration}ms)`);
     }
   });
   next();
 });
 
-// Automatic Multi-Tenant Session & Token Resolver
+// Canonical Public API v1 for POS Integrations (OpenAPI 3.1 & SDK)
+app.use('/v1', v1PublicRouter);
+
+// Automatic Multi-Tenant Session & Token Resolver (Dashboard & Legacy)
 app.use('/api', authMiddleware);
 
 // API Routes
