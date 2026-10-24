@@ -195,6 +195,45 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/yeezy_loyalty
 ```
 All state and edits are automatically synchronized with browser `localStorage`.
 
+---
+
+## 📱 WhatsApp Business Cloud API Webhook Setup
+
+One multi-tenant webhook endpoint serves the entire Meta app, routing events dynamically to the correct restaurant via `phone_number_id`.
+
+### 1. Environment Variables
+Add to your production server or `.env`:
+```env
+WHATSAPP_VERIFY_TOKEN=your_secure_verify_token
+WHATSAPP_APP_SECRET=your_meta_app_secret
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### 2. Configure in Meta App Dashboard
+1. Go to **Meta for Developers** ➔ **Your App** ➔ **WhatsApp** ➔ **Configuration**.
+2. Under **Webhook**, click **Edit**:
+   - **Callback URL**: `https://yeezy-loyalty.onrender.com/api/whatsapp/webhook` *(or `https://your-domain.com/api/whatsapp/webhook`)*
+   - **Verify token**: The value of your `WHATSAPP_VERIFY_TOKEN`
+3. Click **Verify and Save**.
+4. Under **Webhook fields**, click **Manage** and subscribe to:
+   - `messages` *(required for delivery tracking, read receipts, and inbound STOP opt-outs)*
+   - `message_template_status_update` *(for template approvals)*
+   - `phone_number_quality_update` *(for phone tier quality)*
+
+### 3. Local Handshake Testing
+Verify your local or staging server using `curl`:
+```bash
+curl "http://localhost:3000/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=YOUR_TOKEN&hub.challenge=12345"
+```
+*Expected response:* HTTP 200 with plain-text body `12345`.
+
+### 4. Automated Signature & Event Test Script
+Run the automated test runner to simulate signed status updates and customer `STOP` replies:
+```bash
+node scripts/test-whatsapp-webhook.js http://localhost:4000/api/whatsapp/webhook <VERIFY_TOKEN> <APP_SECRET>
+```
+
 
 #   y e e z y - l o y a l t y  
  
