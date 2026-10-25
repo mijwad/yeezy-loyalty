@@ -5,8 +5,8 @@ const envBase = import.meta.env?.VITE_API_BASE_URL;
 export const PROD_BACKEND_URL = 'https://yeezy-loyalty.onrender.com';
 
 function resolveApiBaseUrl() {
-  if (envBase !== undefined && envBase !== '') {
-    return envBase;
+  if (envBase !== undefined && envBase !== '' && !envBase.includes('example.com')) {
+    return envBase.replace(/\/+$/, '');
   }
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
