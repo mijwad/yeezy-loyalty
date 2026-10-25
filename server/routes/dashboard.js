@@ -1,17 +1,33 @@
-// Dashboard Metrics & Live Aggregations Router (Multi-Tenant Scoped)
 import { Router } from 'express';
 import { posStore } from '../db/store.js';
+import { supabase, supabaseAdmin } from '../db/supabase.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 export const dashboardRouter = Router();
 
-dashboardRouter.get('/stats', authMiddleware, (req, res) => {
-  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId;
+dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
+  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId || 'ten_yeezy_01';
+
+  let dbMemberCount = 0;
+  const client = supabaseAdmin || supabase;
+  if (client) {
+    try {
+      const { count } = await client
+        .from('loyalty_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('restaurant_id', tenantId);
+      dbMemberCount = count || 0;
+    } catch {
+      // ignore
+    }
+  }
 
   // Filter records strictly by authenticated tenant
   const customers = tenantId 
     ? posStore.data.customers.filter(c => c.tenantId === tenantId || (!c.tenantId && tenantId === 'ten_yeezy_01'))
     : posStore.data.customers;
+
+  const effectiveCustomerCount = dbMemberCount > 0 ? dbMemberCount : customers.length;
 
   const orders = tenantId 
     ? posStore.data.orders.filter(o => o.tenantId === tenantId || (!o.tenantId && tenantId === 'ten_yeezy_01'))
@@ -54,13 +70,13 @@ dashboardRouter.get('/stats', authMiddleware, (req, res) => {
     todayStats: {
       sales: totalSales,
       orders: totalOrders,
-      customers: customers.length,
+      customers: effectiveCustomerCount,
       pointsIssued: totalPointsIssued,
       totalPointsCapacity: 100000,
       burnRate,
       rewardsRedeemed,
-      activeMembers: customers.length,
-      activeMembersGrowth: customers.length > 0 ? `+${customers.length}` : '0%',
+      activeMembers: effectiveCustomerCount,
+      activeMembersGrowth: effectiveCustomerCount > 0 ? `+${effectiveCustomerCount}` : '0%',
       repeatVisitRate: repeatRate,
       repeatVisitGrowth: repeatCustomers > 0 ? `+${repeatCustomers}` : '0%',
       loyaltyRoi: roi

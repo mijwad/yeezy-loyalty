@@ -1,19 +1,84 @@
-// Customers & Guest Directory REST Router (Multi-Tenant Scoped)
 import { Router } from 'express';
 import { posStore } from '../db/store.js';
-import { syncCustomerToSupabase } from '../db/supabase.js';
+import { supabase, supabaseAdmin, syncCustomerToSupabase } from '../db/supabase.js';
 import { authMiddleware } from '../middleware/auth.js';
 
 export const customersRouter = Router();
 
 // GET /api/v1/customers - Search, filter, and sort scoped to authenticated tenant
-customersRouter.get('/', authMiddleware, (req, res) => {
+customersRouter.get('/', authMiddleware, async (req, res) => {
   const { search = '', tier = 'all', sort = 'spend_desc' } = req.query;
-  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId;
+  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId || 'ten_yeezy_01';
 
-  let customers = tenantId
-    ? posStore.data.customers.filter(c => c.tenantId === tenantId || (!c.tenantId && tenantId === 'ten_yeezy_01'))
-    : posStore.data.customers;
+  let customers = [];
+  const client = supabaseAdmin || supabase;
+
+  if (client) {
+    try {
+      let query = client.from('loyalty_members').select('*');
+      if (tenantId) {
+        query = query.eq('restaurant_id', tenantId);
+      }
+      const { data: dbMembers, error } = await query;
+      if (!error && Array.isArray(dbMembers) && dbMembers.length > 0) {
+        const memberIds = dbMembers.map((m) => m.id);
+        const { data: ledgerEntries } = await client
+          .from('loyalty_ledger')
+          .select('member_id, points, type')
+          .in('member_id', memberIds);
+
+        const pointsMap = {};
+        (ledgerEntries || []).forEach((entry) => {
+          pointsMap[entry.member_id] = (pointsMap[entry.member_id] || 0) + (entry.points || 0);
+        });
+
+        customers = dbMembers.map((m) => {
+          const cleanPhone = (m.phone_e164 || '').replace(/\D/g, '').slice(-10);
+          const spend = Math.round((m.lifetime_spend_paise || 0) / 100);
+          const points = pointsMap[m.id] !== undefined ? pointsMap[m.id] : Math.round(spend / 10);
+          return {
+            id: m.id,
+            tenantId: m.restaurant_id,
+            name: m.name || 'Valued Guest',
+            email: `${cleanPhone}@guest.yeezy.app`,
+            phone: m.phone_e164 || `+91 ${cleanPhone}`,
+            tier: m.tier || 'Silver',
+            visits: m.visit_count || 1,
+            lifetimeSpend: spend,
+            numericSpend: spend,
+            pointsBalance: points,
+            numericPoints: points,
+            lastVisit: m.last_visit_at
+              ? new Date(m.last_visit_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : 'Today',
+            favoriteDish: 'Chef Special',
+            status: (m.visit_count || 1) > 0 ? 'Active' : 'New Guest',
+            joinedDate: new Date(m.created_at || m.joined_at || Date.now()).toLocaleDateString(
+              'en-US',
+              { month: 'short', day: 'numeric', year: 'numeric' },
+            ),
+            totalRedeemed: 0,
+            recentOrders: [],
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('[Customers Supabase Fetch Warning]', err);
+    }
+  }
+
+  // Fallback to posStore if no Supabase data exists
+  if (customers.length === 0) {
+    customers = tenantId
+      ? posStore.data.customers.filter(
+          (c) => c.tenantId === tenantId || (!c.tenantId && tenantId === 'ten_yeezy_01'),
+        )
+      : posStore.data.customers;
+  }
 
   // Search filter
   if (search) {
