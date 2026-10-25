@@ -148,7 +148,7 @@ app.use('/api/whatsapp', whatsappRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/pos', posUnifiedRouter); // Also available under /api for dashboard
-app.use('/api/v1/customers', validateRequest('customerUpsert'), customersRouter);
+app.use('/api/v1/customers', customersRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/loyalty', loyaltyRouter);
 app.use('/api/loyalty', loyaltyRouter); // Legacy path

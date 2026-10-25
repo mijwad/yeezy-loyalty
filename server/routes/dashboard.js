@@ -8,15 +8,19 @@ export const dashboardRouter = Router();
 dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
   const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId || 'ten_yeezy_01';
 
+  let dbMembers = [];
   let dbMemberCount = 0;
   const client = supabaseAdmin || supabase;
   if (client) {
     try {
-      const { count } = await client
+      const { data, count } = await client
         .from('loyalty_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('restaurant_id', tenantId);
-      dbMemberCount = count || 0;
+        .select('*', { count: 'exact' })
+        .eq('restaurant_id', tenantId)
+        .order('lifetime_spend_paise', { ascending: false })
+        .limit(10);
+      dbMembers = data || [];
+      dbMemberCount = count || dbMembers.length;
     } catch {
       // ignore
     }
@@ -82,8 +86,23 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
       loyaltyRoi: roi
     },
     creditsBalance: posStore.data.creditsBalance,
-    programTitle: posStore.data.loyaltyProgram.title,
-    topVIPs: customers.slice(0, 6)
+    topVIPs: dbMembers.length > 0
+      ? dbMembers.slice(0, 6).map(m => {
+          const cleanPhone = (m.phone_e164 || '').replace(/\D/g, '').slice(-10);
+          const spend = Math.round((m.lifetime_spend_paise || 0) / 100);
+          return {
+            id: m.id,
+            name: m.name || 'Valued Guest',
+            phone: m.phone_e164 || `+91 ${cleanPhone}`,
+            tier: m.tier || 'Silver',
+            visits: m.visit_count || 1,
+            lifetimeSpend: `₹${spend.toLocaleString()}`,
+            numericSpend: spend,
+            pointsBalance: `${Math.round(spend / 10)} pts`,
+            status: 'Active'
+          };
+        })
+      : customers.slice(0, 6)
   });
 });
 
