@@ -7,6 +7,15 @@ import { DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty/config.js';
 
 export const adminRouter = Router();
 
+// Deterministic UUID converter for Supabase tenants table
+function toUuid(str) {
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str.toLowerCase();
+  }
+  const hash = crypto.createHash('md5').update(str).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
+
 // Known pilot keys
 const PILOT_KEYS = {
   'ten_yeezy_01': 'lk_live_6b6f34465f168ee1d824915e5c0cb1c7cf1224b998eba8f1005e6e0d6fd9b194',
@@ -26,19 +35,20 @@ adminRouter.get('/restaurants', async (req, res) => {
 
       if (sbTenants && sbTenants.length > 0) {
         for (const st of sbTenants) {
-          let existing = posStore.data.tenants?.find(t => t.id === st.id);
+          const tenantId = st.code && st.code !== 'NULL' ? st.code : st.id;
+          let existing = posStore.data.tenants?.find(t => t.id === tenantId || t.id === st.id);
           if (!existing) {
             const newTenant = {
-              id: st.id,
+              id: tenantId,
               name: st.name,
               brandName: st.name,
-              ownerId: `usr_${st.id}`,
+              ownerId: `usr_${tenantId}`,
               ownerName: st.primary_contact_name || 'Restaurant Owner',
-              ownerEmail: st.primary_contact_email || `${st.id}@restaurant.com`,
+              ownerEmail: st.primary_contact_email && st.primary_contact_email !== 'NULL' ? st.primary_contact_email : `${tenantId}@restaurant.com`,
               plan: 'ENTERPRISE',
               active: st.status === 'ACTIVE',
               createdAt: st.created_at || new Date().toISOString(),
-              primaryRestID: st.id,
+              primaryRestID: tenantId,
               outletsCount: 1,
               totalDiners: 0,
               lifetimeSales: 0
@@ -123,13 +133,17 @@ adminRouter.post('/restaurants', async (req, res) => {
     // Persist permanently to Supabase cloud database
     if (supabaseAdmin) {
       try {
+        const tenantUuid = toUuid(tenant.id);
+        const contactPhone = req.body.ownerPhone || req.body.phone || '+919876543210';
         await Promise.all([
           supabaseAdmin.from('tenants').upsert({
-            id: tenant.id,
+            id: tenantUuid,
+            code: tenant.id,
             name: brandName.trim(),
             status: 'ACTIVE',
             primary_contact_name: ownerName.trim(),
-            primary_contact_email: ownerEmail.trim().toLowerCase()
+            primary_contact_email: ownerEmail.trim().toLowerCase(),
+            primary_contact_phone: contactPhone
           }, { onConflict: 'id' }),
 
           supabaseAdmin.from('loyalty_programs').upsert({
