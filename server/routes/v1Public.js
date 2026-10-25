@@ -306,7 +306,7 @@ v1PublicRouter.post('/redemptions/:id/release', requireScope('points:redeem'), a
 
 // 8. POST /orders - Ingest completed order, award points, and optionally commit linked reservation
 v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => {
-  const { order_id, phone: rawPhone, subtotal_paise, order_type, reservation_id, customer_name, name, metadata } = req.body;
+  const { order_id, phone: rawPhone, subtotal_paise, order_type, reservation_id, customer_name, name, metadata, items } = req.body;
 
   if (!order_id || !rawPhone || subtotal_paise === undefined || !order_type) {
     return res.status(400).json({
@@ -364,6 +364,38 @@ v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => 
         .update({ name: providedName, updated_at: new Date().toISOString() })
         .eq('restaurant_id', req.restaurantId)
         .eq('phone_e164', phone);
+    }
+
+    // Attach items and rich order info to the created loyalty_ledger entry
+    const orderItems = Array.isArray(items) ? items : (Array.isArray(metadata?.items) ? metadata.items : []);
+    if (orderItems.length > 0 || providedName || metadata?.bill_number) {
+      try {
+        const { data: ledgerRow } = await supabaseAdmin
+          .from('loyalty_ledger')
+          .select('id, meta')
+          .eq('restaurant_id', req.restaurantId)
+          .eq('order_id', order_id)
+          .limit(1)
+          .maybeSingle();
+
+        if (ledgerRow) {
+          await supabaseAdmin
+            .from('loyalty_ledger')
+            .update({
+              meta: {
+                ...(ledgerRow.meta || {}),
+                items: orderItems,
+                customer_name: providedName || undefined,
+                bill_number: metadata?.bill_number || undefined,
+                order_type: order_type,
+                subtotal_paise: subtotal_paise,
+              }
+            })
+            .eq('id', ledgerRow.id);
+        }
+      } catch (metaErr) {
+        console.warn('[Loyalty Ledger Meta Update Warning]', metaErr);
+      }
     }
 
     return res.json({

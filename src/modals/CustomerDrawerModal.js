@@ -300,9 +300,10 @@ function renderActivityTab(customer) {
 function renderOrderActivityCard(ord, idx, total) {
   const visitNum = total - idx;
   const billId = ord.id || ord.orderId || ord.billNo || `#POS-${Math.floor(1000 + idx * 87)}`;
-  const dateStr = ord.date || ord.settledAt ? new Date(ord.settledAt || ord.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '24 Oct 2026, 08:30 PM';
-  const itemsText = ord.items ? (typeof ord.items === 'string' ? ord.items : ord.items.map(i => `${i.qty || 1}x ${i.name || i.item_name}`).join(', ')) : 'Butter Chicken x 1, Garlic Naan x 3, Paneer Tikka x 1';
-  const totalAmount = ord.total || (ord.financials?.netPaid ? `₹${ord.financials.netPaid}` : '₹1,240');
+  const itemsList = Array.isArray(ord.items) ? ord.items : [];
+  const itemsText = itemsList.length > 0
+    ? itemsList.map(i => `${i.quantity || i.qty || 1}x ${i.name || i.item_name || 'Item'}`).join(', ')
+    : (typeof ord.items === 'string' && ord.items.trim() ? ord.items : 'Items not itemized for this POS order');
   const pointsEarned = ord.pointsEarned ?? (ord.points_earned ?? Math.round(parseInt(String(totalAmount).replace(/\D/g, '') || 1000) * 0.1));
   const pointsBurned = ord.pointsBurned ?? (ord.points_burned ?? 0);
   const discount = ord.loyaltyDiscount ?? (ord.financials?.loyaltyDiscount ?? 0);

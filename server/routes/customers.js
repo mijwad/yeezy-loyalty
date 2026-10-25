@@ -114,8 +114,86 @@ customersRouter.get('/', authMiddleware, async (req, res) => {
 });
 
 // GET /api/v1/customers/:id - Customer profile with orders & ledger history
-customersRouter.get('/:id', authMiddleware, (req, res) => {
+customersRouter.get('/:id', authMiddleware, async (req, res) => {
   const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId;
+  const customerId = req.params.id;
+  const client = supabaseAdmin || supabase;
+
+  if (client) {
+    try {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(customerId);
+      let memberQuery = client.from('loyalty_members').select('*');
+      if (isUuid) {
+        memberQuery = memberQuery.eq('id', customerId);
+      } else {
+        const cleanPhone = customerId.replace(/\D/g, '');
+        memberQuery = memberQuery.or(`phone_e164.eq.+91${cleanPhone},phone_e164.eq.+${cleanPhone}`);
+      }
+      if (tenantId && req.user?.role !== 'SUPER_ADMIN') {
+        memberQuery = memberQuery.eq('restaurant_id', tenantId);
+      }
+
+      const { data: members } = await memberQuery.limit(1);
+      if (members && members.length > 0) {
+        const m = members[0];
+        const { data: availablePoints } = await client.rpc('fn_loyalty_get_available_balance', {
+          p_restaurant_id: m.restaurant_id,
+          p_member_id: m.id
+        });
+
+        const { data: ledgerRows } = await client
+          .from('loyalty_ledger')
+          .select('*')
+          .eq('member_id', m.id)
+          .order('created_at', { ascending: false });
+
+        const orders = (ledgerRows || []).map((l, idx) => {
+          const meta = l.meta || {};
+          const subtotalPaise = meta.subtotal_paise || (meta.financials?.netPaid ? Math.round(Number(meta.financials.netPaid) * 100) : 0);
+          return {
+            id: l.order_id || l.id,
+            orderId: l.order_id || l.id,
+            billNo: meta.bill_number ? `#${meta.bill_number}` : (l.order_id ? `#${l.order_id.slice(-6).toUpperCase()}` : `#ORD-${idx + 1}`),
+            date: l.created_at,
+            settledAt: l.created_at,
+            total: subtotalPaise ? `₹${(subtotalPaise / 100).toFixed(2)}` : '₹0',
+            items: meta.items || [],
+            pointsEarned: l.points > 0 ? l.points : 0,
+            pointsBurned: l.points < 0 ? Math.abs(l.points) : 0,
+            tableNo: meta.order_type === 'takeaway' ? 'Takeaway' : 'Dine-In',
+            financials: {
+              netPaid: subtotalPaise ? (subtotalPaise / 100).toFixed(2) : '0',
+              paymentMode: 'POS Settled',
+            }
+          };
+        });
+
+        const cleanP = m.phone_e164 ? String(m.phone_e164).replace(/\D/g, '').slice(-10) : '';
+        const customerObj = {
+          id: m.id,
+          name: m.name || 'Valued Guest',
+          phone: m.phone_e164,
+          tier: m.tier || 'Silver',
+          pointsBalance: `${availablePoints ?? 0} pts`,
+          lifetimeSpend: `₹${((m.lifetime_spend_paise || 0) / 100).toLocaleString('en-IN')}`,
+          visits: m.visit_count || orders.length,
+          totalRedeemed: `${(ledgerRows || []).filter(l => l.points < 0).length} Rewards`,
+          joinedDate: new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          recentOrders: orders,
+        };
+
+        return res.json({
+          status: 'success',
+          customer: customerObj,
+          orders,
+          ledger: ledgerRows || [],
+        });
+      }
+    } catch (dbErr) {
+      console.warn('[Customers Detail Supabase Fetch Error]', dbErr);
+    }
+  }
+
   const customer = posStore.data.customers.find(c => c.id === req.params.id);
   
   if (!customer) {
