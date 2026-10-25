@@ -1,7 +1,7 @@
 // Production Multi-Tenant Auth Screen View Module
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
-import { apiUrl } from '../../config/api.js';
+import { apiFetch, apiUrl } from '../../config/api.js';
 
 let authMode = 'login'; // 'login' | 'register'
 
@@ -91,7 +91,30 @@ function renderLoginForm() {
         </div>
       </div>
 
-      <div class="pt-2">
+      <!-- Quick Demo Credentials -->
+      <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5">
+        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Quick Demo Fill</p>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button 
+            type="button" 
+            id="btn-fill-superadmin" 
+            class="px-2.5 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 rounded-lg transition text-left flex items-center justify-between"
+          >
+            <span>👑 Super Admin</span>
+            <span class="text-[10px] text-slate-400">Fill</span>
+          </button>
+          <button 
+            type="button" 
+            id="btn-fill-owner" 
+            class="px-2.5 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 rounded-lg transition text-left flex items-center justify-between"
+          >
+            <span>🏪 Restaurant</span>
+            <span class="text-[10px] text-slate-400">Fill</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-1">
         <button 
           id="btn-submit-login" 
           type="submit" 
@@ -193,6 +216,30 @@ export function attachLoginListeners() {
     };
   }
 
+  // Quick demo fill buttons
+  const btnFillSuperAdmin = document.getElementById('btn-fill-superadmin');
+  const btnFillOwner = document.getElementById('btn-fill-owner');
+
+  if (btnFillSuperAdmin) {
+    btnFillSuperAdmin.onclick = () => {
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      if (usernameInput) usernameInput.value = 'admin@yeezy.com';
+      if (passwordInput) passwordInput.value = 'admin123';
+      showToast('Filled Super Admin demo credentials', 'info');
+    };
+  }
+
+  if (btnFillOwner) {
+    btnFillOwner.onclick = () => {
+      const usernameInput = document.getElementById('login-username');
+      const passwordInput = document.getElementById('login-password');
+      if (usernameInput) usernameInput.value = 'alex.rivera@downtownbistro.com';
+      if (passwordInput) passwordInput.value = 'owner123';
+      showToast('Filled Downtown Bistro Owner demo credentials', 'info');
+    };
+  }
+
   // Handle Login submission
   const loginForm = document.getElementById('login-form');
   const usernameInput = document.getElementById('login-username');
@@ -212,13 +259,26 @@ export function attachLoginListeners() {
         submitLoginBtn.innerHTML = `<span>Authenticating...</span>`;
       }
 
+      // If backend is sleeping on Render free tier, notify user after 2.5s
+      const wakeTimer = setTimeout(() => {
+        if (submitLoginBtn && submitLoginBtn.disabled) {
+          submitLoginBtn.innerHTML = `<span>Waking backend server...</span>`;
+        }
+      }, 2500);
+
       try {
-        const res = await fetch(apiUrl('/api/v1/auth/login'), {
+        const res = await apiFetch('/api/v1/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: identifier, username: identifier, password })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          data = { status: 'error', message: `Server returned status ${res.status}` };
+        }
 
         if (res.ok && data.status === 'success') {
           // Cleanly initialize store state strictly for this authenticated tenant
@@ -239,12 +299,14 @@ export function attachLoginListeners() {
           }
         }
       } catch (err) {
-        console.error(err);
-        showToast('Error connecting to backend authentication server', 'error');
+        console.error('[Login Error]', err);
+        showToast('Error connecting to backend authentication server. Please retry in a few seconds.', 'error');
         if (submitLoginBtn) {
           submitLoginBtn.disabled = false;
           submitLoginBtn.innerHTML = `<span>Sign In to Yeezy</span><span class="material-symbols-outlined text-base">arrow_forward</span>`;
         }
+      } finally {
+        clearTimeout(wakeTimer);
       }
     };
   }
@@ -272,13 +334,25 @@ export function attachLoginListeners() {
         submitRegisterBtn.innerHTML = `<span>Provisioning Restaurant...</span>`;
       }
 
+      const wakeTimer = setTimeout(() => {
+        if (submitRegisterBtn && submitRegisterBtn.disabled) {
+          submitRegisterBtn.innerHTML = `<span>Waking backend server...</span>`;
+        }
+      }, 2500);
+
       try {
-        const res = await fetch(apiUrl('/api/v1/auth/register-restaurant'), {
+        const res = await apiFetch('/api/v1/auth/register-restaurant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ brandName, ownerName, ownerEmail, password })
         });
-        const data = await res.json();
+        
+        let data;
+        try {
+          data = await res.json();
+        } catch {
+          data = { status: 'error', message: `Server returned status ${res.status}` };
+        }
 
         if (res.ok && data.status === 'success') {
           // Initialize brand new restaurant state
@@ -294,12 +368,14 @@ export function attachLoginListeners() {
           }
         }
       } catch (err) {
-        console.error(err);
-        showToast('Network error during restaurant registration', 'error');
+        console.error('[Register Error]', err);
+        showToast('Network error during restaurant registration. Please retry in a few seconds.', 'error');
         if (submitRegisterBtn) {
           submitRegisterBtn.disabled = false;
           submitRegisterBtn.innerHTML = `<span>Create Restaurant & Sign In</span><span class="material-symbols-outlined text-base">check_circle</span>`;
         }
+      } finally {
+        clearTimeout(wakeTimer);
       }
     };
   }
