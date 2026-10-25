@@ -306,7 +306,7 @@ v1PublicRouter.post('/redemptions/:id/release', requireScope('points:redeem'), a
 
 // 8. POST /orders - Ingest completed order, award points, and optionally commit linked reservation
 v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => {
-  const { order_id, phone: rawPhone, subtotal_paise, order_type, reservation_id, metadata } = req.body;
+  const { order_id, phone: rawPhone, subtotal_paise, order_type, reservation_id, customer_name, name, metadata } = req.body;
 
   if (!order_id || !rawPhone || subtotal_paise === undefined || !order_type) {
     return res.status(400).json({
@@ -354,6 +354,16 @@ v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => 
     const parsedEarn = typeof earnRes === 'string' ? JSON.parse(earnRes) : earnRes;
     if (!parsedEarn.success) {
       return res.status(400).json(parsedEarn);
+    }
+
+    // If a customer name was provided with the order, ensure it is saved to member profile
+    const providedName = (customer_name || name || metadata?.customer_name || metadata?.name || '').trim();
+    if (providedName && providedName !== 'Valued Guest' && providedName !== 'Guest') {
+      await supabaseAdmin
+        .from('loyalty_members')
+        .update({ name: providedName, updated_at: new Date().toISOString() })
+        .eq('restaurant_id', req.restaurantId)
+        .eq('phone_e164', phone);
     }
 
     return res.json({
