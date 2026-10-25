@@ -280,17 +280,41 @@ export function attachSuperAdminListeners() {
               </span>
             </td>
             <td class="py-3.5 px-4 text-right">
-              <button 
-                type="button" 
-                data-impersonate-id="${rest.id}"
-                class="btn-impersonate-restaurant px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-xs transition flex items-center gap-1 ml-auto"
-              >
-                <span class="material-symbols-outlined text-xs">login</span>
-                <span>Login as Owner</span>
-              </button>
+              <div class="flex items-center justify-end gap-1.5">
+                <button 
+                  type="button" 
+                  data-copy-key="${rest.apiKey || ''}"
+                  class="btn-copy-pos-key px-2.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="Copy Live POS API Key for RMS"
+                >
+                  <span class="material-symbols-outlined text-xs">key</span>
+                  <span>Copy POS Key</span>
+                </button>
+                <button 
+                  type="button" 
+                  data-impersonate-id="${rest.id}"
+                  class="btn-impersonate-restaurant px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-xs transition flex items-center gap-1"
+                >
+                  <span class="material-symbols-outlined text-xs">login</span>
+                  <span>Login as Owner</span>
+                </button>
+              </div>
             </td>
           </tr>
         `).join('');
+
+        // Wire copy POS key buttons
+        document.querySelectorAll('.btn-copy-pos-key').forEach(btn => {
+          btn.onclick = () => {
+            const key = btn.getAttribute('data-copy-key');
+            if (key) {
+              navigator.clipboard.writeText(key);
+              showToast('✅ POS API Key copied to clipboard! Paste into RMS Settings → Loyalty.');
+            } else {
+              showToast('No API key found for this restaurant', 'error');
+            }
+          };
+        });
 
         // Wire impersonation buttons
         document.querySelectorAll('.btn-impersonate-restaurant').forEach(btn => {
@@ -360,7 +384,13 @@ export function attachSuperAdminListeners() {
         const data = await res.json();
 
         if (res.ok && data.status === 'success') {
-          showToast(`Restaurant '${brandName}' created! Owner can login with ${ownerEmail}`);
+          const key = data.data?.apiKey;
+          if (key) {
+            navigator.clipboard.writeText(key);
+            showToast(`🎉 Restaurant '${brandName}' created! Live POS API Key copied to clipboard.`);
+          } else {
+            showToast(`Restaurant '${brandName}' created! Owner can login with ${ownerEmail}`);
+          }
           form.reset();
           toggleCard(false);
           loadRestaurants();

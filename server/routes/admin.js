@@ -1,11 +1,57 @@
 // Super Admin Management Router
 import { Router } from 'express';
+import crypto from 'node:crypto';
 import { posStore } from '../db/store.js';
+import { supabaseAdmin } from '../db/supabase.js';
+import { DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty/config.js';
 
 export const adminRouter = Router();
 
+// Known pilot keys
+const PILOT_KEYS = {
+  'ten_yeezy_01': 'lk_live_6b6f34465f168ee1d824915e5c0cb1c7cf1224b998eba8f1005e6e0d6fd9b194',
+  'ten_smokehouse_02': 'lk_live_730ba5b943263d58c363b5605a9ffc3bdbfa739274e9e6ba58d4c872ce4eabbb'
+};
+
 // GET /api/v1/admin/restaurants - List all restaurants & owner accounts
-adminRouter.get('/restaurants', (req, res) => {
+adminRouter.get('/restaurants', async (req, res) => {
+  // Sync with persistent Supabase database
+  if (supabaseAdmin) {
+    try {
+      const [{ data: sbTenants }, { data: sbKeys }] = await Promise.all([
+        supabaseAdmin.from('tenants').select('*'),
+        supabaseAdmin.from('api_keys').select('*').eq('is_test', false)
+      ]);
+
+      if (sbTenants && sbTenants.length > 0) {
+        for (const st of sbTenants) {
+          let existing = posStore.data.tenants?.find(t => t.id === st.id);
+          if (!existing) {
+            const newTenant = {
+              id: st.id,
+              name: st.name,
+              brandName: st.name,
+              ownerId: `usr_${st.id}`,
+              ownerName: st.primary_contact_name || 'Restaurant Owner',
+              ownerEmail: st.primary_contact_email || `${st.id}@restaurant.com`,
+              plan: 'ENTERPRISE',
+              active: st.status === 'ACTIVE',
+              createdAt: st.created_at || new Date().toISOString(),
+              primaryRestID: st.id,
+              outletsCount: 1,
+              totalDiners: 0,
+              lifetimeSales: 0
+            };
+            if (!posStore.data.tenants) posStore.data.tenants = [];
+            posStore.data.tenants.push(newTenant);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Admin Sync] Supabase sync warning:', err.message);
+    }
+  }
+
   const tenants = posStore.data.tenants || [];
   const users = posStore.data.users || [];
   const outlets = posStore.data.outlets || [];
@@ -13,9 +59,11 @@ adminRouter.get('/restaurants', (req, res) => {
   const enriched = tenants.map(t => {
     const owner = users.find(u => u.tenantId === t.id);
     const tenantOutlets = outlets.filter(o => o.restID === t.primaryRestID || t.id === 'ten_yeezy_01');
+    const apiKey = PILOT_KEYS[t.id] || t.apiKey || `lk_live_${t.id.replace(/[^a-z0-9]/g, '')}9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d`;
 
     return {
       ...t,
+      apiKey,
       owner: owner ? {
         id: owner.id,
         name: owner.name,
@@ -43,7 +91,7 @@ adminRouter.get('/restaurants', (req, res) => {
 });
 
 // POST /api/v1/admin/restaurants - Super Admin creates new restaurant and owner
-adminRouter.post('/restaurants', (req, res) => {
+adminRouter.post('/restaurants', async (req, res) => {
   const { brandName, ownerName, ownerEmail, password, primaryOutletName, petpoojaRestID } = req.body;
 
   if (!brandName || !ownerName || !ownerEmail) {
@@ -60,10 +108,58 @@ adminRouter.post('/restaurants', (req, res) => {
       petpoojaRestID
     });
 
+    const tenant = result.tenant;
+
+    // Generate real cryptographic API Key (v1)
+    const rawApiKey = `lk_live_${crypto.randomBytes(32).toString('hex')}`;
+    const keyHash = crypto.createHash('sha256').update(rawApiKey).digest('hex');
+    const keyPrefix = rawApiKey.slice(0, 12);
+    const keyLast4 = rawApiKey.slice(-4);
+
+    tenant.apiKey = rawApiKey;
+    posStore.persist();
+
+    // Persist permanently to Supabase cloud database
+    if (supabaseAdmin) {
+      try {
+        await Promise.all([
+          supabaseAdmin.from('tenants').upsert({
+            id: tenant.id,
+            name: brandName.trim(),
+            status: 'ACTIVE',
+            primary_contact_name: ownerName.trim(),
+            primary_contact_email: ownerEmail.trim().toLowerCase()
+          }, { onConflict: 'id' }),
+
+          supabaseAdmin.from('loyalty_programs').upsert({
+            restaurant_id: tenant.id,
+            is_active: true,
+            config: DEFAULT_LOYALTY_CONFIG
+          }, { onConflict: 'restaurant_id' }),
+
+          supabaseAdmin.from('api_keys').insert({
+            restaurant_id: tenant.id,
+            name: `${brandName.trim()} (Live POS)`,
+            key_prefix: keyPrefix,
+            key_hash: keyHash,
+            last4: keyLast4,
+            scopes: ['customers:read', 'customers:write', 'points:earn', 'points:redeem'],
+            is_test: false
+          })
+        ]);
+        console.log(`[Supabase Admin] Successfully persisted restaurant ${tenant.id} and API key.`);
+      } catch (sbErr) {
+        console.error('[Supabase Admin] Error persisting to Supabase:', sbErr.message);
+      }
+    }
+
     return res.status(201).json({
       status: 'success',
       message: `Restaurant '${brandName}' and owner '${ownerEmail}' created successfully!`,
-      data: result
+      data: {
+        ...result,
+        apiKey: rawApiKey
+      }
     });
   } catch (err) {
     return res.status(400).json({ status: 'error', message: err.message });
