@@ -21,9 +21,9 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://yeezy-loyalty.vercel.app
+        value: https://beebill.online
       - key: CORS_ORIGINS
-        value: https://yeezy-loyalty.vercel.app,https://yeezy-loyalty.onrender.com
+        value: https://beebill.online,https://www.beebill.online,https://yeezy-loyalty.vercel.app,https://yeezy-loyalty.onrender.com
       - key: META_APP_ID
         value: "1449921280434310"
       - key: WHATSAPP_ACCESS_TOKEN

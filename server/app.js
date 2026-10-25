@@ -37,6 +37,10 @@ const envOrigins = [
 ].filter(Boolean).map(o => o.trim());
 
 const allowedOrigins = new Set([
+  'https://beebill.online',
+  'http://beebill.online',
+  'https://www.beebill.online',
+  'http://www.beebill.online',
   'https://yeezy-loyalty.vercel.app',
   'https://yeezy-loyalty.onrender.com',
   'http://localhost:5173',
@@ -50,6 +54,8 @@ const allowedOrigins = new Set([
 function isAllowedOrigin(origin) {
   if (!origin) return true; // Allow non-browser requests (curl, server-to-server)
   if (allowedOrigins.has(origin)) return true;
+  // Allow all beebill.online domains and subdomains
+  if (/^https?:\/\/([a-zA-Z0-9_-]+\.)*beebill\.online$/.test(origin)) return true;
   // Allow all vercel preview and production subdomains
   if (/^https:\/\/([a-zA-Z0-9_-]+\.)*vercel\.app$/.test(origin)) return true;
   // Allow all onrender subdomains
