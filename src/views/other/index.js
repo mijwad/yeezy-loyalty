@@ -340,10 +340,12 @@ export function renderReferralsView() {
   `;
 }
 
-export function renderSettingsView(state) {
+export function renderSettingsView(state = {}) {
+  const outlets = state?.outlets || [];
   const tenantId = state.user?.tenantId;
   const isDowntown = !tenantId || tenantId === 'ten_yeezy_01';
   const isSmokehouse = tenantId === 'ten_smokehouse_02';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://yeezy-loyalty.onrender.com';
 
   // Live POS API Key (verified in Supabase public v1 engine)
   const posApiKey = state.posApiKey || 
@@ -674,11 +676,11 @@ export function renderSettingsView(state) {
           <div class="p-4 rounded-2xl bg-slate-50 border border-gray-200 space-y-1">
             <span class="text-[10px] uppercase font-bold text-gray-500 block">Base Webhook URL</span>
             <div class="flex items-center justify-between">
-              <span class="text-xs font-mono font-bold text-slate-900 select-all truncate max-w-[170px]">${window.location.origin}</span>
+              <span class="text-xs font-mono font-bold text-slate-900 select-all truncate max-w-[170px]">${baseUrl}</span>
               <button 
                 type="button" 
                 class="text-xs text-primary font-bold hover:underline shrink-0"
-                onclick="navigator.clipboard.writeText('${window.location.origin}'); window.showToast('Copied Base URL!');"
+                onclick="navigator.clipboard.writeText('${baseUrl}'); window.showToast('Copied Base URL!');"
               >
                 Copy
               </button>
