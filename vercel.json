@@ -15,6 +15,26 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/data-deletion",
+      "destination": "/data-deletion.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

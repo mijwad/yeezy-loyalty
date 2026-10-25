@@ -204,6 +204,26 @@ app.get('/metrics', async (req, res) => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DIST_PATH = path.join(__dirname, '..', 'dist');
+const PUBLIC_PATH = path.join(__dirname, '..', 'public');
+
+// Legal Compliance Pages for Meta & Public Audit
+app.get(['/privacy', '/privacy-policy'], (req, res) => {
+  const pPath = path.join(PUBLIC_PATH, 'privacy.html');
+  if (fs.existsSync(pPath)) return res.sendFile(pPath);
+  res.sendFile(path.join(DIST_PATH, 'privacy.html'));
+});
+
+app.get(['/terms', '/terms-of-service'], (req, res) => {
+  const tPath = path.join(PUBLIC_PATH, 'terms.html');
+  if (fs.existsSync(tPath)) return res.sendFile(tPath);
+  res.sendFile(path.join(DIST_PATH, 'terms.html'));
+});
+
+app.get('/data-deletion', (req, res) => {
+  const dPath = path.join(PUBLIC_PATH, 'data-deletion.html');
+  if (fs.existsSync(dPath)) return res.sendFile(dPath);
+  res.sendFile(path.join(DIST_PATH, 'data-deletion.html'));
+});
 
 // Serve Frontend Static Assets if dist exists (Render Production Mode)
 if (fs.existsSync(DIST_PATH)) {

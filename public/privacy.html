@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - BeeBill | Restaurant Loyalty & E-Billing Platform</title>
+  <meta name="description" content="Privacy Policy for BeeBill - Restaurant Loyalty, POS Integration, and WhatsApp E-Billing Services.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00796B;
+      --primary-dark: #004D40;
+      --primary-light: #E0F2F1;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --bg-page: #F8FAFC;
+      --bg-card: #FFFFFF;
+      --border-color: #E2E8F0;
+      --accent: #F59E0B;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 0;
+      margin: 0;
+    }
+    header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .brand-badge {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .header-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-left: 1.25rem;
+      transition: color 0.2s;
+    }
+    .header-links a:hover {
+      color: var(--primary);
+    }
+    .container {
+      max-width: 900px;
+      margin: 2.5rem auto 5rem;
+      padding: 0 1.5rem;
+    }
+    .hero {
+      background: linear-gradient(135deg, #004D40 0%, #00796B 100%);
+      color: #FFFFFF;
+      padding: 3rem 2.5rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 121, 107, 0.2);
+      margin-bottom: 2.5rem;
+    }
+    .hero h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      font-size: 1rem;
+      color: #CCFBF1;
+      max-width: 680px;
+      line-height: 1.6;
+    }
+    .meta-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+    .content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 1.25rem;
+      padding: 2.5rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      letter-spacing: -0.01em;
+    }
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #1E293B;
+      margin-top: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+    p, ul, ol {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+    ul, ol {
+      padding-left: 1.5rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 1.25rem 1.5rem;
+      border-radius: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .highlight-box p {
+      color: var(--primary-dark);
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+    .meta-box {
+      background: #EFF6FF;
+      border-left: 4px solid #2563EB;
+      padding: 1.25rem 1.5rem;
+      border-radius: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .meta-box h3 {
+      color: #1E40AF;
+      margin-top: 0;
+    }
+    .meta-box p {
+      color: #1E3A8A;
+      margin-bottom: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    th {
+      background-color: #F1F5F9;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+    footer {
+      border-top: 1px solid var(--border-color);
+      background: #FFFFFF;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+    a.contact-link {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header>
+    <div class="header-inner">
+      <a href="/" class="brand-logo">
+        <span>🐝 BeeBill</span>
+        <span class="brand-badge">Official Policy</span>
+      </a>
+      <nav class="header-links">
+        <a href="/">Home</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/data-deletion">Data Deletion</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Body Container -->
+  <div class="container">
+
+    <!-- Hero Header -->
+    <div class="hero">
+      <h1>Privacy Policy</h1>
+      <p>This Privacy Policy explains how BeeBill ("we", "our", or "us") collects, uses, stores, and protects customer, diner, and merchant information when utilizing our Restaurant Management POS, Loyalty Rewards, and WhatsApp E-Billing Services.</p>
+      <div class="meta-tag">
+        <span>📅 Last Updated & Effective Date: October 26, 2026</span>
+        <span>•</span>
+        <span>Version 1.0</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content-card">
+
+      <h2>1. Overview and Scope of Services</h2>
+      <p>BeeBill (accessible via <strong>https://beebill.online</strong>) provides digital operating infrastructure for hospitality establishments, including Point of Sale (POS) integrations, digital itemized receipt delivery via the Meta WhatsApp Business Cloud API, customer loyalty reward ledgers, and dining analytics.</p>
+      <p>This policy applies to:</p>
+      <ul>
+        <li><strong>Diners & Guests:</strong> Customers who make purchases at partner restaurants and choose to receive digital itemized receipts via WhatsApp or participate in dining reward points programs.</li>
+        <li><strong>Merchant Partners:</strong> Restaurant owners, managers, and cashiers who operate BeeBill to generate invoices, disburse loyalty points, and run restaurant operations.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p>🔒 <strong>Zero Data Selling Guarantee:</strong> BeeBill does not sell, rent, monetize, or trade customer personal data, phone numbers, or dining history to data brokers, third-party advertisers, or telemarketers.</p>
+      </div>
+
+      <h2>2. Information We Collect</h2>
+      <p>We only collect information strictly required to generate compliant tax invoices, disburse loyalty rewards, and transmit requested digital bills to diners:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Data Category</th>
+            <th>Specific Data Elements</th>
+            <th>Primary Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Diner Contact Data</strong></td>
+            <td>Mobile phone number (in E.164 international format) and Diner Name (if provided).</td>
+            <td>Dispatching digital WhatsApp itemized bills, looking up loyalty reward balances, and fraud prevention.</td>
+          </tr>
+          <tr>
+            <td><strong>Transaction Details</strong></td>
+            <td>Bill number, order type (Dine-in / Takeaway), item names, item quantities, subtotal, taxes (GST/VAT), discount amount, payment method (Cash/Card/UPI), and timestamp.</td>
+            <td>Tax compliance, digital invoice generation, calculating point accruals, and transaction audit trail.</td>
+          </tr>
+          <tr>
+            <td><strong>Loyalty Ledger Data</strong></td>
+            <td>Points earned, points redeemed, available balance, loyalty tier (e.g., Silver, Gold, Platinum), and visit frequency.</td>
+            <td>Maintaining customer reward balances and calculating redemption eligibility.</td>
+          </tr>
+          <tr>
+            <td><strong>Restaurant Merchant Data</strong></td>
+            <td>Business trade name, address, GSTIN/Tax ID, outlet POS identifier, authorized manager email, and staff access roles.</td>
+            <td>Merchant authentication, multi-tenant isolation, and billing generation.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>3. How We Use Collected Information</h2>
+      <p>We process diner and merchant information solely for the following legitimate business purposes:</p>
+      <ol>
+        <li><strong>Electronic Receipt Dispatch (E-Billing):</strong> To send instant, itemized digital receipts to the diner's mobile number via WhatsApp upon checkout.</li>
+        <li><strong>Loyalty Rewards Accounting:</strong> To calculate cashback points, award bonus tiers, and verify identity during point redemptions at partner outlets.</li>
+        <li><strong>Service Verification & Audit Logs:</strong> To provide restaurant owners with accurate historical accounting records and resolve billing discrepancies.</li>
+        <li><strong>Operational Security & Idempotency:</strong> To prevent double redemption of rewards and prevent fraudulent billing transactions.</li>
+      </ol>
+
+      <!-- Meta / WhatsApp Specific Section Required for Meta Review -->
+      <div class="meta-box">
+        <h3>4. Meta Platforms & WhatsApp Business API Integration</h3>
+        <p>BeeBill integrates with <strong>Meta Platforms, Inc. (WhatsApp Business Cloud API)</strong> to deliver transactional electronic receipts and reward notifications. In accordance with Meta's Developer Policies and WhatsApp Business Messaging Guidelines:</p>
+        <ul style="margin-top: 0.75rem; margin-bottom: 0;">
+          <li><strong>Transactional Messaging Only:</strong> Phone numbers captured at checkout are utilized solely to send diner-requested transactional messages (electronic bills, payment confirmations, and reward balances).</li>
+          <li><strong>No Unsolicited Spam:</strong> We do not send bulk marketing blasts or unsolicited promotional campaigns without explicit opt-in consent.</li>
+          <li><strong>Direct API Transmission:</strong> Messages are transmitted over secure, encrypted HTTPS endpoints directly to the official Meta Cloud API infrastructure.</li>
+        </ul>
+      </div>
+
+      <h2>5. Data Sharing and Third-Party Processors</h2>
+      <p>We share personal data only with trusted infrastructure providers required to operate the service:</p>
+      <ul>
+        <li><strong>Meta Platforms, Inc. (WhatsApp Cloud API):</strong> Message payload (recipient phone number, bill number, itemized totals) for delivering electronic receipts via WhatsApp.</li>
+        <li><strong>Database & Cloud Hosting (Supabase & Render):</strong> Enterprise-grade database servers hosted in secure facilities utilizing encrypted persistent storage.</li>
+        <li><strong>Legal & Regulatory Authorities:</strong> Only when strictly mandated by applicable laws, court orders, or governmental tax regulations.</li>
+      </ul>
+
+      <h2>6. Data Security and Encryption</h2>
+      <p>We implement rigorous technical and organizational security measures to protect personal data:</p>
+      <ul>
+        <li><strong>Encryption in Transit:</strong> All communications between POS terminals, client browsers, the BeeBill API, and Meta are encrypted using <strong>TLS 1.3 / HTTPS</strong>.</li>
+        <li><strong>Encryption at Rest:</strong> Database records and backups are secured using industry-standard <strong>AES-256</strong> encryption.</li>
+        <li><strong>Role-Based Access Control:</strong> Restaurant tenant data is isolated using fail-closed multi-tenant architectural boundaries. Staff can only access records belonging to their assigned restaurant location.</li>
+        <li><strong>API Authentication:</strong> POS integration requests are authenticated using hashed API keys with scoped permission boundaries.</li>
+      </ul>
+
+      <h2>7. Data Retention Policy</h2>
+      <p>We retain transaction and loyalty records for as long as necessary to provide loyalty services and comply with financial record-keeping obligations:</p>
+      <ul>
+        <li><strong>Transaction Ledgers:</strong> Kept for financial and tax audit compliance as required by local accounting regulations.</li>
+        <li><strong>Active Loyalty Balances:</strong> Maintained until redeemed or until points expire according to each restaurant's published program rules.</li>
+        <li><strong>Transient Reservation Sessions:</strong> Temporary hold tokens created during bill creation automatically expire after 15 minutes if not committed.</li>
+      </ul>
+
+      <h2>8. User Rights and Data Deletion</h2>
+      <p>Diners and merchant users retain full ownership and control over their personal data under applicable data protection regulations. You have the right to:</p>
+      <ul>
+        <li><strong>Access & Review:</strong> Request a summary of your loyalty balance, visit frequency, and historical transactions.</li>
+        <li><strong>Rectification:</strong> Request correction of inaccurate names or phone numbers recorded on your profile.</li>
+        <li><strong>Opt-Out of WhatsApp E-Bills:</strong> You may reply <strong>"STOP"</strong> directly to any WhatsApp message received from our verified number to immediately unsubscribe from automated electronic receipts.</li>
+        <li><strong>Right to Erasure (Data Deletion):</strong> You may request complete erasure of your loyalty profile and contact details. For comprehensive instructions, please view our <a href="/data-deletion" class="contact-link">Data Deletion Instructions Page</a>.</li>
+      </ul>
+
+      <h2>9. Policy Updates</h2>
+      <p>We may update this Privacy Policy from time to time to reflect operational or legal updates. Any revisions will be published directly to this URL with an updated "Last Updated" timestamp. Continued use of our billing or loyalty services following updates constitutes acceptance of the revised terms.</p>
+
+      <h2>10. Contact Us & Grievance Officer</h2>
+      <p>If you have any questions, concerns, or requests regarding this Privacy Policy or your personal data, please contact our Data Protection team:</p>
+      <ul>
+        <li><strong>Service Name:</strong> BeeBill Restaurant Loyalty & Billing Platform</li>
+        <li><strong>Support & Privacy Email:</strong> <a href="mailto:support@beebill.online" class="contact-link">support@beebill.online</a></li>
+        <li><strong>Website:</strong> <a href="https://beebill.online" class="contact-link" target="_blank" rel="noopener">https://beebill.online</a></li>
+        <li><strong>Operator:</strong> Yeezy Hospitality Technologies</li>
+      </ul>
+
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/data-deletion">User Data Deletion</a>
+      <a href="mailto:support@beebill.online">Contact Support</a>
+    </div>
+    <p>© 2026 BeeBill. All rights reserved. Powered by Yeezy Hospitality Technologies.</p>
+  </footer>
+
+</body>
+</html>
