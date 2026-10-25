@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { apiKeyAuth, requireScope } from '../middleware/apiKeyAuth.js';
 import { rateLimiter, idempotency } from '../middleware/rateLimitAndIdempotency.js';
 import { supabaseAdmin } from '../db/supabase.js';
+import { normalizePhone } from '../../lib/loyalty/engine.js';
 
 export const v1PublicRouter = Router();
 
@@ -63,14 +64,16 @@ v1PublicRouter.get('/program', async (req, res) => {
 
 // 3. GET /customers/lookup?phone=+919876543210&bill_paise=50000
 v1PublicRouter.get('/customers/lookup', requireScope('customers:read'), async (req, res) => {
-  const phone = req.query.phone;
+  const rawPhone = req.query.phone;
   const billPaise = req.query.bill_paise ? parseInt(req.query.bill_paise, 10) : null;
 
-  if (!phone) {
+  if (!rawPhone) {
     return res.status(400).json({
-      error: { code: 'MISSING_PHONE', message: 'phone query parameter in E.164 format is required' }
+      error: { code: 'MISSING_PHONE', message: 'phone query parameter is required' }
     });
   }
+
+  const phone = normalizePhone(rawPhone);
 
   try {
     const { data: member } = await supabaseAdmin
@@ -172,7 +175,7 @@ v1PublicRouter.get('/customers/lookup', requireScope('customers:read'), async (r
 
 // 4. PUT /customers/:phone - Upsert customer profile
 v1PublicRouter.put('/customers/:phone', requireScope('customers:write'), async (req, res) => {
-  const phone = req.params.phone;
+  const phone = normalizePhone(req.params.phone);
   const { name, birthday, anniversary } = req.body;
 
   try {
@@ -214,13 +217,15 @@ v1PublicRouter.put('/customers/:phone', requireScope('customers:write'), async (
 
 // 5. POST /redemptions/reserve - Reserve points with 15-minute TTL
 v1PublicRouter.post('/redemptions/reserve', requireScope('points:redeem'), async (req, res) => {
-  const { phone, points, bill_paise, ttl_seconds } = req.body;
+  const { phone: rawPhone, points, bill_paise, ttl_seconds } = req.body;
 
-  if (!phone || !points || !bill_paise) {
+  if (!rawPhone || !points || !bill_paise) {
     return res.status(400).json({
       error: { code: 'BAD_REQUEST', message: 'phone, points, and bill_paise are required' }
     });
   }
+
+  const phone = normalizePhone(rawPhone);
 
   try {
     const { data: rpcRes, error } = await supabaseAdmin.rpc('fn_loyalty_reserve_points', {
@@ -301,13 +306,15 @@ v1PublicRouter.post('/redemptions/:id/release', requireScope('points:redeem'), a
 
 // 8. POST /orders - Ingest completed order, award points, and optionally commit linked reservation
 v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => {
-  const { order_id, phone, subtotal_paise, order_type, reservation_id, metadata } = req.body;
+  const { order_id, phone: rawPhone, subtotal_paise, order_type, reservation_id, metadata } = req.body;
 
-  if (!order_id || !phone || subtotal_paise === undefined || !order_type) {
+  if (!order_id || !rawPhone || subtotal_paise === undefined || !order_type) {
     return res.status(400).json({
       error: { code: 'BAD_REQUEST', message: 'order_id, phone, subtotal_paise, and order_type are required' }
     });
   }
+
+  const phone = normalizePhone(rawPhone);
 
   try {
     let reservationCommitted = false;
