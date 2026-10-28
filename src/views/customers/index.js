@@ -3,12 +3,67 @@ import { store } from '../../state/store.js';
 import { exportToCSV } from '../../utils/exportCsv.js';
 import { renderInfoTooltip } from '../../utils/tooltip.js';
 
+export function categorizeCustomerSegments(customers = []) {
+  const total = customers.length;
+  const pct = (count) => (total > 0 ? Math.round((count / total) * 100) : 0);
+
+  const segments = {
+    firstTimers: [],
+    promising: [],
+    loyal: [],
+    atRisk: [],
+    oneTimeVisitors: [],
+    lost: []
+  };
+
+  customers.forEach(c => {
+    const visits = c.visits || 0;
+    const spend = c.numericSpend || 0;
+    const tier = c.tier || '';
+    const lastVisit = String(c.lastVisit || '').toLowerCase();
+
+    const isLapsed = tier === 'Lost' || lastVisit.includes('2 mo') || lastVisit.includes('3 mo') || lastVisit.includes('yr');
+    const isAtRisk = tier === 'At Risk' || lastVisit.includes('1 mo') || lastVisit.includes('30 d');
+
+    if (isLapsed) {
+      segments.lost.push(c);
+    } else if (isAtRisk) {
+      segments.atRisk.push(c);
+    } else if (visits >= 4 || tier === 'VIP' || spend >= 8000) {
+      segments.loyal.push(c);
+    } else if (visits >= 2 && visits <= 3) {
+      segments.promising.push(c);
+    } else if (visits === 1) {
+      if (lastVisit.includes('mo') || (lastVisit.includes('day') && parseInt(lastVisit) > 30)) {
+        segments.oneTimeVisitors.push(c);
+      } else {
+        segments.firstTimers.push(c);
+      }
+    } else {
+      segments.firstTimers.push(c);
+    }
+  });
+
+  return {
+    firstTimers: { count: segments.firstTimers.length, pct: pct(segments.firstTimers.length), items: segments.firstTimers },
+    promising: { count: segments.promising.length, pct: pct(segments.promising.length), items: segments.promising },
+    loyal: { count: segments.loyal.length, pct: pct(segments.loyal.length), items: segments.loyal },
+    atRisk: { count: segments.atRisk.length, pct: pct(segments.atRisk.length), items: segments.atRisk },
+    oneTimeVisitors: { count: segments.oneTimeVisitors.length, pct: pct(segments.oneTimeVisitors.length), items: segments.oneTimeVisitors },
+    lost: { count: segments.lost.length, pct: pct(segments.lost.length), items: segments.lost },
+    total
+  };
+}
+
 export function renderCustomerInsights(state, filters = {}) {
   const { customers } = state;
-  const activeTab = filters.activeTab || 'customerlist';
+  const activeTab = filters.activeTab || 'overview';
   const searchTerm = (filters.searchTerm || '').toLowerCase();
   const selectedTier = filters.selectedTier || 'all';
   const sortBy = filters.sortBy || 'spend_desc';
+
+  // Compute 6-card lifecycle segments
+  const segments = categorizeCustomerSegments(customers);
 
   // Filter and sort customers
   let filtered = customers.filter(c => {
@@ -18,10 +73,14 @@ export function renderCustomerInsights(state, filters = {}) {
       c.phone.includes(searchTerm);
     
     const matchesTier = selectedTier === 'all' || 
-      (selectedTier === 'vip' && c.tier === 'VIP') ||
-      (selectedTier === 'frequent' && c.tier === 'Frequent') ||
-      (selectedTier === 'at-risk' && c.tier === 'At Risk') ||
-      (selectedTier === 'new' && c.tier === 'New');
+      (selectedTier === 'new' && (segments.firstTimers.items.some(x => x.id === c.id) || c.tier === 'New' || c.visits <= 1)) ||
+      (selectedTier === 'promising' && (segments.promising.items.some(x => x.id === c.id) || (c.visits >= 2 && c.visits <= 3))) ||
+      (selectedTier === 'loyal' && (segments.loyal.items.some(x => x.id === c.id) || c.tier === 'VIP' || c.visits >= 4)) ||
+      (selectedTier === 'at-risk' && (segments.atRisk.items.some(x => x.id === c.id) || c.tier === 'At Risk')) ||
+      (selectedTier === 'one-time' && (segments.oneTimeVisitors.items.some(x => x.id === c.id) || (c.visits === 1 && c.tier !== 'New'))) ||
+      (selectedTier === 'lost' && (segments.lost.items.some(x => x.id === c.id) || c.tier === 'Lost')) ||
+      (selectedTier === 'vip' && (c.tier === 'VIP' || c.numericSpend >= 10000)) ||
+      (selectedTier === 'frequent' && (c.tier === 'Frequent' || c.visits >= 2));
 
     return matchesSearch && matchesTier;
   });
@@ -37,8 +96,8 @@ export function renderCustomerInsights(state, filters = {}) {
   // Compute segment counts with real categorizations
   const vipCount = customers.filter(c => c.tier === 'VIP' || (c.numericSpend >= 10000)).length;
   const frequentCount = customers.filter(c => c.tier === 'Frequent' || c.tier === 'Regular' || (c.visits >= 2 && c.numericSpend < 10000)).length;
-  const atRiskCount = customers.filter(c => c.tier === 'At Risk').length;
-  const newCount = customers.filter(c => c.tier === 'New' || c.visits <= 1).length;
+  const atRiskCount = segments.atRisk.count;
+  const newCount = segments.firstTimers.count;
   
   const totalSpend = customers.reduce((sum, c) => sum + (c.numericSpend || 0), 0);
   const totalVisits = customers.reduce((sum, c) => sum + (c.visits || 0), 0);
@@ -110,7 +169,7 @@ export function renderCustomerInsights(state, filters = {}) {
         </button>
       </div>
 
-      ${activeTab === 'overview' ? renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate) : ''}
+      ${activeTab === 'overview' ? renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate, segments) : ''}
       ${activeTab === 'rfm' ? renderRFMTab(customers, vipCount, frequentCount, atRiskCount, newCount) : ''}
       ${activeTab === 'lifecycle' ? renderLifecycleTab(customers, vipCount, frequentCount, atRiskCount, newCount) : ''}
       ${activeTab === 'customerlist' ? renderCustomerListTab(filtered, filters, selectedTier, sortBy) : ''}
@@ -120,7 +179,8 @@ export function renderCustomerInsights(state, filters = {}) {
   `;
 }
 
-function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate) {
+function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate, segmentsInput) {
+  const segments = segmentsInput || categorizeCustomerSegments(customers);
   // Aggregate real dish data from all registered customers and orders
   const dishCounts = {};
   customers.forEach(c => {
@@ -198,78 +258,126 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
       </div>
     </div>
 
-    <!-- Segment Breakdown -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-5 border border-purple-200 shadow-sm relative overflow-visible">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-primary">VIP Spenders</span>
-          <div class="flex items-center gap-1.5">
-            <span class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary text-base">diamond</span>
-            </span>
-            ${renderInfoTooltip("High-value patrons with ₹10,000+ lifetime spend who generate the largest share of restaurant profits.")}
-          </div>
+    <!-- Customer Lifecycle Segments Bento Grid (Exact Second Design) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+      <!-- Column 1: New – First Timer (Tall Card spanning full height) -->
+      <div 
+        class="segment-bento-card bg-[#EBF9F1] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D4F4DF]" 
+        data-segment-key="new"
+        title="Click to filter New – First Timer diners"
+      >
+        <div class="self-start">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D4F4DF] text-[#166534]">
+            New – First Timer
+          </span>
         </div>
-        <div class="text-3xl font-black text-gray-900 mt-2">${vipCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">Avg spend ₹${vipCount > 0 ? Math.round(customers.filter(c => c.tier === 'VIP' || c.numericSpend >= 10000).reduce((s,c) => s + c.numericSpend, 0) / vipCount).toLocaleString() : 0}</p>
-        <div class="mt-3 w-full bg-purple-100 rounded-full h-1.5">
-          <div class="bg-primary h-1.5 rounded-full" style="width: ${customers.length ? Math.round(vipCount / customers.length * 100) : 0}%"></div>
+        <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+          ${segments.firstTimers.pct}%
         </div>
-        <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(vipCount / customers.length * 100) : 0}% of total base</span>
+        <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+          ${segments.firstTimers.count} Customer${segments.firstTimers.count === 1 ? '' : 's'}
+        </div>
       </div>
 
-      <div class="bg-gradient-to-br from-teal-50 to-white rounded-2xl p-5 border border-teal-200 shadow-sm relative overflow-visible">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-[#00796B]">Frequent Diners</span>
-          <div class="flex items-center gap-1.5">
-            <span class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[#00796B] text-base">restaurant</span>
+      <!-- Column 2: Promising (Top) & Loyal (Bottom) -->
+      <div class="flex flex-col gap-4">
+        <!-- Promising -->
+        <div 
+          class="segment-bento-card bg-[#FDF0F6] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FCE3EE]" 
+          data-segment-key="promising"
+          title="Click to filter Promising diners"
+        >
+          <div class="self-start">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FCE3EE] text-[#9D174D]">
+              Promising
             </span>
-            ${renderInfoTooltip("Consistent diners who visit 2+ times, demonstrating solid habit and brand affinity.")}
+          </div>
+          <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+            ${segments.promising.pct}%
+          </div>
+          <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+            ${segments.promising.count} Customer${segments.promising.count === 1 ? '' : 's'}
           </div>
         </div>
-        <div class="text-3xl font-black text-gray-900 mt-2">${frequentCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">${frequentCount > 0 ? 'Visiting 2+ times with steady repeat orders' : 'Diners who return for 2+ meals'}</p>
-        <div class="mt-3 w-full bg-teal-100 rounded-full h-1.5">
-          <div class="bg-[#00796B] h-1.5 rounded-full" style="width: ${customers.length ? Math.round(frequentCount / customers.length * 100) : 0}%"></div>
+
+        <!-- Loyal -->
+        <div 
+          class="segment-bento-card bg-[#E6F9F9] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D0F5F6]" 
+          data-segment-key="loyal"
+          title="Click to filter Loyal diners"
+        >
+          <div class="self-start">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D0F5F6] text-[#0F766E]">
+              Loyal
+            </span>
+          </div>
+          <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+            ${segments.loyal.pct}%
+          </div>
+          <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+            ${segments.loyal.count} Customer${segments.loyal.count === 1 ? '' : 's'}
+          </div>
         </div>
-        <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(frequentCount / customers.length * 100) : 0}% of total base</span>
       </div>
 
-      <div class="bg-gradient-to-br from-rose-50 to-white rounded-2xl p-5 border border-rose-200 shadow-sm relative overflow-visible">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-rose-600">Slipping Away</span>
-          <div class="flex items-center gap-1.5">
-            <span class="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center">
-              <span class="material-symbols-outlined text-rose-600 text-base">warning</span>
-            </span>
-            ${renderInfoTooltip("Previously active guests who have not visited in over 30 days and are eligible for win-back campaigns.")}
-          </div>
+      <!-- Column 3: At Risk (Tall Card spanning full height) -->
+      <div 
+        class="segment-bento-card bg-[#FEFCE8] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FEF08A]" 
+        data-segment-key="at-risk"
+        title="Click to filter At Risk diners"
+      >
+        <div class="self-start">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FEF08A] text-[#854D0E]">
+            At Risk
+          </span>
         </div>
-        <div class="text-3xl font-black text-gray-900 mt-2">${atRiskCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">${atRiskCount > 0 ? 'No visit in 30+ days. Win-back eligible' : 'No churning guests currently'}</p>
-        <div class="mt-3 w-full bg-rose-100 rounded-full h-1.5">
-          <div class="bg-rose-500 h-1.5 rounded-full" style="width: ${customers.length ? Math.round(atRiskCount / customers.length * 100) : 0}%"></div>
+        <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+          ${segments.atRisk.pct}%
         </div>
-        <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(atRiskCount / customers.length * 100) : 0}% of total base</span>
+        <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+          ${segments.atRisk.count} Customer${segments.atRisk.count === 1 ? '' : 's'}
+        </div>
       </div>
 
-      <div class="bg-gradient-to-br from-amber-50 to-white rounded-2xl p-5 border border-amber-200 shadow-sm relative overflow-visible">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-amber-700">New Signups</span>
-          <div class="flex items-center gap-1.5">
-            <span class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
-              <span class="material-symbols-outlined text-amber-700 text-base">person_add</span>
+      <!-- Column 4: One-Time Visitor (Top) & Lost (Bottom) -->
+      <div class="flex flex-col gap-4">
+        <!-- One-Time Visitor -->
+        <div 
+          class="segment-bento-card bg-[#EFF6FF] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#DBEAFE]" 
+          data-segment-key="one-time"
+          title="Click to filter One-Time Visitors"
+        >
+          <div class="self-start">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#DBEAFE] text-[#1E40AF]">
+              One-Time Visitor
             </span>
-            ${renderInfoTooltip("First-time customers who registered with your loyalty program within the past 30 days.")}
+          </div>
+          <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+            ${segments.oneTimeVisitors.pct}%
+          </div>
+          <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+            ${segments.oneTimeVisitors.count} Customer${segments.oneTimeVisitors.count === 1 ? '' : 's'}
           </div>
         </div>
-        <div class="text-3xl font-black text-gray-900 mt-2">${newCount} Diners</div>
-        <p class="text-xs text-gray-500 mt-1">First-time loyalty members</p>
-        <div class="mt-3 w-full bg-amber-100 rounded-full h-1.5">
-          <div class="bg-amber-500 h-1.5 rounded-full" style="width: ${customers.length ? Math.round(newCount / customers.length * 100) : 0}%"></div>
+
+        <!-- Lost -->
+        <div 
+          class="segment-bento-card bg-[#FFF1F2] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FFE4E6]" 
+          data-segment-key="lost"
+          title="Click to filter Lost diners"
+        >
+          <div class="self-start">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FFE4E6] text-[#9F1239]">
+              Lost
+            </span>
+          </div>
+          <div class="text-3xl md:text-4xl font-bold text-gray-900 mt-3 tracking-tight">
+            ${segments.lost.pct}%
+          </div>
+          <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
+            ${segments.lost.count} Customer${segments.lost.count === 1 ? '' : 's'}
+          </div>
         </div>
-        <span class="text-[10px] text-gray-400 mt-1 block">${customers.length ? Math.round(newCount / customers.length * 100) : 0}% of total base</span>
       </div>
     </div>
 
@@ -644,12 +752,14 @@ function renderCustomerListTab(filtered, filters, selectedTier, sortBy) {
       </div>
 
       <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto justify-start md:justify-end">
-        <!-- Tier Pills -->
-        <button data-tier-filter="all" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'all' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">All</button>
-        <button data-tier-filter="vip" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'vip' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">VIP</button>
-        <button data-tier-filter="frequent" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'frequent' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">Frequent</button>
-        <button data-tier-filter="at-risk" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'at-risk' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">At Risk</button>
-        <button data-tier-filter="new" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'new' ? 'bg-primary text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">New</button>
+        <!-- Tier / Segment Filter Pills -->
+        <button data-tier-filter="all" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'all' ? 'bg-[#00796B] text-white shadow-xs' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">All</button>
+        <button data-tier-filter="new" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'new' ? 'bg-[#166534] text-white shadow-xs' : 'bg-[#EBF9F1] text-[#166534] hover:bg-[#D4F4DF]'}">First Timer</button>
+        <button data-tier-filter="promising" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'promising' ? 'bg-[#9D174D] text-white shadow-xs' : 'bg-[#FDF0F6] text-[#9D174D] hover:bg-[#FCE3EE]'}">Promising</button>
+        <button data-tier-filter="loyal" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'loyal' ? 'bg-[#0F766E] text-white shadow-xs' : 'bg-[#E6F9F9] text-[#0F766E] hover:bg-[#D0F5F6]'}">Loyal</button>
+        <button data-tier-filter="at-risk" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'at-risk' ? 'bg-[#854D0E] text-white shadow-xs' : 'bg-[#FEFCE8] text-[#854D0E] hover:bg-[#FEF08A]'}">At Risk</button>
+        <button data-tier-filter="one-time" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'one-time' ? 'bg-[#1E40AF] text-white shadow-xs' : 'bg-[#EFF6FF] text-[#1E40AF] hover:bg-[#DBEAFE]'}">One-Time</button>
+        <button data-tier-filter="lost" type="button" class="tier-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${selectedTier === 'lost' ? 'bg-[#9F1239] text-white shadow-xs' : 'bg-[#FFF1F2] text-[#9F1239] hover:bg-[#FFE4E6]'}">Lost</button>
 
         <!-- Sort dropdown -->
         <select id="customer-sort-select" class="px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 focus:outline-none ml-2">
@@ -884,6 +994,22 @@ export function attachCustomerInsightsListeners() {
         store.setUIState(ui => ({
           ...ui,
           customerFilters: { ...ui.customerFilters, selectedTier: tier }
+        }));
+      }
+    };
+  });
+
+  document.querySelectorAll('.segment-bento-card').forEach(card => {
+    card.onclick = () => {
+      const segKey = card.getAttribute('data-segment-key');
+      if (segKey) {
+        store.setUIState(ui => ({
+          ...ui,
+          customerFilters: {
+            ...ui.customerFilters,
+            activeTab: 'customerlist',
+            selectedTier: segKey
+          }
         }));
       }
     };
