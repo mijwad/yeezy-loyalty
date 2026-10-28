@@ -252,6 +252,7 @@ class Store {
             pointsBalance: `${bc.pointsBalance || 0} pts`,
             numericPoints: bc.pointsBalance || 0,
             favoriteDish: bc.favoriteDish || 'Chef Special',
+            topDishes: bc.topDishes || [],
             lastVisit: bc.lastVisit || 'Today',
             lastVisitDate: new Date().toISOString().slice(0, 10),
             status: (bc.visits || 0) > 0 ? 'Active' : 'New Guest',

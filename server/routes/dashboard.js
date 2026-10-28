@@ -172,6 +172,21 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
       ? dbMembers.slice(0, 6).map(m => {
           const cleanPhone = (m.phone_e164 || '').replace(/\D/g, '').slice(-10);
           const spend = Math.round((m.lifetime_spend_paise || 0) / 100);
+
+          // Aggregate food items for this member
+          const memberItems = {};
+          dbLedger
+            .filter(l => l.member_id === m.id)
+            .forEach(l => {
+              const items = Array.isArray(l.meta?.items) ? l.meta.items : [];
+              items.forEach(i => {
+                const name = (i.name || i.item_name || '').trim();
+                if (name) memberItems[name] = (memberItems[name] || 0) + Number(i.quantity || i.qty || 1);
+              });
+            });
+          const topDishes = Object.entries(memberItems).sort((a, b) => b[1] - a[1]);
+          const favoriteDish = topDishes.length > 0 ? `${topDishes[0][0]} (${topDishes[0][1]}x)` : 'Chef Special';
+
           return {
             id: m.id,
             name: m.name || 'Valued Guest',
@@ -181,6 +196,10 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
             lifetimeSpend: `₹${spend.toLocaleString()}`,
             numericSpend: spend,
             pointsBalance: `${Math.round(spend / 10)} pts`,
+            favoriteDish,
+            lastVisit: m.last_visit_at
+              ? new Date(m.last_visit_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : 'Today',
             status: 'Active'
           };
         })

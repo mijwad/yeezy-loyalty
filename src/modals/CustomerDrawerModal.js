@@ -147,6 +147,42 @@ function renderPersonaTab(customer, phone, email, address, birthday, anniversary
             <span class="text-sm font-bold text-slate-900 mt-0.5 block">${anniversary}</span>
           </div>
         </div>
+      <!-- What They Eat / Dining Habits Card -->
+      <div class="bg-[#F9FAFB] rounded-2xl p-5 border border-slate-100 space-y-3 shadow-xs">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-emerald-600 text-lg">restaurant_menu</span>
+            <h4 class="text-sm font-bold text-slate-900 tracking-tight">What They Eat (Ordered Dishes)</h4>
+          </div>
+          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-100">
+            ${customer.topDishes?.length || (customer.favoriteDish && customer.favoriteDish !== 'Chef Special' ? 1 : 0)} items captured
+          </span>
+        </div>
+
+        ${(customer.topDishes && customer.topDishes.length > 0) ? `
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            ${customer.topDishes.map(d => `
+              <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 flex items-center justify-between shadow-2xs hover:border-emerald-300 transition-colors">
+                <div class="flex items-center gap-2 overflow-hidden">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span class="text-xs font-bold text-slate-900 truncate">${d.name}</span>
+                </div>
+                <span class="text-xs font-black px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100/80 shrink-0">
+                  ${d.count}x ordered
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        ` : (customer.favoriteDish && customer.favoriteDish !== 'Chef Special') ? `
+          <div class="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800">${customer.favoriteDish}</span>
+            <span class="text-xs font-black text-emerald-700">Top Choice</span>
+          </div>
+        ` : `
+          <div class="p-3 bg-white rounded-xl border border-dashed border-slate-200 text-center">
+            <p class="text-xs text-slate-500">No specific dish order history captured yet for this diner.</p>
+          </div>
+        `}
       </div>
 
       <!-- Tags Card -->
@@ -300,6 +336,8 @@ function renderActivityTab(customer) {
 function renderOrderActivityCard(ord, idx, total) {
   const visitNum = total - idx;
   const billId = ord.id || ord.orderId || ord.billNo || `#POS-${Math.floor(1000 + idx * 87)}`;
+  const totalAmount = ord.total || (ord.financials?.netPaid ? `₹${ord.financials.netPaid}` : '₹0');
+  const dateStr = ord.date || ord.settledAt ? new Date(ord.date || ord.settledAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Today';
   const itemsList = Array.isArray(ord.items) ? ord.items : [];
   const itemsText = itemsList.length > 0
     ? itemsList.map(i => `${i.quantity || i.qty || 1}x ${i.name || i.item_name || 'Item'}`).join(', ')

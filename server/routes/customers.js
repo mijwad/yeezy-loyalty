@@ -28,18 +28,68 @@ customersRouter.get('/', authMiddleware, async (req, res) => {
         const memberIds = dbMembers.map((m) => m.id);
         const { data: ledgerEntries } = await client
           .from('loyalty_ledger')
-          .select('member_id, points, type')
-          .in('member_id', memberIds);
+          .select('id, member_id, points, type, meta, order_id, created_at')
+          .in('member_id', memberIds)
+          .order('created_at', { ascending: false });
 
         const pointsMap = {};
+        const itemsMap = {};
+        const ordersMap = {};
+
         (ledgerEntries || []).forEach((entry) => {
-          pointsMap[entry.member_id] = (pointsMap[entry.member_id] || 0) + (entry.points || 0);
+          const mid = entry.member_id;
+          pointsMap[mid] = (pointsMap[mid] || 0) + (entry.points || 0);
+
+          if (!itemsMap[mid]) itemsMap[mid] = {};
+          if (!ordersMap[mid]) ordersMap[mid] = [];
+
+          const meta = entry.meta || {};
+          const items = Array.isArray(meta.items) ? meta.items : [];
+          items.forEach(item => {
+            const name = (item.name || item.item_name || '').trim();
+            if (name) {
+              const qty = Number(item.quantity || item.qty || 1);
+              itemsMap[mid][name] = (itemsMap[mid][name] || 0) + qty;
+            }
+          });
+
+          if (entry.order_id || items.length > 0) {
+            const subtotalPaise = meta.subtotal_paise || (meta.bill_amount_paise || 0);
+            ordersMap[mid].push({
+              id: entry.order_id || entry.id,
+              orderId: entry.order_id || entry.id,
+              billNo: meta.bill_number ? `#${meta.bill_number}` : (entry.order_id ? `#${entry.order_id.slice(-6).toUpperCase()}` : '#POS-ORD'),
+              date: entry.created_at,
+              settledAt: entry.created_at,
+              total: subtotalPaise ? `₹${Math.round(subtotalPaise / 100)}` : '₹0',
+              items,
+              pointsEarned: entry.points > 0 ? entry.points : 0,
+              pointsBurned: entry.points < 0 ? Math.abs(entry.points) : 0,
+              loyaltyDiscount: meta.discount_paise ? Math.round(meta.discount_paise / 100) : 0,
+              tableNo: meta.order_type === 'takeaway' ? 'Takeaway' : 'Dine-In',
+              financials: {
+                netPaid: subtotalPaise ? (subtotalPaise / 100).toFixed(2) : '0',
+                paymentMode: 'POS Settled',
+              }
+            });
+          }
         });
 
         customers = dbMembers.map((m) => {
           const cleanPhone = (m.phone_e164 || '').replace(/\D/g, '').slice(-10);
           const spend = Math.round((m.lifetime_spend_paise || 0) / 100);
           const points = pointsMap[m.id] !== undefined ? pointsMap[m.id] : Math.round(spend / 10);
+          const memberItems = itemsMap[m.id] || {};
+          const topDishes = Object.entries(memberItems)
+            .sort((a, b) => b[1] - a[1])
+            .map(([name, count]) => ({ name, count }));
+
+          const favoriteDish = topDishes.length > 0
+            ? topDishes.slice(0, 2).map(d => `${d.name} (${d.count}x)`).join(', ')
+            : 'Chef Special';
+
+          const mOrders = ordersMap[m.id] || [];
+
           return {
             id: m.id,
             tenantId: m.restaurant_id,
@@ -47,7 +97,7 @@ customersRouter.get('/', authMiddleware, async (req, res) => {
             email: `${cleanPhone}@guest.yeezy.app`,
             phone: m.phone_e164 || `+91 ${cleanPhone}`,
             tier: m.tier || 'Silver',
-            visits: m.visit_count || 1,
+            visits: m.visit_count || mOrders.length || 1,
             lifetimeSpend: spend,
             numericSpend: spend,
             pointsBalance: points,
@@ -59,14 +109,15 @@ customersRouter.get('/', authMiddleware, async (req, res) => {
                   year: 'numeric',
                 })
               : 'Today',
-            favoriteDish: 'Chef Special',
+            favoriteDish,
+            topDishes,
             status: (m.visit_count || 1) > 0 ? 'Active' : 'New Guest',
             joinedDate: new Date(m.created_at || m.joined_at || Date.now()).toLocaleDateString(
               'en-US',
               { month: 'short', day: 'numeric', year: 'numeric' },
             ),
-            totalRedeemed: 0,
-            recentOrders: [],
+            totalRedeemed: (ordersMap[m.id] || []).filter(o => o.pointsBurned > 0).length,
+            recentOrders: mOrders,
           };
         });
       }
@@ -167,6 +218,22 @@ customersRouter.get('/:id', authMiddleware, async (req, res) => {
             }
           };
         });
+        const itemsMap = {};
+        (ledgerRows || []).forEach(l => {
+          const items = Array.isArray(l.meta?.items) ? l.meta.items : [];
+          items.forEach(i => {
+            const name = (i.name || i.item_name || '').trim();
+            if (name) {
+              itemsMap[name] = (itemsMap[name] || 0) + Number(i.quantity || i.qty || 1);
+            }
+          });
+        });
+        const topDishes = Object.entries(itemsMap)
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, count]) => ({ name, count }));
+        const favoriteDish = topDishes.length > 0
+          ? topDishes.slice(0, 2).map(d => `${d.name} (${d.count}x)`).join(', ')
+          : 'Chef Special';
 
         const cleanP = m.phone_e164 ? String(m.phone_e164).replace(/\D/g, '').slice(-10) : '';
         const customerObj = {
@@ -179,6 +246,8 @@ customersRouter.get('/:id', authMiddleware, async (req, res) => {
           visits: m.visit_count || orders.length,
           totalRedeemed: `${(ledgerRows || []).filter(l => l.points < 0).length} Rewards`,
           joinedDate: new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          favoriteDish,
+          topDishes,
           recentOrders: orders,
         };
 
@@ -186,6 +255,7 @@ customersRouter.get('/:id', authMiddleware, async (req, res) => {
           status: 'success',
           customer: customerObj,
           orders,
+          topDishes,
           ledger: ledgerRows || [],
         });
       }
