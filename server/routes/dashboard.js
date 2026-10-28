@@ -79,8 +79,25 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
   // Combined totals
   const totalSales = dbSalesRupees + localSales;
   const totalOrders = dbOrdersCount + localOrders.length;
-  const totalPointsIssued = dbPointsIssued + localPointsIssued;
+  
+  // Lifetime points issued from the start
+  const dbMembersPointsIssued = dbMembers.reduce((sum, m) => {
+    const spend = Math.round((m.lifetime_spend_paise || 0) / 100);
+    return sum + (m.points_balance !== undefined ? m.points_balance : Math.round(spend / 10));
+  }, 0);
+  const localCustPointsIssued = customers.reduce((sum, c) => {
+    return sum + (c.pointsBalance || c.numericPoints || Math.round((c.numericSpend || 0) / 10));
+  }, 0);
+  const salesPointsIssued = Math.round(totalSales / 10);
   const totalPointsBurned = dbPointsBurned + localPointsBurned;
+
+  const totalPointsIssued = Math.max(
+    dbPointsIssued + localPointsIssued,
+    dbMembersPointsIssued + totalPointsBurned,
+    localCustPointsIssued + totalPointsBurned,
+    salesPointsIssued
+  );
+  
   const rewardsRedeemed = dbRewardsRedeemed + localRewardsRedeemed;
 
   const dbRepeatCount = dbMembers.filter(m => (m.visit_count || 0) > 1).length;

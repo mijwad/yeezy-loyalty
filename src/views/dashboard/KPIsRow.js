@@ -1,7 +1,21 @@
 // Stream Performance & Store KPIs Deck
 import { renderInfoTooltip } from '../../utils/tooltip.js';
 
-export function renderKPIsRow(stats) {
+export function renderKPIsRow(stats, customers = []) {
+  // Lifetime points issued from the start across registered customers, orders, and sales
+  const customerPointsEarned = (customers || []).reduce((sum, c) => {
+    const fromOrders = (c.recentOrders || []).reduce((s, o) => s + (o.pointsEarned || 0), 0);
+    const fromPoints = c.numericPoints || 0;
+    const fromSpend = Math.round((c.numericSpend || 0) / 10);
+    return sum + Math.max(fromOrders, fromPoints, fromSpend);
+  }, 0);
+
+  const totalPointsIssued = Math.max(
+    stats?.totalPointsIssued || 0,
+    stats?.pointsIssued || 0,
+    customerPointsEarned
+  );
+
   return `
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
       <!-- KPI 1: Active Members -->
@@ -41,15 +55,15 @@ export function renderKPIsRow(stats) {
         <div class="flex items-start justify-between">
           <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Total Points Issued</span>
-            ${renderInfoTooltip("Total loyalty points credited to customer accounts across all settled billing transactions.")}
+            ${renderInfoTooltip("Cumulative total loyalty points issued to customer accounts across all settled transactions and welcome bonuses from the start.")}
           </div>
           <span class="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed">
-            ${stats.burnRate} Burn
+            ${stats.burnRate || '0%'} Burn
           </span>
         </div>
-        <div class="mt-2 flex items-baseline gap-1">
-          <span class="font-black text-3xl text-on-surface tracking-tight">${(stats.pointsIssued / 1000).toFixed(0)}k</span>
-          <span class="text-xs text-on-surface-variant font-semibold">/ ${(stats.totalPointsCapacity / 1000).toFixed(0)}k pts</span>
+        <div class="mt-2 flex items-baseline gap-1.5">
+          <span class="font-black text-3xl text-on-surface tracking-tight">${totalPointsIssued.toLocaleString()}</span>
+          <span class="text-xs text-on-surface-variant font-bold">pts</span>
         </div>
       </div>
 

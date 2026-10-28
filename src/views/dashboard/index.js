@@ -65,7 +65,7 @@ export function renderDashboard(state) {
       ${renderCreditsCard(creditsBalance)}
 
       <!-- 4. Stream Performance KPIs -->
-      ${renderKPIsRow(currentStats)}
+      ${renderKPIsRow(currentStats, customers)}
 
       <!-- 5. Top Customers & Loyalty VIPs Table Card -->
       ${renderVIPTableCard(customers)}
