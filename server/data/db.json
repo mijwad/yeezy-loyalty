@@ -201,7 +201,7 @@
       "id": "a20ba119-de31-4be4-bda3-362eb77f63a4",
       "name": "samad",
       "email": "durbar@gmail.com",
-      "passwordHash": "$2b$10$9RqDTSQtf3/S2/hrhDMa9uhMUDpGP/bkRAbWmSbTLDjSfXhNrBcMi",
+      "passwordHash": "$2b$10$K22ba.n76BojAgxb0lnq/OhtLQnj6Udzrew1rhWvFX5aOYyHGzt9a",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_durbar_mvsfe21f",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=samad"

@@ -1,6 +1,7 @@
 // Super Admin Management Router
 import { Router } from 'express';
 import crypto from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import { posStore } from '../db/store.js';
 import { supabaseAdmin } from '../db/supabase.js';
 import { DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty/config.js';
@@ -115,7 +116,7 @@ adminRouter.post('/restaurants', async (req, res) => {
         const tenantUuid = toUuid(tenant.id);
         const contactPhone = req.body.ownerPhone || req.body.phone || '+919876543210';
         const userObj = result.user || posStore.data.users?.find(u => u.tenantId === tenant.id);
-        const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash);
+        const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash) || bcrypt.hashSync(finalPassword, 10);
 
         await Promise.all([
           supabaseAdmin.from('tenants').upsert({
@@ -258,6 +259,55 @@ adminRouter.patch('/restaurants/:id/status', async (req, res) => {
       name: tenant.name,
       status: newStatus,
       active: updatedTenant.active
+    }
+  });
+});
+
+// PATCH /api/v1/admin/restaurants/:id/password - Super Admin sets/updates restaurant owner password
+adminRouter.patch('/restaurants/:id/password', async (req, res) => {
+  const targetId = req.params.id;
+  const newPassword = (req.body?.password || req.body?.newPassword || '').trim();
+
+  if (!newPassword) {
+    return res.status(400).json({ status: 'error', message: 'New password is required' });
+  }
+
+  const tenant = posStore.data.tenants?.find(t => t.id === targetId || t.code === targetId || t.supabaseId === targetId || t.primaryRestID === targetId);
+  if (!tenant) {
+    return res.status(404).json({ status: 'error', message: 'Restaurant not found' });
+  }
+
+  const pwdHash = bcrypt.hashSync(newPassword, 10);
+
+  // Update in memory posStore
+  const user = (posStore.data.users || []).find(u => u.tenantId === tenant.id || (tenant.ownerEmail && u.email && u.email.toLowerCase() === tenant.ownerEmail.toLowerCase()));
+  if (user) {
+    user.passwordHash = pwdHash;
+  }
+  posStore.persist();
+
+  // Persist to Supabase
+  if (supabaseAdmin) {
+    try {
+      const email = tenant.ownerEmail || user?.email;
+      const tenantUuid = toUuid(tenant.id);
+      if (email) {
+        await supabaseAdmin.from('tenant_users').update({ password_hash: pwdHash }).ilike('email', email);
+      }
+      await supabaseAdmin.from('tenant_users').update({ password_hash: pwdHash }).eq('tenant_id', tenantUuid);
+    } catch (sbErr) {
+      console.warn('[Admin] Failed to update password in Supabase:', sbErr.message);
+    }
+  }
+
+  return res.json({
+    status: 'success',
+    message: `Password updated successfully for '${tenant.name}'`,
+    data: {
+      tenantId: tenant.id,
+      brandName: tenant.name,
+      ownerEmail: tenant.ownerEmail || user?.email,
+      newPassword
     }
   });
 });

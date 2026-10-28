@@ -444,24 +444,23 @@ class POSDataStore {
     const cleanPass = password.trim();
     const cleanIdNormalized = cleanId.replace(/[^a-z0-9]/g, '');
 
-    const findUser = () => {
-      return (this.data.users || []).find(u => {
+    const getCandidates = () => {
+      return (this.data.users || []).filter(u => {
         // 1. Exact email match
         if (u.email && u.email.toLowerCase() === cleanId) return true;
 
-        // 2. Email username (prefix before @) match (e.g. "mandilounge", "alex.rivera", "admin")
+        // 2. Email username (prefix before @) match
         const emailPrefix = u.email ? u.email.split('@')[0].toLowerCase() : '';
         if (emailPrefix) {
           if (emailPrefix === cleanId) return true;
           if (cleanIdNormalized && emailPrefix.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
         }
 
-        // 3. User Full Name match (e.g. "Sabeer", "Alex Rivera", "Riyaz Amlani")
+        // 3. User Full Name match
         if (u.name) {
           const nameLower = u.name.toLowerCase();
           if (nameLower === cleanId) return true;
           if (cleanIdNormalized && nameLower.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
-          // First name match
           const firstName = nameLower.split(' ')[0];
           if (firstName && firstName === cleanId) return true;
         }
@@ -476,7 +475,6 @@ class POSDataStore {
         if (u.tenantId && u.role !== 'SUPER_ADMIN') {
           const tenant = (this.data.tenants || []).find(t => (t.id && t.id === u.tenantId) || (t.supabaseId && t.supabaseId === u.tenantId) || (t.code && t.code === u.tenantId));
           if (tenant) {
-            // Restaurant Brand Name (e.g. "mandi lounge", "Downtown Bistro", "Durbar Cafe", "Farzi Cafe")
             const brandNames = [tenant.name, tenant.brandName].filter(Boolean).map(n => n.toLowerCase());
             for (const bName of brandNames) {
               if (bName === cleanId) return true;
@@ -485,15 +483,11 @@ class POSDataStore {
               if (firstWord && firstWord === cleanId) return true;
             }
 
-            // Tenant ID / Code match (e.g. "ten_yeezy_01", "ten_mandi_lounge_mvs52wbd")
             if (tenant.id && (tenant.id.toLowerCase() === cleanId || tenant.id.toLowerCase() === cleanIdNormalized)) return true;
             if (tenant.code && (tenant.code.toLowerCase() === cleanId || tenant.code.toLowerCase() === cleanIdNormalized)) return true;
-
-            // Primary Petpooja restID match (e.g. "PP_DEL_101", "PP_MUM_303")
             if (tenant.primaryRestID && tenant.primaryRestID.toLowerCase() === cleanId) return true;
           }
 
-          // Also check assigned outlets restID or outlet name
           const matchingOutlet = (this.data.outlets || []).find(o => (o.tenantId === u.tenantId || (tenant && o.tenantId === tenant.id)) && (
             o.restID?.toLowerCase() === cleanId || 
             o.name?.toLowerCase() === cleanId ||
@@ -528,46 +522,89 @@ class POSDataStore {
       });
     };
 
-    let user = findUser();
+    let candidates = getCandidates();
 
-    // If user not found in memory, attempt live sync from Supabase
-    if (!user && supabaseAdmin) {
+    // If no candidate in memory, try sync with Supabase
+    if (candidates.length === 0 && supabaseAdmin) {
       await this.syncWithSupabase();
-      user = findUser();
+      candidates = getCandidates();
     }
 
-    if (!user) return null;
-
-    // Verify bcrypt hash (with transparent legacy plaintext upgrade and fallback)
-    let passwordMatches = false;
-    if (user.passwordHash) {
-      passwordMatches = bcrypt.compareSync(cleanPass, user.passwordHash);
-    } else if (user.password) {
-      passwordMatches = (user.password === cleanPass);
-      if (passwordMatches) {
-        user.passwordHash = bcrypt.hashSync(cleanPass, 10);
-        delete user.password;
-        this.persist();
+    // Helper to test a user against cleanPass
+    const checkUserPassword = (user) => {
+      if (user.passwordHash) {
+        return bcrypt.compareSync(cleanPass, user.passwordHash);
       }
-    } else {
-      // Fallback for newly imported tenants without explicit hash: default to owner123 (or admin123 for super admin)
+      if (user.password) {
+        const matches = (user.password === cleanPass);
+        if (matches) {
+          user.passwordHash = bcrypt.hashSync(cleanPass, 10);
+          delete user.password;
+          this.persist();
+        }
+        return matches;
+      }
       const defaultPass = user.role === 'SUPER_ADMIN' ? 'admin123' : 'owner123';
       if (cleanPass === defaultPass) {
         user.passwordHash = bcrypt.hashSync(cleanPass, 10);
         this.persist();
-        passwordMatches = true;
+        return true;
+      }
+      return false;
+    };
+
+    // Find the candidate whose password matches
+    let matchedUser = candidates.find(u => checkUserPassword(u));
+
+    // Live Supabase fallback check if no in-memory user matched
+    if (!matchedUser && supabaseAdmin) {
+      try {
+        const { data: sbUsers } = await supabaseAdmin
+          .from('tenant_users')
+          .select('*, tenants(*)')
+          .or(`email.ilike.${cleanId},full_name.ilike.${cleanId}`);
+
+        if (sbUsers && sbUsers.length > 0) {
+          for (const su of sbUsers) {
+            if (su.password_hash && bcrypt.compareSync(cleanPass, su.password_hash)) {
+              const linkedTenantId = su.tenants?.code || su.tenant_id;
+              let localU = (this.data.users || []).find(u => u.email?.toLowerCase() === su.email?.toLowerCase());
+              if (!localU) {
+                localU = {
+                  id: su.id,
+                  name: su.full_name || 'Restaurant Owner',
+                  email: su.email,
+                  passwordHash: su.password_hash,
+                  role: 'RESTAURANT_OWNER',
+                  tenantId: linkedTenantId,
+                  avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(su.full_name || 'User')}`
+                };
+                if (!this.data.users) this.data.users = [];
+                this.data.users.push(localU);
+              } else {
+                localU.passwordHash = su.password_hash;
+                if (!localU.tenantId) localU.tenantId = linkedTenantId;
+              }
+              this.persist();
+              matchedUser = localU;
+              break;
+            }
+          }
+        }
+      } catch (sbErr) {
+        console.warn('[posStore Auth Supabase check error]', sbErr?.message || sbErr);
       }
     }
 
-    if (!passwordMatches) return null;
+    if (!matchedUser) return null;
 
     let tenant = null;
-    if (user.role === 'SUPER_ADMIN') {
+    if (matchedUser.role === 'SUPER_ADMIN') {
       tenant = null;
-    } else if (user.tenantId) {
-      tenant = (this.data.tenants || []).find(t => (t.id && t.id === user.tenantId) || (t.code && t.code === user.tenantId) || (t.supabaseId && t.supabaseId === user.tenantId) || (t.ownerEmail && user.email && t.ownerEmail.toLowerCase() === user.email.toLowerCase()));
-    } else if (user.email) {
-      tenant = (this.data.tenants || []).find(t => t.ownerEmail && t.ownerEmail.toLowerCase() === user.email.toLowerCase());
+    } else if (matchedUser.tenantId) {
+      tenant = (this.data.tenants || []).find(t => (t.id && t.id === matchedUser.tenantId) || (t.code && t.code === matchedUser.tenantId) || (t.supabaseId && t.supabaseId === matchedUser.tenantId) || (t.ownerEmail && matchedUser.email && t.ownerEmail.toLowerCase() === matchedUser.email.toLowerCase()));
+    } else if (matchedUser.email) {
+      tenant = (this.data.tenants || []).find(t => t.ownerEmail && t.ownerEmail.toLowerCase() === matchedUser.email.toLowerCase());
     }
 
     // Check if restaurant has been temporarily deactivated by Super Admin
@@ -576,14 +613,14 @@ class POSDataStore {
       inactiveErr.code = 'RESTAURANT_INACTIVE';
       throw inactiveErr;
     }
-    const assignedOutlets = (this.data.outlets || []).filter(o => !user.tenantId || o.tenantId === user.tenantId || (tenant && o.tenantId === tenant.id));
+    const assignedOutlets = (this.data.outlets || []).filter(o => !matchedUser.tenantId || o.tenantId === matchedUser.tenantId || (tenant && o.tenantId === tenant.id));
     const sanitizedUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      avatar: user.avatar,
-      tenantId: tenant ? tenant.id : (user.tenantId || null),
+      id: matchedUser.id,
+      name: matchedUser.name,
+      email: matchedUser.email,
+      role: matchedUser.role,
+      avatar: matchedUser.avatar,
+      tenantId: tenant ? tenant.id : (matchedUser.tenantId || null),
       tenantName: tenant ? (tenant.name || tenant.brandName) : 'Yeezy Global Admin',
       primaryRestID: tenant ? tenant.primaryRestID : (assignedOutlets[0]?.restID || 'PP_DEL_101'),
       assignedOutlets

@@ -299,6 +299,16 @@ export function attachSuperAdminListeners() {
               <div class="flex items-center justify-end gap-1.5 flex-wrap">
                 <button 
                   type="button" 
+                  data-reset-pwd-id="${rest.id}"
+                  data-brand="${rest.name}"
+                  class="btn-reset-pwd px-2.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="Change / Reset Password"
+                >
+                  <span class="material-symbols-outlined text-xs">lock_reset</span>
+                  <span>Set Pass</span>
+                </button>
+                <button 
+                  type="button" 
                   data-copy-cred="${rest.ownerEmail}" 
                   data-pwd="${defaultPwd}"
                   data-brand="${rest.name}"
@@ -352,6 +362,37 @@ export function attachSuperAdminListeners() {
           </tr>
         `;
         }).join('');
+
+        // Wire reset password buttons
+        document.querySelectorAll('.btn-reset-pwd').forEach(btn => {
+          btn.onclick = async () => {
+            const tenantId = btn.getAttribute('data-reset-pwd-id');
+            const brand = btn.getAttribute('data-brand') || 'Restaurant';
+            const newPassword = prompt(`Enter new password for "${brand}":`, '12345678');
+            if (!newPassword || !newPassword.trim()) return;
+
+            btn.disabled = true;
+            try {
+              const res = await apiFetch(`/api/v1/admin/restaurants/${tenantId}/password`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword.trim() })
+              });
+              const data = await res.json();
+              if (res.ok && data.status === 'success') {
+                showToast(`✅ Password for "${brand}" updated to: ${newPassword.trim()}`);
+                await loadRestaurants();
+              } else {
+                showToast(data.message || 'Failed to update password', 'error');
+              }
+            } catch (err) {
+              console.error(err);
+              showToast('Error updating password', 'error');
+            } finally {
+              btn.disabled = false;
+            }
+          };
+        });
 
         // Wire copy login credentials buttons
         document.querySelectorAll('.btn-copy-cred').forEach(btn => {
