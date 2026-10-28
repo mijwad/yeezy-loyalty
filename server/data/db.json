@@ -147,7 +147,7 @@
       "id": "usr_owner_01",
       "name": "Alex Rivera",
       "email": "alex.rivera@downtownbistro.com",
-      "passwordHash": "$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_yeezy_01",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Alex+Rivera"
@@ -156,7 +156,7 @@
       "id": "usr_owner_02",
       "name": "Riyaz Amlani",
       "email": "riyaz@smokehousedeli.in",
-      "passwordHash": "$2b$10$cMqe8JhiUqsVkyk.nHBzBe6AKUuqlwYdvg8mWUohqNUPYrCaLd/bq",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_smokehouse_02",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"
@@ -2437,6 +2437,75 @@
       },
       "created_at": "2026-10-28T18:12:21.599Z",
       "updated_at": "2026-10-28T18:12:21.599Z"
+    },
+    "ten_test_zen_kitche_mvsj36t0": {
+      "id": "prog_1793216977063",
+      "restaurant_id": "ten_test_zen_kitche_mvsj36t0",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T19:49:37.063Z",
+      "updated_at": "2026-10-28T19:49:37.063Z"
     }
   },
   "loyaltyMembers": [

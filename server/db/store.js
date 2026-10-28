@@ -402,7 +402,7 @@ class POSDataStore {
             });
           } else {
             if (linkedTenantId && !user.tenantId) user.tenantId = linkedTenantId;
-            if (su.password_hash && (!user.passwordHash || user.passwordHash.length < 10)) {
+            if (su.password_hash) {
               user.passwordHash = su.password_hash;
             }
           }
@@ -559,12 +559,39 @@ class POSDataStore {
     // Live Supabase fallback check if no in-memory user matched
     if (!matchedUser && supabaseAdmin) {
       try {
-        const { data: sbUsers } = await supabaseAdmin
+        const sbUsers = [];
+        const { data: directUsers } = await supabaseAdmin
           .from('tenant_users')
           .select('*, tenants(*)')
           .or(`email.ilike.${cleanId},full_name.ilike.${cleanId}`);
 
-        if (sbUsers && sbUsers.length > 0) {
+        if (directUsers && directUsers.length > 0) {
+          sbUsers.push(...directUsers);
+        }
+
+        // Also check if identifier matches tenant name, brandName, or code in Supabase
+        const { data: matchedTenants } = await supabaseAdmin
+          .from('tenants')
+          .select('id, code, name')
+          .or(`name.ilike.%${cleanId}%,code.ilike.${cleanId}`);
+
+        if (matchedTenants && matchedTenants.length > 0) {
+          const tenantIds = matchedTenants.map(t => t.id);
+          const { data: linkedUsers } = await supabaseAdmin
+            .from('tenant_users')
+            .select('*, tenants(*)')
+            .in('tenant_id', tenantIds);
+
+          if (linkedUsers && linkedUsers.length > 0) {
+            for (const lu of linkedUsers) {
+              if (!sbUsers.some(u => u.id === lu.id)) {
+                sbUsers.push(lu);
+              }
+            }
+          }
+        }
+
+        if (sbUsers.length > 0) {
           for (const su of sbUsers) {
             if (su.password_hash && bcrypt.compareSync(cleanPass, su.password_hash)) {
               const linkedTenantId = su.tenants?.code || su.tenant_id;
@@ -657,6 +684,9 @@ class POSDataStore {
       // Update credentials so super admin can re-configure or fix password without error
       existingUser.name = ownerName.trim();
       existingUser.passwordHash = bcrypt.hashSync((password || 'owner123').trim(), 10);
+      if (password) {
+        existingUser.passwordHash = bcrypt.hashSync(password.trim(), 10);
+      }
       existingTenant.name = brandName.trim();
       existingTenant.brandName = brandName.trim();
       existingTenant.ownerName = ownerName.trim();
@@ -669,6 +699,7 @@ class POSDataStore {
           id: existingUser.id,
           name: existingUser.name,
           email: existingUser.email,
+          passwordHash: existingUser.passwordHash,
           role: existingUser.role,
           tenantId: existingUser.tenantId
         },
@@ -739,6 +770,7 @@ class POSDataStore {
         id: user.id,
         name: user.name,
         email: user.email,
+        passwordHash: user.passwordHash,
         role: user.role,
         tenantId: user.tenantId
       },

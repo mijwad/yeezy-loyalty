@@ -118,6 +118,24 @@ adminRouter.post('/restaurants', async (req, res) => {
         const userObj = result.user || posStore.data.users?.find(u => u.tenantId === tenant.id);
         const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash) || bcrypt.hashSync(finalPassword, 10);
 
+        const { data: existingSbUser } = await supabaseAdmin
+          .from('tenant_users')
+          .select('id')
+          .eq('email', ownerEmail.trim().toLowerCase())
+          .maybeSingle();
+
+        const userPayload = {
+          tenant_id: tenantUuid,
+          full_name: ownerName.trim(),
+          email: ownerEmail.trim().toLowerCase(),
+          password_hash: pwdHash,
+          role: 'BRAND_OWNER',
+          is_active: true
+        };
+        if (existingSbUser?.id) {
+          userPayload.id = existingSbUser.id;
+        }
+
         await Promise.all([
           supabaseAdmin.from('tenants').upsert({
             id: tenantUuid,
@@ -129,14 +147,7 @@ adminRouter.post('/restaurants', async (req, res) => {
             primary_contact_phone: contactPhone
           }, { onConflict: 'id' }),
 
-          supabaseAdmin.from('tenant_users').upsert({
-            tenant_id: tenantUuid,
-            full_name: ownerName.trim(),
-            email: ownerEmail.trim().toLowerCase(),
-            password_hash: pwdHash,
-            role: 'BRAND_OWNER',
-            is_active: true
-          }, { onConflict: 'tenant_id,email' }),
+          supabaseAdmin.from('tenant_users').upsert(userPayload),
 
           supabaseAdmin.from('loyalty_programs').upsert({
             restaurant_id: tenant.id,

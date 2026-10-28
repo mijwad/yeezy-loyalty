@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import { posStore } from '../db/store.js';
 import { supabaseAdmin } from '../db/supabase.js';
 import { requireAuth, requireSuperAdmin } from '../middleware/auth.js';
+import { DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty/config.js';
 
 function toUuid(str) {
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
@@ -193,8 +194,35 @@ authRouter.post('/register-restaurant', requireAuth, requireSuperAdmin, async (r
     if (supabaseAdmin) {
       try {
         const tenantUuid = toUuid(result.tenant.id);
+        const contactPhone = req.body.ownerPhone || req.body.phone || '+919876543210';
         const userObj = result.user || posStore.data.users?.find(u => u.tenantId === result.tenant.id);
-        const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash);
+        const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash) || bcrypt.hashSync(password.trim(), 10);
+
+        // Generate real cryptographic API Key for POS integration
+        const rawApiKey = `lk_live_${crypto.randomBytes(32).toString('hex')}`;
+        const keyHash = crypto.createHash('sha256').update(rawApiKey).digest('hex');
+        const keyPrefix = rawApiKey.slice(0, 12);
+        const keyLast4 = rawApiKey.slice(-4);
+        result.tenant.apiKey = rawApiKey;
+        posStore.persist();
+
+        const { data: existingSbUser } = await supabaseAdmin
+          .from('tenant_users')
+          .select('id')
+          .eq('email', ownerEmail.trim().toLowerCase())
+          .maybeSingle();
+
+        const userPayload = {
+          tenant_id: tenantUuid,
+          full_name: ownerName.trim(),
+          email: ownerEmail.trim().toLowerCase(),
+          password_hash: pwdHash,
+          role: 'BRAND_OWNER',
+          is_active: true
+        };
+        if (existingSbUser?.id) {
+          userPayload.id = existingSbUser.id;
+        }
 
         await Promise.all([
           supabaseAdmin.from('tenants').upsert({
@@ -204,18 +232,28 @@ authRouter.post('/register-restaurant', requireAuth, requireSuperAdmin, async (r
             status: 'ACTIVE',
             primary_contact_name: ownerName.trim(),
             primary_contact_email: ownerEmail.trim().toLowerCase(),
-            primary_contact_phone: req.body.phone || '+919876543210'
+            primary_contact_phone: contactPhone
           }, { onConflict: 'id' }),
 
-          supabaseAdmin.from('tenant_users').upsert({
-            tenant_id: tenantUuid,
-            full_name: ownerName.trim(),
-            email: ownerEmail.trim().toLowerCase(),
-            password_hash: pwdHash,
-            role: 'BRAND_OWNER',
-            is_active: true
-          }, { onConflict: 'tenant_id,email' })
+          supabaseAdmin.from('tenant_users').upsert(userPayload),
+
+          supabaseAdmin.from('loyalty_programs').upsert({
+            restaurant_id: result.tenant.id,
+            is_active: true,
+            config: DEFAULT_LOYALTY_CONFIG
+          }, { onConflict: 'restaurant_id' }),
+
+          supabaseAdmin.from('api_keys').insert({
+            restaurant_id: result.tenant.id,
+            name: `${brandName.trim()} (Live POS)`,
+            key_prefix: keyPrefix,
+            key_hash: keyHash,
+            last4: keyLast4,
+            scopes: ['customers:read', 'customers:write', 'points:earn', 'points:redeem'],
+            is_test: false
+          })
         ]);
+        console.log(`[Supabase Register] Successfully persisted ${result.tenant.id} and user ${ownerEmail.toLowerCase()} to Supabase.`);
       } catch (sbErr) {
         console.warn('[Supabase Register Catch]', sbErr.message);
       }
@@ -325,6 +363,18 @@ authRouter.post('/reset-password', async (req, res) => {
     resetData.used = true;
     posStore.persist();
 
+    // Sync to Supabase cloud database
+    if (supabaseAdmin && user.email) {
+      try {
+        await supabaseAdmin
+          .from('tenant_users')
+          .update({ password_hash: user.passwordHash })
+          .eq('email', user.email.toLowerCase());
+      } catch (sbErr) {
+        console.warn('[Reset Password Supabase Sync]', sbErr.message);
+      }
+    }
+
     // Invalidate all existing sessions for this user
     for (const [sessionToken, session] of Object.entries(posStore.sessions)) {
       if (session.userId === user.id) {
@@ -403,6 +453,18 @@ authRouter.post('/change-password', requireAuth, async (req, res) => {
     user.passwordHash = bcrypt.hashSync(newPassword, 10);
     delete user.password;
     posStore.persist();
+
+    // Sync to Supabase cloud database
+    if (supabaseAdmin && user.email) {
+      try {
+        await supabaseAdmin
+          .from('tenant_users')
+          .update({ password_hash: user.passwordHash })
+          .eq('email', user.email.toLowerCase());
+      } catch (sbErr) {
+        console.warn('[Change Password Supabase Sync]', sbErr.message);
+      }
+    }
 
     // Invalidate all sessions except current
     const currentToken = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7).trim() : null;
