@@ -267,8 +267,12 @@ class Store {
         const hasStatsChanged = prevStatsStr !== nextStatsStr;
         const hasCustomersChanged = (this.state.customers || []).length !== formattedCustomers.length ||
           (this.state.customers || []).some((c, i) => c.id !== formattedCustomers[i]?.id || c.numericPoints !== formattedCustomers[i]?.numericPoints);
+        const hasHighlightsChanged = Boolean(
+          statsRes.businessHighlights && 
+          JSON.stringify(statsRes.businessHighlights) !== JSON.stringify(this.state.businessHighlights || {})
+        );
 
-        if (!hasStatsChanged && !hasCustomersChanged) {
+        if (!hasStatsChanged && !hasCustomersChanged && !hasHighlightsChanged) {
           // No backend state change, avoid disruptive UI refresh
           return;
         }
@@ -281,7 +285,8 @@ class Store {
           todayStats: {
             ...prev.todayStats,
             ...todayStats
-          }
+          },
+          ...(statsRes.businessHighlights ? { businessHighlights: statsRes.businessHighlights } : {})
         }), { silent: false });
       }
     } catch (err) {

@@ -31,8 +31,15 @@ export function authMiddleware(req, res, next) {
 
       // Check if it's an access token (not refresh token)
       if (!decoded.type || decoded.type === 'access') {
-        // Find user in store
-        const user = posStore.data.users?.find(u => u.id === decoded.userId);
+        // Find user in store or build from decoded JWT
+        const user = posStore.data.users?.find(u => u.id === decoded.userId) || (decoded.tenantId ? {
+          id: decoded.userId,
+          name: decoded.name || decoded.email?.split('@')[0] || 'Restaurant Owner',
+          email: decoded.email,
+          role: decoded.role || 'RESTAURANT_OWNER',
+          tenantId: decoded.tenantId,
+          tenantName: decoded.tenantName || 'Restaurant'
+        } : null);
 
         if (user) {
           // Create session-like object for compatibility
