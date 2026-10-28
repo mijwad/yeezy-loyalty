@@ -1,6 +1,7 @@
 // Yeezy Loyalty & Multi-POS Backend Express App
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -103,6 +104,7 @@ app.use(cors(corsOptions));
 // Body parsing with size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
 // Request ID for correlation
 app.use((req, res, next) => {
