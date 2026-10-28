@@ -39,9 +39,12 @@ adminRouter.get('/restaurants', async (req, res) => {
     const owner = users.find(u => u.tenantId === t.id || (u.email && t.ownerEmail && u.email.toLowerCase() === t.ownerEmail.toLowerCase()));
     const tenantOutlets = outlets.filter(o => o.restID === t.primaryRestID || t.id === 'ten_yeezy_01');
     const apiKey = PILOT_KEYS[t.id] || t.apiKey || `lk_live_${t.id.replace(/[^a-z0-9]/g, '')}9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d`;
+    const isActive = t.active !== false && t.status !== 'INACTIVE' && t.status !== 'SUSPENDED';
 
     return {
       ...t,
+      status: isActive ? 'ACTIVE' : 'INACTIVE',
+      active: isActive,
       apiKey,
       ownerName: t.ownerName || owner?.name || `${t.name} Owner`,
       ownerEmail: t.ownerEmail || owner?.email || `${t.id}@restaurant.com`,
@@ -58,12 +61,15 @@ adminRouter.get('/restaurants', async (req, res) => {
 
   const totalDiners = enriched.reduce((sum, t) => sum + (t.totalDiners || 0), 0);
   const totalSales = enriched.reduce((sum, t) => sum + (t.lifetimeSales || 0), 0);
+  const activeTenantsCount = enriched.filter(t => t.active).length;
 
   return res.json({
     status: 'success',
     totalRestaurants: tenants.length,
+    activeRestaurants: activeTenantsCount,
     globalStats: {
       totalRestaurants: tenants.length,
+      activeRestaurants: activeTenantsCount,
       totalOutlets: outlets.length,
       globalDiners: totalDiners,
       globalSales: totalSales
@@ -212,5 +218,88 @@ adminRouter.post('/reset-data', (req, res) => {
   return res.json({
     status: 'success',
     message: 'All restaurant customer and transactional data successfully reset to 0'
+  });
+});
+
+// PATCH /api/v1/admin/restaurants/:id/status - Super Admin toggles restaurant active/inactive
+adminRouter.patch('/restaurants/:id/status', async (req, res) => {
+  const targetId = req.params.id;
+  const requestedStatus = req.body?.status; // 'ACTIVE' or 'INACTIVE'
+
+  const tenant = posStore.data.tenants?.find(t => t.id === targetId || t.code === targetId || t.supabaseId === targetId || t.primaryRestID === targetId);
+  if (!tenant) {
+    return res.status(404).json({ status: 'error', message: 'Restaurant not found' });
+  }
+
+  const updatedTenant = posStore.setTenantStatus(tenant.id, requestedStatus);
+  const newStatus = updatedTenant.status || (updatedTenant.active ? 'ACTIVE' : 'INACTIVE');
+
+  // Sync state to Supabase cloud database if available
+  if (supabaseAdmin) {
+    try {
+      const tenantUuid = toUuid(tenant.id);
+      const sbStatus = newStatus === 'ACTIVE' ? 'ACTIVE' : 'SUSPENDED';
+      await Promise.allSettled([
+        supabaseAdmin.from('tenants').update({ status: sbStatus }).or(`id.eq.${tenantUuid},code.eq.${tenant.id}`),
+        supabaseAdmin.from('tenant_users').update({ is_active: newStatus === 'ACTIVE' }).eq('tenant_id', tenantUuid)
+      ]);
+      console.log(`[Supabase Admin] Updated restaurant ${tenant.id} status to ${sbStatus}`);
+    } catch (sbErr) {
+      console.error('[Supabase Admin] Failed to update status in Supabase:', sbErr.message);
+    }
+  }
+
+  return res.json({
+    status: 'success',
+    message: `Restaurant '${tenant.name}' is now ${newStatus}`,
+    data: {
+      id: tenant.id,
+      name: tenant.name,
+      status: newStatus,
+      active: updatedTenant.active
+    }
+  });
+});
+
+// DELETE /api/v1/admin/restaurants/:id - Super Admin permanently deletes restaurant
+adminRouter.delete('/restaurants/:id', async (req, res) => {
+  const targetId = req.params.id;
+  const tenant = posStore.data.tenants?.find(t => t.id === targetId || t.code === targetId || t.supabaseId === targetId || t.primaryRestID === targetId);
+
+  if (!tenant) {
+    return res.status(404).json({ status: 'error', message: 'Restaurant not found' });
+  }
+
+  const brandName = tenant.name || tenant.brandName || targetId;
+  const tenantId = tenant.id;
+
+  // 1. Delete from Supabase first if available
+  if (supabaseAdmin) {
+    try {
+      const tenantUuid = toUuid(tenantId);
+      // Delete child records first to satisfy foreign key constraints
+      await Promise.allSettled([
+        supabaseAdmin.from('api_keys').delete().eq('restaurant_id', tenantId),
+        supabaseAdmin.from('loyalty_programs').delete().eq('restaurant_id', tenantId),
+        supabaseAdmin.from('pos_integrations').delete().or(`tenant_id.eq.${tenantUuid},petpooja_rest_id.eq.${tenant.primaryRestID}`),
+        supabaseAdmin.from('tenant_users').delete().eq('tenant_id', tenantUuid),
+        supabaseAdmin.from('outlets').delete().eq('tenant_id', tenantUuid)
+      ]);
+
+      // Delete the tenant record itself
+      await supabaseAdmin.from('tenants').delete().or(`id.eq.${tenantUuid},code.eq.${tenantId}`);
+      console.log(`[Supabase Admin] Deleted restaurant ${tenantId} (${brandName}) from Supabase.`);
+    } catch (sbErr) {
+      console.error('[Supabase Admin] Error deleting restaurant from Supabase:', sbErr.message);
+    }
+  }
+
+  // 2. Delete from in-memory and local store
+  posStore.deleteTenant(tenantId);
+
+  return res.json({
+    status: 'success',
+    message: `Restaurant '${brandName}' has been permanently deleted.`,
+    deletedId: tenantId
   });
 });

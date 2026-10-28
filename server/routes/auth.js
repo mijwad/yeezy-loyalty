@@ -22,20 +22,31 @@ authRouter.post('/login', async (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Username, restaurant name, or email and password are required' });
   }
 
-  const authResult = await posStore.authenticate(email, password);
+  try {
+    const authResult = await posStore.authenticate(email, password);
 
-  if (!authResult) {
-    return res.status(401).json({ 
-      status: 'error', 
-      message: 'Invalid username, restaurant name, or password. Please check your credentials (default restaurant password is owner123).' 
+    if (!authResult) {
+      return res.status(401).json({ 
+        status: 'error', 
+        message: 'Invalid username, restaurant name, or password. Please check your credentials (default restaurant password is owner123).' 
+      });
+    }
+
+    return res.json({
+      status: 'success',
+      token: authResult.token,
+      user: authResult.user
     });
+  } catch (err) {
+    if (err.code === 'RESTAURANT_INACTIVE') {
+      return res.status(403).json({
+        status: 'error',
+        code: 'RESTAURANT_INACTIVE',
+        message: err.message
+      });
+    }
+    return res.status(500).json({ status: 'error', message: err.message });
   }
-
-  return res.json({
-    status: 'success',
-    token: authResult.token,
-    user: authResult.user
-  });
 });
 
 // POST /api/v1/auth/register-restaurant - Sign up a brand new restaurant & owner account

@@ -40,7 +40,7 @@ export function renderSuperAdminView(state) {
           <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Restaurants</span>
           <div class="text-3xl font-black text-gray-900 mt-2" id="kpi-total-restaurants">1</div>
           <span class="text-[11px] text-emerald-600 font-bold mt-1 flex items-center gap-0.5">
-            <span class="material-symbols-outlined text-xs">trending_up</span> Active SaaS tenants
+            <span class="material-symbols-outlined text-xs">trending_up</span> <span id="kpi-active-tenants">1</span> Active SaaS tenants
           </span>
         </div>
 
@@ -242,23 +242,29 @@ export function attachSuperAdminListeners() {
       if (res.ok && data.restaurants && tbody) {
         // Update KPIs
         const kpiRest = document.getElementById('kpi-total-restaurants');
+        const kpiActive = document.getElementById('kpi-active-tenants');
         const kpiOut = document.getElementById('kpi-total-outlets');
         const kpiDiners = document.getElementById('kpi-total-diners');
         if (kpiRest) kpiRest.innerText = data.globalStats.totalRestaurants;
+        if (kpiActive) kpiActive.innerText = data.globalStats.activeRestaurants ?? data.globalStats.totalRestaurants;
         if (kpiOut) kpiOut.innerText = data.globalStats.totalOutlets;
         if (kpiDiners) kpiDiners.innerText = data.globalStats.globalDiners.toLocaleString();
 
         tbody.innerHTML = data.restaurants.map(rest => {
           const defaultPwd = rest.defaultPassword || 'owner123';
+          const isActive = rest.active !== false && rest.status !== 'INACTIVE';
           return `
-          <tr class="hover:bg-gray-50/60 transition">
+          <tr class="hover:bg-gray-50/60 transition ${!isActive ? 'opacity-70 bg-amber-50/20' : ''}">
             <td class="py-3.5 px-4">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-purple-100 text-primary font-black text-xs flex items-center justify-center shrink-0">
+                <div class="w-9 h-9 rounded-xl ${isActive ? 'bg-purple-100 text-primary' : 'bg-gray-200 text-gray-500'} font-black text-xs flex items-center justify-center shrink-0">
                   ${rest.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <p class="font-bold text-gray-900 text-xs">${rest.name}</p>
+                  <p class="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                    ${rest.name}
+                    ${!isActive ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase bg-amber-200 text-amber-900">Paused</span>' : ''}
+                  </p>
                   <p class="text-[11px] text-gray-400">${rest.plan || 'ENTERPRISE'} Plan</p>
                 </div>
               </div>
@@ -279,12 +285,18 @@ export function attachSuperAdminListeners() {
               ${(rest.totalDiners || 0).toLocaleString()}
             </td>
             <td class="py-3.5 px-4 text-center">
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                ACTIVE
-              </span>
+              ${isActive ? `
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ACTIVE
+                </span>
+              ` : `
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> INACTIVE
+                </span>
+              `}
             </td>
             <td class="py-3.5 px-4 text-right">
-              <div class="flex items-center justify-end gap-1.5">
+              <div class="flex items-center justify-end gap-1.5 flex-wrap">
                 <button 
                   type="button" 
                   data-copy-cred="${rest.ownerEmail}" 
@@ -308,10 +320,32 @@ export function attachSuperAdminListeners() {
                 <button 
                   type="button" 
                   data-impersonate-id="${rest.id}"
-                  class="btn-impersonate-restaurant px-3 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  class="btn-impersonate-restaurant px-2.5 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="Login and manage restaurant dashboard"
                 >
                   <span class="material-symbols-outlined text-xs">login</span>
-                  <span>Login as Owner</span>
+                  <span>Login</span>
+                </button>
+                <button 
+                  type="button" 
+                  data-toggle-id="${rest.id}"
+                  data-current-active="${isActive ? 'true' : 'false'}"
+                  data-brand="${rest.name}"
+                  class="btn-toggle-status px-2.5 py-1.5 rounded-xl border ${isActive ? 'border-amber-300 hover:bg-amber-50 text-amber-700' : 'border-emerald-300 hover:bg-emerald-50 text-emerald-700'} font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="${isActive ? 'Temporarily deactivate this restaurant' : 'Reactivate this restaurant'}"
+                >
+                  <span class="material-symbols-outlined text-xs">${isActive ? 'pause_circle' : 'play_circle'}</span>
+                  <span>${isActive ? 'Pause' : 'Activate'}</span>
+                </button>
+                <button 
+                  type="button" 
+                  data-delete-id="${rest.id}"
+                  data-brand="${rest.name}"
+                  class="btn-delete-restaurant px-2.5 py-1.5 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="Permanently delete restaurant"
+                >
+                  <span class="material-symbols-outlined text-xs">delete</span>
+                  <span>Delete</span>
                 </button>
               </div>
             </td>
@@ -361,6 +395,75 @@ export function attachSuperAdminListeners() {
             } catch (err) {
               console.error(err);
               showToast('Error switching tenant view', 'error');
+            }
+          };
+        });
+
+        // Wire status toggle (pause/activate) buttons
+        document.querySelectorAll('.btn-toggle-status').forEach(btn => {
+          btn.onclick = async () => {
+            const tenantId = btn.getAttribute('data-toggle-id');
+            const currentActive = btn.getAttribute('data-current-active') === 'true';
+            const brand = btn.getAttribute('data-brand') || 'Restaurant';
+            const newStatus = currentActive ? 'INACTIVE' : 'ACTIVE';
+            const actionText = currentActive ? 'temporarily deactivate' : 'reactivate';
+
+            if (!confirm(`Are you sure you want to ${actionText} "${brand}"?`)) {
+              return;
+            }
+
+            btn.disabled = true;
+            try {
+              const res = await apiFetch(`/api/v1/admin/restaurants/${tenantId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+              });
+              const data = await res.json();
+              if (res.ok && data.status === 'success') {
+                showToast(`✅ "${brand}" is now ${newStatus.toLowerCase()}!`);
+                await loadRestaurants();
+              } else {
+                showToast(data.message || 'Failed to update restaurant status', 'error');
+              }
+            } catch (err) {
+              console.error(err);
+              showToast('Error updating restaurant status', 'error');
+            } finally {
+              btn.disabled = false;
+            }
+          };
+        });
+
+        // Wire permanent delete buttons
+        document.querySelectorAll('.btn-delete-restaurant').forEach(btn => {
+          btn.onclick = async () => {
+            const tenantId = btn.getAttribute('data-delete-id');
+            const brand = btn.getAttribute('data-brand') || 'Restaurant';
+
+            const confirmed = confirm(
+              `⚠️ PERMANENT DELETION WARNING:\n\nAre you sure you want to delete "${brand}"?\n\nThis will permanently delete the restaurant tenant, owner login credentials, POS API keys, and all outlet records.\n\nClick OK to confirm.`
+            );
+
+            if (!confirmed) return;
+
+            btn.disabled = true;
+            try {
+              const res = await apiFetch(`/api/v1/admin/restaurants/${tenantId}`, {
+                method: 'DELETE'
+              });
+              const data = await res.json();
+              if (res.ok && data.status === 'success') {
+                showToast(`🗑️ Restaurant "${brand}" has been permanently deleted.`);
+                await loadRestaurants();
+              } else {
+                showToast(data.message || 'Failed to delete restaurant', 'error');
+              }
+            } catch (err) {
+              console.error(err);
+              showToast('Error deleting restaurant', 'error');
+            } finally {
+              btn.disabled = false;
             }
           };
         });

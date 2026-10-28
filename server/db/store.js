@@ -355,7 +355,8 @@ class POSDataStore {
               ownerName: ownerName,
               ownerEmail: ownerEmail,
               plan: 'ENTERPRISE',
-              active: st.status === 'ACTIVE',
+              status: st.status || 'ACTIVE',
+              active: st.status === 'ACTIVE' || st.status === undefined,
               createdAt: st.created_at || new Date().toISOString(),
               primaryRestID: tenantId,
               outletsCount: 1,
@@ -366,6 +367,10 @@ class POSDataStore {
           } else {
             existing.supabaseId = st.id;
             existing.code = st.code;
+            if (st.status) {
+              existing.status = st.status;
+              existing.active = (st.status === 'ACTIVE');
+            }
             if (st.name) {
               existing.name = st.name;
               existing.brandName = st.name;
@@ -564,6 +569,13 @@ class POSDataStore {
     } else if (user.email) {
       tenant = (this.data.tenants || []).find(t => t.ownerEmail && t.ownerEmail.toLowerCase() === user.email.toLowerCase());
     }
+
+    // Check if restaurant has been temporarily deactivated by Super Admin
+    if (tenant && (tenant.active === false || tenant.status === 'INACTIVE' || tenant.status === 'SUSPENDED')) {
+      const inactiveErr = new Error(`Restaurant '${tenant.name}' has been temporarily deactivated by Super Admin. Please contact platform support.`);
+      inactiveErr.code = 'RESTAURANT_INACTIVE';
+      throw inactiveErr;
+    }
     const assignedOutlets = (this.data.outlets || []).filter(o => !user.tenantId || o.tenantId === user.tenantId || (tenant && o.tenantId === tenant.id));
     const sanitizedUser = {
       id: user.id,
@@ -695,6 +707,79 @@ class POSDataStore {
       },
       outlet
     };
+  }
+
+  setTenantStatus(tenantId, newStatus) {
+    if (!this.data.tenants) return null;
+    const tenant = this.data.tenants.find(t => t.id === tenantId || t.code === tenantId || t.supabaseId === tenantId);
+    if (!tenant) return null;
+
+    const isValidStatus = (newStatus === 'ACTIVE' || newStatus === 'INACTIVE' || newStatus === 'SUSPENDED');
+    const finalStatus = isValidStatus ? newStatus : (tenant.status === 'ACTIVE' || tenant.active !== false ? 'INACTIVE' : 'ACTIVE');
+
+    tenant.status = finalStatus;
+    tenant.active = (finalStatus === 'ACTIVE');
+
+    // Also toggle corresponding outlet active status
+    if (this.data.outlets) {
+      this.data.outlets.forEach(o => {
+        if (o.tenantId === tenant.id || o.restID === tenant.primaryRestID) {
+          o.active = tenant.active;
+        }
+      });
+    }
+
+    this.persist();
+    return tenant;
+  }
+
+  deleteTenant(tenantId) {
+    if (!this.data.tenants) return false;
+    const index = this.data.tenants.findIndex(t => t.id === tenantId || t.code === tenantId || t.supabaseId === tenantId);
+    if (index === -1) return false;
+
+    const tenant = this.data.tenants[index];
+    const targetId = tenant.id;
+    const supabaseId = tenant.supabaseId;
+    const code = tenant.code;
+    const ownerEmail = tenant.ownerEmail ? tenant.ownerEmail.toLowerCase() : null;
+    const restId = tenant.primaryRestID;
+
+    // 1. Remove tenant from tenants array
+    this.data.tenants.splice(index, 1);
+
+    // 2. Remove associated owner user (preserve SUPER_ADMIN)
+    if (this.data.users) {
+      this.data.users = this.data.users.filter(u => {
+        if (u.role === 'SUPER_ADMIN') return true;
+        if (u.tenantId && (u.tenantId === targetId || u.tenantId === supabaseId || u.tenantId === code)) return false;
+        if (ownerEmail && u.email && u.email.toLowerCase() === ownerEmail) return false;
+        return true;
+      });
+    }
+
+    // 3. Remove associated outlets
+    if (this.data.outlets) {
+      this.data.outlets = this.data.outlets.filter(o => o.tenantId !== targetId && o.restID !== restId);
+    }
+
+    // 4. Remove loyalty programs
+    if (this.data.loyaltyPrograms && this.data.loyaltyPrograms[targetId]) {
+      delete this.data.loyaltyPrograms[targetId];
+    }
+
+    // 5. Invalidate any active sessions for this tenant's users
+    if (this.sessions) {
+      for (const token of Object.keys(this.sessions)) {
+        const sess = this.sessions[token];
+        if (sess && sess.tenantId && (sess.tenantId === targetId || sess.tenantId === supabaseId || sess.tenantId === code)) {
+          delete this.sessions[token];
+        }
+      }
+    }
+
+    this.persist();
+    return tenant;
   }
 
   resetToZero() {
