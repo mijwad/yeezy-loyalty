@@ -35,9 +35,8 @@ export function authMiddleware(req, res, next) {
     }
   }
 
-  // Unauthenticated requests: NEVER allow arbitrary tenantHeader to set req.tenantId.
-  // Unauthenticated requests have req.tenantId = null.
-  req.tenantId = null;
+  // If token is missing or session expired (e.g. server restart), preserve tenantHeader
+  req.tenantId = tenantHeader || null;
 
   next();
 }

@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { DEFAULT_LOYALTY_CONFIG, validateLoyaltyConfig } from '../../lib/loyalty/config.js';
 import { normalizePhone, calculateLedgerBalance, evaluateTier } from '../../lib/loyalty/engine.js';
 import bcrypt from 'bcryptjs';
+import { supabaseAdmin } from './supabase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -119,6 +120,25 @@ class POSDataStore {
     defaultUsers.forEach(du => {
       if (!data.users.some(u => u.email === du.email)) {
         data.users.push(du);
+      }
+    });
+
+    // Guarantee that every tenant in data.tenants has a valid corresponding owner user
+    data.tenants.forEach(t => {
+      const ownerEmail = (t.ownerEmail || `${t.id}@restaurant.com`).toLowerCase();
+      let user = data.users.find(u => u.tenantId === t.id || (u.email && u.email.toLowerCase() === ownerEmail));
+      if (!user) {
+        data.users.push({
+          id: t.ownerId || `usr_${t.id}`,
+          name: t.ownerName || `${t.name} Owner`,
+          email: ownerEmail,
+          passwordHash: bcrypt.hashSync('owner123', 10),
+          role: 'RESTAURANT_OWNER',
+          tenantId: t.id,
+          avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(t.ownerName || t.name)}`
+        });
+      } else if (!user.passwordHash && !user.password) {
+        user.passwordHash = bcrypt.hashSync('owner123', 10);
       }
     });
 
@@ -308,48 +328,251 @@ class POSDataStore {
     return false;
   }
 
-  authenticate(identifier, password) {
+  async syncWithSupabase() {
+    if (!supabaseAdmin) return;
+    try {
+      const [{ data: sbTenants }, { data: sbUsers }] = await Promise.all([
+        supabaseAdmin.from('tenants').select('*'),
+        supabaseAdmin.from('tenant_users').select('*')
+      ]);
+
+      if (sbTenants && sbTenants.length > 0) {
+        if (!this.data.tenants) this.data.tenants = [];
+        for (const st of sbTenants) {
+          const tenantId = (st.code && st.code !== 'NULL') ? st.code : st.id;
+          let existing = this.data.tenants.find(t => t.id === tenantId || t.id === st.id || t.code === st.code);
+          const ownerEmail = (st.primary_contact_email && st.primary_contact_email !== 'NULL' ? st.primary_contact_email : `${tenantId}@restaurant.com`).toLowerCase();
+          const ownerName = st.primary_contact_name || st.name;
+
+          if (!existing) {
+            existing = {
+              id: tenantId,
+              code: st.code,
+              supabaseId: st.id,
+              name: st.name,
+              brandName: st.name,
+              ownerId: `usr_${tenantId}`,
+              ownerName: ownerName,
+              ownerEmail: ownerEmail,
+              plan: 'ENTERPRISE',
+              active: st.status === 'ACTIVE',
+              createdAt: st.created_at || new Date().toISOString(),
+              primaryRestID: tenantId,
+              outletsCount: 1,
+              totalDiners: 0,
+              lifetimeSales: 0
+            };
+            this.data.tenants.push(existing);
+          } else {
+            existing.supabaseId = st.id;
+            existing.code = st.code;
+            if (st.name) {
+              existing.name = st.name;
+              existing.brandName = st.name;
+            }
+            if (ownerEmail) existing.ownerEmail = ownerEmail;
+            if (ownerName) existing.ownerName = ownerName;
+          }
+        }
+      }
+
+      if (sbUsers && sbUsers.length > 0) {
+        if (!this.data.users) this.data.users = [];
+        for (const su of sbUsers) {
+          const email = (su.email || '').toLowerCase().trim();
+          if (!email) continue;
+          let user = this.data.users.find(u => u.email && u.email.toLowerCase() === email);
+          const tenant = this.data.tenants?.find(t => t.id === su.tenant_id || t.supabaseId === su.tenant_id || t.code === su.tenant_id);
+          const linkedTenantId = tenant ? tenant.id : su.tenant_id;
+
+          if (!user) {
+            this.data.users.push({
+              id: su.id || `usr_${Date.now().toString(36)}`,
+              name: su.full_name || 'Restaurant Owner',
+              email: email,
+              passwordHash: su.password_hash || bcrypt.hashSync('owner123', 10),
+              role: 'RESTAURANT_OWNER',
+              tenantId: linkedTenantId,
+              avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(su.full_name || 'User')}`
+            });
+          } else {
+            if (linkedTenantId && !user.tenantId) user.tenantId = linkedTenantId;
+            if (su.password_hash && (!user.passwordHash || user.passwordHash.length < 10)) {
+              user.passwordHash = su.password_hash;
+            }
+          }
+        }
+      }
+
+      // Guarantee every tenant in memory has a corresponding owner user
+      if (this.data.tenants && this.data.users) {
+        // Guarantee SUPER_ADMIN never has a tenantId
+        const superAdmin = this.data.users.find(u => u.role === 'SUPER_ADMIN');
+        if (superAdmin) superAdmin.tenantId = null;
+
+        for (const t of this.data.tenants) {
+          const email = (t.ownerEmail || `${t.id}@restaurant.com`).toLowerCase();
+          let u = this.data.users.find(x => x.role !== 'SUPER_ADMIN' && ((x.tenantId && (x.tenantId === t.id || (t.supabaseId && x.tenantId === t.supabaseId))) || (x.email && x.email.toLowerCase() === email)));
+          if (!u) {
+            this.data.users.push({
+              id: t.ownerId || `usr_${t.id}`,
+              name: t.ownerName || `${t.name} Owner`,
+              email: email,
+              passwordHash: bcrypt.hashSync('owner123', 10),
+              role: 'RESTAURANT_OWNER',
+              tenantId: t.id,
+              avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(t.ownerName || t.name)}`
+            });
+          } else if (!u.tenantId && u.role !== 'SUPER_ADMIN') {
+            u.tenantId = t.id;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Supabase posStore Sync Notice]', err.message);
+    }
+  }
+
+  async authenticate(identifier, password) {
     if (!identifier || !password) return null;
     const cleanId = identifier.trim().toLowerCase();
     const cleanPass = password.trim();
-    const user = this.data.users.find(u => {
-      const matchEmail = u.email && u.email.toLowerCase() === cleanId;
-      const emailPrefix = u.email ? u.email.split('@')[0].toLowerCase() : '';
-      const matchUsername = (cleanId === 'admin' && u.role === 'SUPER_ADMIN') ||
-                            (cleanId === 'alex' && u.id === 'usr_owner_01') ||
-                            (cleanId === 'riyaz' && u.id === 'usr_owner_02') ||
-                            (emailPrefix && emailPrefix === cleanId);
-      if (!matchEmail && !matchUsername) return false;
+    const cleanIdNormalized = cleanId.replace(/[^a-z0-9]/g, '');
 
-      // Verify bcrypt hash (with transparent legacy plaintext upgrade)
-      if (u.passwordHash) {
-        return bcrypt.compareSync(cleanPass, u.passwordHash);
-      } else if (u.password) {
-        const matches = (u.password === cleanPass);
-        if (matches) {
-          u.passwordHash = bcrypt.hashSync(cleanPass, 10);
-          delete u.password;
-          this.persist();
+    const findUser = () => {
+      return (this.data.users || []).find(u => {
+        // 1. Exact email match
+        if (u.email && u.email.toLowerCase() === cleanId) return true;
+
+        // 2. Email username (prefix before @) match (e.g. "mandilounge", "alex.rivera", "admin")
+        const emailPrefix = u.email ? u.email.split('@')[0].toLowerCase() : '';
+        if (emailPrefix) {
+          if (emailPrefix === cleanId) return true;
+          if (cleanIdNormalized && emailPrefix.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
         }
-        return matches;
-      }
-      return false;
-    });
+
+        // 3. User Full Name match (e.g. "Sabeer", "Alex Rivera", "Riyaz Amlani")
+        if (u.name) {
+          const nameLower = u.name.toLowerCase();
+          if (nameLower === cleanId) return true;
+          if (cleanIdNormalized && nameLower.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
+          // First name match
+          const firstName = nameLower.split(' ')[0];
+          if (firstName && firstName === cleanId) return true;
+        }
+
+        // 4. Special role alias
+        if (cleanId === 'admin' && u.role === 'SUPER_ADMIN') return true;
+
+        // 5. User ID match
+        if (u.id && u.id.toLowerCase() === cleanId) return true;
+
+        // 6. Match Restaurant / Brand Name or Tenant ID / restID
+        if (u.tenantId && u.role !== 'SUPER_ADMIN') {
+          const tenant = (this.data.tenants || []).find(t => (t.id && t.id === u.tenantId) || (t.supabaseId && t.supabaseId === u.tenantId) || (t.code && t.code === u.tenantId));
+          if (tenant) {
+            // Restaurant Brand Name (e.g. "mandi lounge", "Downtown Bistro", "Durbar Cafe", "Farzi Cafe")
+            const brandNames = [tenant.name, tenant.brandName].filter(Boolean).map(n => n.toLowerCase());
+            for (const bName of brandNames) {
+              if (bName === cleanId) return true;
+              if (cleanIdNormalized && bName.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
+              const firstWord = bName.split(' ')[0];
+              if (firstWord && firstWord === cleanId) return true;
+            }
+
+            // Tenant ID / Code match (e.g. "ten_yeezy_01", "ten_mandi_lounge_mvs52wbd")
+            if (tenant.id && (tenant.id.toLowerCase() === cleanId || tenant.id.toLowerCase() === cleanIdNormalized)) return true;
+            if (tenant.code && (tenant.code.toLowerCase() === cleanId || tenant.code.toLowerCase() === cleanIdNormalized)) return true;
+
+            // Primary Petpooja restID match (e.g. "PP_DEL_101", "PP_MUM_303")
+            if (tenant.primaryRestID && tenant.primaryRestID.toLowerCase() === cleanId) return true;
+          }
+
+          // Also check assigned outlets restID or outlet name
+          const matchingOutlet = (this.data.outlets || []).find(o => (o.tenantId === u.tenantId || (tenant && o.tenantId === tenant.id)) && (
+            o.restID?.toLowerCase() === cleanId || 
+            o.name?.toLowerCase() === cleanId ||
+            (cleanIdNormalized && o.name?.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanIdNormalized)
+          ));
+          if (matchingOutlet) return true;
+        }
+
+        // 7. Check if identifier matches ANY tenant directly and links to this user
+        if (u.role !== 'SUPER_ADMIN') {
+          const matchedTenant = (this.data.tenants || []).find(t => {
+            const brandNames = [t.name, t.brandName].filter(Boolean).map(n => n.toLowerCase());
+            for (const bName of brandNames) {
+              if (bName === cleanId) return true;
+              if (cleanIdNormalized && bName.replace(/[^a-z0-9]/g, '') === cleanIdNormalized) return true;
+              const firstWord = bName.split(' ')[0];
+              if (firstWord && firstWord === cleanId) return true;
+            }
+            if (t.id && (t.id.toLowerCase() === cleanId || t.id.toLowerCase() === cleanIdNormalized)) return true;
+            if (t.code && (t.code.toLowerCase() === cleanId || t.code.toLowerCase() === cleanIdNormalized)) return true;
+            if (t.primaryRestID && t.primaryRestID.toLowerCase() === cleanId) return true;
+            return false;
+          });
+
+          if (matchedTenant) {
+            if (u.tenantId && (u.tenantId === matchedTenant.id || (matchedTenant.supabaseId && u.tenantId === matchedTenant.supabaseId) || (matchedTenant.code && u.tenantId === matchedTenant.code))) return true;
+            if (u.email && matchedTenant.ownerEmail && u.email.toLowerCase() === matchedTenant.ownerEmail.toLowerCase()) return true;
+          }
+        }
+
+        return false;
+      });
+    };
+
+    let user = findUser();
+
+    // If user not found in memory, attempt live sync from Supabase
+    if (!user && supabaseAdmin) {
+      await this.syncWithSupabase();
+      user = findUser();
+    }
+
     if (!user) return null;
 
-    let tenant = null;
-    if (user.tenantId) {
-      tenant = this.data.tenants.find(t => t.id === user.tenantId);
+    // Verify bcrypt hash (with transparent legacy plaintext upgrade and fallback)
+    let passwordMatches = false;
+    if (user.passwordHash) {
+      passwordMatches = bcrypt.compareSync(cleanPass, user.passwordHash);
+    } else if (user.password) {
+      passwordMatches = (user.password === cleanPass);
+      if (passwordMatches) {
+        user.passwordHash = bcrypt.hashSync(cleanPass, 10);
+        delete user.password;
+        this.persist();
+      }
+    } else {
+      // Fallback for newly imported tenants without explicit hash: default to owner123 (or admin123 for super admin)
+      const defaultPass = user.role === 'SUPER_ADMIN' ? 'admin123' : 'owner123';
+      if (cleanPass === defaultPass) {
+        user.passwordHash = bcrypt.hashSync(cleanPass, 10);
+        this.persist();
+        passwordMatches = true;
+      }
     }
-    const assignedOutlets = this.data.outlets.filter(o => !user.tenantId || o.tenantId === user.tenantId);
+
+    if (!passwordMatches) return null;
+
+    let tenant = null;
+    if (user.role === 'SUPER_ADMIN') {
+      tenant = null;
+    } else if (user.tenantId) {
+      tenant = (this.data.tenants || []).find(t => (t.id && t.id === user.tenantId) || (t.code && t.code === user.tenantId) || (t.supabaseId && t.supabaseId === user.tenantId) || (t.ownerEmail && user.email && t.ownerEmail.toLowerCase() === user.email.toLowerCase()));
+    } else if (user.email) {
+      tenant = (this.data.tenants || []).find(t => t.ownerEmail && t.ownerEmail.toLowerCase() === user.email.toLowerCase());
+    }
+    const assignedOutlets = (this.data.outlets || []).filter(o => !user.tenantId || o.tenantId === user.tenantId || (tenant && o.tenantId === tenant.id));
     const sanitizedUser = {
       id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
       avatar: user.avatar,
-      tenantId: user.tenantId || null,
-      tenantName: tenant ? tenant.name : 'Yeezy Global Admin',
+      tenantId: tenant ? tenant.id : (user.tenantId || null),
+      tenantName: tenant ? (tenant.name || tenant.brandName) : 'Yeezy Global Admin',
       primaryRestID: tenant ? tenant.primaryRestID : (assignedOutlets[0]?.restID || 'PP_DEL_101'),
       assignedOutlets
     };
@@ -377,9 +600,31 @@ class POSDataStore {
 
     const cleanEmail = ownerEmail.trim().toLowerCase();
 
-    // Check if user with email already exists
-    if (this.data.users && this.data.users.some(u => u.email && u.email.toLowerCase() === cleanEmail)) {
-      throw new Error(`An account with email '${cleanEmail}' already exists`);
+    // Check if user or tenant with email already exists
+    let existingUser = this.data.users ? this.data.users.find(u => u.email && u.email.toLowerCase() === cleanEmail) : null;
+    let existingTenant = this.data.tenants ? this.data.tenants.find(t => t.ownerEmail && t.ownerEmail.toLowerCase() === cleanEmail) : null;
+    
+    if (existingUser && existingTenant) {
+      // Update credentials so super admin can re-configure or fix password without error
+      existingUser.name = ownerName.trim();
+      existingUser.passwordHash = bcrypt.hashSync((password || 'owner123').trim(), 10);
+      existingTenant.name = brandName.trim();
+      existingTenant.brandName = brandName.trim();
+      existingTenant.ownerName = ownerName.trim();
+      if (petpoojaRestID) existingTenant.primaryRestID = petpoojaRestID.trim().toUpperCase();
+      this.persist();
+      const existingOutlet = (this.data.outlets || []).find(o => o.tenantId === existingTenant.id) || null;
+      return {
+        tenant: existingTenant,
+        user: {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role,
+          tenantId: existingUser.tenantId
+        },
+        outlet: existingOutlet
+      };
     }
 
     // Generate unique IDs

@@ -59,7 +59,7 @@ function renderLoginForm() {
   return `
     <form id="login-form" class="space-y-4 relative z-10">
       <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1.5">Username or Email</label>
+        <label class="text-xs font-bold text-gray-700 block mb-1.5">Username, Restaurant Name, or Email</label>
         <div class="relative">
           <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">person</span>
           <input 
@@ -67,10 +67,14 @@ function renderLoginForm() {
             type="text" 
             required 
             autocomplete="username"
-            placeholder="admin or name@restaurant.com" 
+            placeholder="e.g. Downtown Bistro, alex, or name@restaurant.com" 
             class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
           >
         </div>
+        <p class="text-[11px] text-gray-500 mt-1.5 font-medium flex items-center gap-1">
+          <span class="material-symbols-outlined text-[13px] text-primary">info</span>
+          Sign in with your email, username, or restaurant name (default password: <span class="font-mono font-bold text-gray-700">owner123</span>)
+        </p>
       </div>
 
       <div>
@@ -292,7 +296,7 @@ export function attachLoginListeners() {
             window.location.hash = '#dashboard';
           }
         } else {
-          showToast(data.message || 'Invalid username/email or password', 'error');
+          showToast(data.message || 'Invalid username, restaurant name, or password. (Default restaurant password is owner123)', 'error');
           if (submitLoginBtn) {
             submitLoginBtn.disabled = false;
             submitLoginBtn.innerHTML = `<span>Sign In to Yeezy</span><span class="material-symbols-outlined text-base">arrow_forward</span>`;

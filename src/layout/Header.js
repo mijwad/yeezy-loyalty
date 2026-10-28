@@ -33,33 +33,41 @@ export function renderHeader(state) {
             class="hidden absolute left-0 top-full mt-2 w-64 bg-white rounded-2xl shadow-xl border border-outline-variant/30 py-2 z-50 animate-fade-in"
           >
             <div class="px-4 py-2 border-b border-outline-variant/20">
-              <span class="text-[11px] font-bold uppercase text-on-surface-variant tracking-wider">Select Restaurant Outlet</span>
+              <span class="text-[11px] font-bold uppercase text-on-surface-variant tracking-wider">Switch Restaurant / Outlet</span>
             </div>
-            ${outlets.map(o => `
+            ${((user.role === 'SUPER_ADMIN' || !outlets || outlets.length <= 1) ? [
+              { id: 'ten_yeezy_01', name: 'Downtown Bistro', address: '124 Market St, Suite 100' },
+              { id: 'ten_durbar_mvnrq6po', name: 'Durbar Cafe', address: 'Durbar Flagship' },
+              { id: 'ten_farzi_mvnvc99o', name: 'Farzi Cafe', address: 'Farzi Central' },
+              { id: 'ten_smokehouse_02', name: 'Smoke House Deli', address: 'Pali Hill, Bandra West' }
+            ] : outlets).map(o => {
+              const oId = o.id || o.tenantId;
+              const isCurrent = o.name === activeOutlet || (oId && oId === user.tenantId);
+              return `
               <button 
                 type="button"
                 data-outlet-name="${o.name}"
-                class="outlet-option-btn w-full text-left px-4 py-2.5 flex items-start gap-2.5 hover:bg-surface-container-low transition-colors ${o.name === activeOutlet ? 'bg-primary-fixed/30 font-bold text-primary' : 'text-on-surface'}"
+                data-tenant-id="${oId || ''}"
+                class="outlet-option-btn w-full text-left px-4 py-2.5 flex items-start gap-2.5 hover:bg-surface-container-low transition-colors ${isCurrent ? 'bg-primary-fixed/30 font-bold text-primary' : 'text-on-surface'}"
               >
-                <span class="material-symbols-outlined text-lg mt-0.5 ${o.name === activeOutlet ? 'text-primary' : 'text-outline'}">
-                  ${o.name === activeOutlet ? 'check_circle' : 'radio_button_unchecked'}
+                <span class="material-symbols-outlined text-lg mt-0.5 ${isCurrent ? 'text-primary' : 'text-outline'}">
+                  ${isCurrent ? 'check_circle' : 'radio_button_unchecked'}
                 </span>
                 <div>
                   <div class="text-xs font-bold leading-tight">${o.name}</div>
-                  <div class="text-[11px] text-on-surface-variant mt-0.5">${o.address}</div>
+                  <div class="text-[11px] text-on-surface-variant mt-0.5">${o.address || ''}</div>
                 </div>
               </button>
-            `).join('')}
+            `}).join('')}
             <div class="p-2 border-t border-outline-variant/20">
-              <button 
-                id="btn-add-outlet"
-                type="button" 
+              <a 
+                id="btn-admin-manage-all"
+                href="#super-admin"
                 class="w-full text-center py-1.5 rounded-lg text-xs font-bold text-primary hover:bg-primary-fixed/20 transition-colors flex items-center justify-center gap-1"
-                onclick="window.showToast('Adding new outlet feature coming soon!')"
               >
-                <span class="material-symbols-outlined text-sm">add_business</span>
-                Add New Outlet
-              </button>
+                <span class="material-symbols-outlined text-sm">settings_suggest</span>
+                Manage All Restaurants
+              </a>
             </div>
           </div>
         </div>
@@ -230,12 +238,30 @@ export function attachHeaderListeners() {
       outletMenu.classList.toggle('hidden');
     };
     document.querySelectorAll('.outlet-option-btn').forEach(btn => {
-      btn.onclick = (e) => {
+      btn.onclick = async (e) => {
         e.stopPropagation();
+        if (outletMenu) outletMenu.classList.add('hidden');
         const outletName = btn.getAttribute('data-outlet-name');
+        const targetTenantId = btn.getAttribute('data-tenant-id');
         if (outletName) {
-          store.setState({ activeOutlet: outletName });
-          showToast(`Switched active outlet to ${outletName}`);
+          if (targetTenantId && targetTenantId !== store.getState().user?.tenantId) {
+            // Update user tenant context and reset customers array to avoid cross-contamination
+            store.setState(s => ({
+              ...s,
+              activeOutlet: outletName,
+              user: {
+                ...s.user,
+                tenantId: targetTenantId,
+                tenantName: outletName
+              },
+              customers: []
+            }));
+            showToast(`Switched active restaurant to ${outletName}`);
+            await store.syncWithBackend();
+          } else {
+            store.setState({ activeOutlet: outletName });
+            showToast(`Switched active outlet to ${outletName}`);
+          }
         }
       };
     });

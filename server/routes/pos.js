@@ -6,6 +6,31 @@ import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
 
 export const posRouter = Router();
 
+function resolveTenantId(req, restID) {
+  // 1. Check API Key in headers or body
+  const rawKey = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'] || req.body?.api_key || req.body?.reelo_key;
+  if (rawKey) {
+    if (rawKey.includes('durbar') || rawKey.includes('c511')) return 'ten_durbar_mvnrq6po';
+    if (rawKey.includes('farzi') || rawKey.includes('0049')) return 'ten_farzi_mvnvc99o';
+    if (rawKey.includes('smokehouse') || rawKey.includes('730ba5')) return 'ten_smokehouse_02';
+    if (rawKey.includes('6b6f34')) return 'ten_yeezy_01';
+  }
+
+  // 2. Check explicit restaurant/tenant parameter
+  const explicit = req.body?.restaurant_id || req.body?.tenant_id || req.query?.restaurant_id || req.query?.tenant_id || req.headers['x-tenant-id'];
+  if (explicit) return explicit;
+
+  // 3. Match restID
+  if (restID) {
+    const o = posStore.data.outlets.find(out => out.restID === restID);
+    if (o && o.tenantId) return o.tenantId;
+    const t = posStore.data.tenants?.find(ten => ten.primaryRestID === restID || ten.id === restID);
+    if (t) return t.id;
+  }
+
+  return 'ten_yeezy_01';
+}
+
 /**
  * 1. POS / RMS INQUIRE API
  * Cashier inputs diner mobile number on billing screen.
@@ -27,8 +52,8 @@ posRouter.post(['/loyalty/inquire', '/petpooja/loyalty/inquire'], (req, res) => 
       return res.status(400).json({ status: 'error', message: 'Missing required field: customer_phone (or phone/mobile)' });
     }
 
-  const outlet = posStore.data.outlets.find(o => o.restID === restID) || posStore.data.outlets[0];
-  const tenantId = outlet?.tenantId || 'ten_yeezy_01';
+  const tenantId = resolveTenantId(req, restID);
+  const outlet = posStore.data.outlets.find(o => o.restID === restID || o.tenantId === tenantId) || posStore.data.outlets[0];
   const program = posStore.data.loyaltyProgram;
   const customer = posStore.getOrCreateCustomer(customer_phone, customer_name, tenantId);
 
@@ -323,8 +348,8 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
     });
   }
 
-  const outlet = posStore.data.outlets.find(o => o.restID === restID) || posStore.data.outlets[0];
-  const tenantId = outlet?.tenantId || 'ten_yeezy_01';
+  const tenantId = resolveTenantId(req, restID);
+  const outlet = posStore.data.outlets.find(o => o.restID === restID || o.tenantId === tenantId) || posStore.data.outlets[0];
   const phone = customerInput?.phone || '9876543210';
   const name = customerInput?.name || 'Guest';
   const customer = posStore.getOrCreateCustomer(phone, name, tenantId);

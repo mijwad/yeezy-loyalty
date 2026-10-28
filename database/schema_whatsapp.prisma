@@ -1,0 +1,302 @@
+// Prisma Schema for WhatsApp Business Cloud API Integration
+// Multi-Tenant WhatsApp Template & Campaign Management
+// Run: npx prisma generate after adding these models
+
+// Enums
+enum WaTemplateCategory {
+  UTILITY
+  MARKETING
+  AUTHENTICATION
+}
+
+enum WaTemplateStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  DISABLED
+  DELETED
+}
+
+enum WaCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  COMPLETED
+  PAUSED
+  CANCELLED
+  FAILED
+}
+
+enum WaMessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  OPT_OUT
+}
+
+enum WaAccountStatus {
+  DISCONNECTED
+  CONNECTING
+  CONNECTED
+  ERROR
+  SUSPENDED
+}
+
+// 1. WhatsApp Business Accounts (Per Restaurant/Tenant)
+model WaAccount {
+  id                String           @id @default(uuid()) @db.Uuid
+  tenantId          String           @unique @map("tenant_id") @db.Uuid
+
+  // Meta Business Account Info
+  wabaId            String           @map("waba_id") @db.VarChar(100)
+  phoneNumberId     String           @unique @map("phone_number_id") @db.VarChar(100)
+  displayPhoneNumber String?         @map("display_phone_number") @db.VarChar(30)
+  verifiedName      String?          @map("verified_name") @db.VarChar(255)
+
+  // Credentials
+  accessToken       String           @map("access_token")
+  webhookSecret     String?          @map("webhook_secret") @db.VarChar(255)
+
+  // Account Status
+  status            WaAccountStatus  @default(DISCONNECTED)
+  qualityRating     String?          @map("quality_rating") @db.VarChar(20)
+  messagingLimitTier String?         @map("messaging_limit_tier") @db.VarChar(20)
+
+  // Embedded Signup Tracking
+  embeddedSignupCode String?         @map("embedded_signup_code") @db.VarChar(255)
+  embeddedSignupState String?        @map("embedded_signup_state") @db.VarChar(255)
+
+  createdAt         DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant            Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  templates         WaTemplate[]
+  campaigns         Campaign[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("wa_accounts")
+}
+
+// 2. WhatsApp Message Templates (Synced with Meta)
+model WaTemplate {
+  id                String             @id @default(uuid()) @db.Uuid
+  tenantId          String             @map("tenant_id") @db.Uuid
+
+  // Template Identity
+  name              String             @db.VarChar(100)
+  language          String             @default("en_US") @db.VarChar(10)
+  category          WaTemplateCategory @default(UTILITY)
+
+  // Template Components
+  headerText        String?            @map("header_text") @db.VarChar(160)
+  bodyText          String             @map("body_text")
+  footerText        String?            @map("footer_text") @db.VarChar(60)
+  buttons           Json               @default("[]")
+
+  // Variable Definitions
+  variables         Json               @default("[]")
+  /*
+   * [
+   *   {"index": 1, "name": "customer_name", "sample": "Rohan", "type": "customer.name"},
+   *   {"index": 2, "name": "restaurant_name", "sample": "Smoke House Deli", "type": "restaurant.name"},
+   *   {"index": 3, "name": "points_earned", "sample": "100", "type": "loyalty.points_earned"},
+   *   {"index": 4, "name": "points_balance", "sample": "350", "type": "loyalty.points_balance"}
+   * ]
+   */
+
+  // Meta Sync Status
+  metaTemplateId    String?            @map("meta_template_id") @db.VarChar(100)
+  metaStatus        WaTemplateStatus   @default(DRAFT) @map("meta_status")
+  metaRejectionReason String?          @map("meta_rejection_reason")
+  lastSyncedAt      DateTime?          @map("last_synced_at") @db.Timestamptz
+
+  // Event Mapping
+  eventType         String?            @map("event_type") @db.VarChar(50)
+  isSystemTemplate  Boolean            @default(false) @map("is_system_template")
+
+  // Metadata
+  description       String?
+  createdBy         String?            @map("created_by") @db.Uuid
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime           @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaigns         Campaign[]
+  createdByUser     TenantUser?        @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, name, language])
+  @@index([tenantId])
+  @@index([tenantId, eventType])
+  @@index([metaStatus])
+  @@map("wa_templates")
+}
+
+// 3. Customer Segments (Preset + Custom)
+model Segment {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+
+  name        String   @db.VarChar(100)
+  description String?
+  isPreset    Boolean  @default(false) @map("is_preset")
+  presetType  String?  @map("preset_type") @db.VarChar(50)
+
+  // Custom Rules (JSON for flexible segmentation)
+  rules       Json     @default("{}")
+  /*
+   * {
+   *   "min_visits": 4,
+   *   "max_days_since_last_visit": 30,
+   *   "min_lifetime_spend": 5000,
+   *   "rfm_segments": ["VIP", "REGULAR"],
+   *   "has_birthday_this_week": true
+   * }
+   */
+
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaigns   Campaign[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@index([tenantId, isPreset])
+  @@map("segments")
+}
+
+// 4. WhatsApp Campaigns
+model Campaign {
+  id               String            @id @default(uuid()) @db.Uuid
+  tenantId         String            @map("tenant_id") @db.Uuid
+
+  name             String            @db.VarChar(200)
+  description      String?
+
+  // Template & Segment
+  templateId       String            @map("template_id") @db.Uuid
+  segmentId        String?           @map("segment_id") @db.Uuid
+
+  // Variable Mapping
+  variableMapping  Json              @default("{}") @map("variable_mapping")
+  /*
+   * {
+   *   "1": "customer.name",
+   *   "2": "restaurant.name",
+   *   "3": "loyalty.points_earned",
+   *   "4": "loyalty.points_balance"
+   * }
+   */
+
+  // Scheduling & Frequency Capping
+  status           WaCampaignStatus  @default(DRAFT)
+  scheduledAt      DateTime?         @map("scheduled_at") @db.Timestamptz
+  frequencyCapDays Int               @default(7) @map("frequency_cap_days")
+
+  // Execution Tracking
+  totalAudience    Int               @default(0) @map("total_audience")
+  totalSent        Int               @default(0) @map("total_sent")
+  totalDelivered   Int               @default(0) @map("total_delivered")
+  totalRead        Int               @default(0) @map("total_read")
+  totalFailed      Int               @default(0) @map("total_failed")
+  totalOptOuts     Int               @default(0) @map("total_opt_outs")
+
+  // Attribution
+  attributedRevenuePaise BigInt      @default(0) @map("attributed_revenue_paise")
+  actualCost       Decimal           @default(0.00) @map("actual_cost") @db.Decimal(12, 2)
+
+  sentAt           DateTime?         @map("sent_at") @db.Timestamptz
+  completedAt      DateTime?         @map("completed_at") @db.Timestamptz
+  createdBy        String?           @map("created_by") @db.Uuid
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  template         WaTemplate        @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  segment          Segment?          @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  messages         CampaignMessage[]
+  createdByUser    TenantUser?       @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([scheduledAt], where: status == SCHEDULED)
+  @@map("campaigns")
+}
+
+// 5. Campaign Message Log (Per-recipient delivery tracking)
+model CampaignMessage {
+  id          String           @id @default(uuid()) @db.Uuid
+  tenantId    String           @map("tenant_id") @db.Uuid
+  campaignId  String           @map("campaign_id") @db.Uuid
+  customerId  String           @map("customer_id") @db.Uuid
+
+  phoneE164   String           @map("phone_e164") @db.VarChar(30)
+  waMessageId String?          @map("wa_message_id") @db.VarChar(100)
+
+  status      WaMessageStatus  @default(QUEUED)
+  errorCode   String?          @map("error_code") @db.VarChar(50)
+  errorMessage String?         @map("error_message")
+
+  cost        Decimal          @default(0.00) @db.Decimal(10, 4)
+
+  queuedAt    DateTime         @default(now()) @map("queued_at") @db.Timestamptz
+  sentAt      DateTime?        @map("sent_at") @db.Timestamptz
+  deliveredAt DateTime?        @map("delivered_at") @db.Timestamptz
+  readAt      DateTime?        @map("read_at") @db.Timestamptz
+  failedAt    DateTime?        @map("failed_at") @db.Timestamptz
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  campaign    Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer    Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([customerId])
+  @@index([status])
+  @@map("campaign_messages")
+}
+
+// 6. WhatsApp Message Log (All inbound/outbound messages for audit)
+model WaMessageLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  customerId      String?  @map("customer_id") @db.Uuid
+
+  direction       String   @db.VarChar(10) // 'inbound', 'outbound'
+  messageType     String   @map("message_type") @db.VarChar(30) // 'template', 'text', 'image', 'interactive', 'order'
+
+  waMessageId     String?  @map("wa_message_id") @db.VarChar(100)
+  templateName    String?  @map("template_name") @db.VarChar(100)
+  templateLanguage String? @map("template_language") @db.VarChar(10)
+
+  // For inbound
+  fromPhoneE164   String?  @map("from_phone_e164") @db.VarChar(30)
+  bodyText        String?  @map("body_text")
+
+  // For outbound
+  toPhoneE164     String?  @map("to_phone_e164") @db.VarChar(30)
+  status          String?  @db.VarChar(30) // sent, delivered, read, failed
+  errorCode       String?  @map("error_code") @db.VarChar(50)
+  errorMessage    String?  @map("error_message")
+
+  // Cost tracking
+  cost            Decimal  @default(0.00) @db.Decimal(10, 4)
+  conversationId  String?  @map("conversation_id") @db.VarChar(100)
+
+  // Metadata
+  rawPayload      Json?
+  idempotencyKey  String?  @unique @map("idempotency_key") @db.VarChar(255)
+
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer        Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([customerId, createdAt(sort: Desc)])
+  @@index([conversationId], where: conversationId != "")
+  @@map("wa_message_log")
+}

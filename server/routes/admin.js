@@ -20,47 +20,15 @@ function toUuid(str) {
 const PILOT_KEYS = {
   'ten_yeezy_01': 'lk_live_6b6f34465f168ee1d824915e5c0cb1c7cf1224b998eba8f1005e6e0d6fd9b194',
   'ten_smokehouse_02': 'lk_live_730ba5b943263d58c363b5605a9ffc3bdbfa739274e9e6ba58d4c872ce4eabbb',
-  'ten_durbar_mvnrq6po': 'lk_live_c511_durbar_cafe_live_pos_key_2026_9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d'
+  'ten_durbar_mvnrq6po': 'lk_live_c511_durbar_cafe_live_pos_key_2026_9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d',
+  'ten_farzi_mvnvc99o': 'lk_live_0049_farzi_cafe_pos_key_2026_9bca1234567890abcdef1234567890abcdef'
 };
 
 // GET /api/v1/admin/restaurants - List all restaurants & owner accounts
 adminRouter.get('/restaurants', async (req, res) => {
   // Sync with persistent Supabase database
-  if (supabaseAdmin) {
-    try {
-      const [{ data: sbTenants }, { data: sbKeys }] = await Promise.all([
-        supabaseAdmin.from('tenants').select('*'),
-        supabaseAdmin.from('api_keys').select('*').eq('is_test', false)
-      ]);
-
-      if (sbTenants && sbTenants.length > 0) {
-        for (const st of sbTenants) {
-          const tenantId = st.code && st.code !== 'NULL' ? st.code : st.id;
-          let existing = posStore.data.tenants?.find(t => t.id === tenantId || t.id === st.id);
-          if (!existing) {
-            const newTenant = {
-              id: tenantId,
-              name: st.name,
-              brandName: st.name,
-              ownerId: `usr_${tenantId}`,
-              ownerName: st.primary_contact_name || 'Restaurant Owner',
-              ownerEmail: st.primary_contact_email && st.primary_contact_email !== 'NULL' ? st.primary_contact_email : `${tenantId}@restaurant.com`,
-              plan: 'ENTERPRISE',
-              active: st.status === 'ACTIVE',
-              createdAt: st.created_at || new Date().toISOString(),
-              primaryRestID: tenantId,
-              outletsCount: 1,
-              totalDiners: 0,
-              lifetimeSales: 0
-            };
-            if (!posStore.data.tenants) posStore.data.tenants = [];
-            posStore.data.tenants.push(newTenant);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('[Admin Sync] Supabase sync warning:', err.message);
-    }
+  if (posStore.syncWithSupabase) {
+    await posStore.syncWithSupabase();
   }
 
   const tenants = posStore.data.tenants || [];
@@ -68,13 +36,16 @@ adminRouter.get('/restaurants', async (req, res) => {
   const outlets = posStore.data.outlets || [];
 
   const enriched = tenants.map(t => {
-    const owner = users.find(u => u.tenantId === t.id);
+    const owner = users.find(u => u.tenantId === t.id || (u.email && t.ownerEmail && u.email.toLowerCase() === t.ownerEmail.toLowerCase()));
     const tenantOutlets = outlets.filter(o => o.restID === t.primaryRestID || t.id === 'ten_yeezy_01');
     const apiKey = PILOT_KEYS[t.id] || t.apiKey || `lk_live_${t.id.replace(/[^a-z0-9]/g, '')}9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d`;
 
     return {
       ...t,
       apiKey,
+      ownerName: t.ownerName || owner?.name || `${t.name} Owner`,
+      ownerEmail: t.ownerEmail || owner?.email || `${t.id}@restaurant.com`,
+      defaultPassword: 'owner123',
       owner: owner ? {
         id: owner.id,
         name: owner.name,
@@ -110,11 +81,12 @@ adminRouter.post('/restaurants', async (req, res) => {
   }
 
   try {
+    const finalPassword = (password || 'owner123').trim();
     const result = posStore.createRestaurantTenant({
       brandName,
       ownerName,
       ownerEmail,
-      password: password || 'owner123',
+      password: finalPassword,
       primaryOutletName,
       petpoojaRestID
     });
@@ -135,6 +107,9 @@ adminRouter.post('/restaurants', async (req, res) => {
       try {
         const tenantUuid = toUuid(tenant.id);
         const contactPhone = req.body.ownerPhone || req.body.phone || '+919876543210';
+        const userObj = result.user || posStore.data.users?.find(u => u.tenantId === tenant.id);
+        const pwdHash = userObj?.passwordHash || (posStore.data.users?.find(u => u.email === ownerEmail.trim().toLowerCase())?.passwordHash);
+
         await Promise.all([
           supabaseAdmin.from('tenants').upsert({
             id: tenantUuid,
@@ -145,6 +120,15 @@ adminRouter.post('/restaurants', async (req, res) => {
             primary_contact_email: ownerEmail.trim().toLowerCase(),
             primary_contact_phone: contactPhone
           }, { onConflict: 'id' }),
+
+          supabaseAdmin.from('tenant_users').upsert({
+            tenant_id: tenantUuid,
+            full_name: ownerName.trim(),
+            email: ownerEmail.trim().toLowerCase(),
+            password_hash: pwdHash,
+            role: 'BRAND_OWNER',
+            is_active: true
+          }, { onConflict: 'tenant_id,email' }),
 
           supabaseAdmin.from('loyalty_programs').upsert({
             restaurant_id: tenant.id,
@@ -162,7 +146,7 @@ adminRouter.post('/restaurants', async (req, res) => {
             is_test: false
           })
         ]);
-        console.log(`[Supabase Admin] Successfully persisted restaurant ${tenant.id} and API key.`);
+        console.log(`[Supabase Admin] Successfully persisted restaurant ${tenant.id}, owner account, and API key.`);
       } catch (sbErr) {
         console.error('[Supabase Admin] Error persisting to Supabase:', sbErr.message);
       }
@@ -170,10 +154,16 @@ adminRouter.post('/restaurants', async (req, res) => {
 
     return res.status(201).json({
       status: 'success',
-      message: `Restaurant '${brandName}' and owner '${ownerEmail}' created successfully!`,
+      message: `Restaurant '${brandName}' created! Owner can login with '${ownerEmail}' or '${brandName}' (Password: ${finalPassword})`,
       data: {
         ...result,
-        apiKey: rawApiKey
+        apiKey: rawApiKey,
+        credentials: {
+          email: ownerEmail.trim().toLowerCase(),
+          brandName: brandName.trim(),
+          ownerName: ownerName.trim(),
+          password: finalPassword
+        }
       }
     });
   } catch (err) {
@@ -183,7 +173,8 @@ adminRouter.post('/restaurants', async (req, res) => {
 
 // POST /api/v1/admin/impersonate/:tenantId - Super Admin switches into restaurant
 adminRouter.post('/impersonate/:tenantId', (req, res) => {
-  const tenant = posStore.data.tenants.find(t => t.id === req.params.tenantId);
+  const targetId = req.params.tenantId;
+  const tenant = posStore.data.tenants.find(t => t.id === targetId || t.code === targetId || t.primaryRestID === targetId);
   if (!tenant) {
     return res.status(404).json({ status: 'error', message: 'Restaurant not found' });
   }
@@ -196,8 +187,11 @@ adminRouter.post('/impersonate/:tenantId', (req, res) => {
     tenantId: tenant.id
   };
 
+  const token = posStore.createSession(owner);
+
   return res.json({
     status: 'success',
+    token,
     message: `Now managing ${tenant.name}`,
     impersonatedUser: {
       id: owner.id,

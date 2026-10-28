@@ -6,7 +6,11 @@ import { authMiddleware } from '../middleware/auth.js';
 export const dashboardRouter = Router();
 
 dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
-  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId || 'ten_yeezy_01';
+  const tenantId = req.tenantId || req.headers['x-tenant-id'] || req.query.tenantId || req.user?.tenantId;
+
+  if (!tenantId) {
+    return res.status(400).json({ status: 'error', message: 'Tenant context required' });
+  }
 
   let dbMembers = [];
   let dbMemberCount = 0;
@@ -27,25 +31,12 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
   }
 
   // Filter records strictly by authenticated tenant
-  const customers = tenantId 
-    ? posStore.data.customers.filter(c => c.tenantId === tenantId || (!c.tenantId && tenantId === 'ten_yeezy_01'))
-    : posStore.data.customers;
-
+  const customers = posStore.data.customers.filter(c => c.tenantId === tenantId);
   const effectiveCustomerCount = dbMemberCount > 0 ? dbMemberCount : customers.length;
-
-  const orders = tenantId 
-    ? posStore.data.orders.filter(o => o.tenantId === tenantId || (!o.tenantId && tenantId === 'ten_yeezy_01'))
-    : posStore.data.orders;
-
-  const tenantLedger = tenantId 
-    ? posStore.data.loyaltyLedger.filter(l => l.tenantId === tenantId || (!l.tenantId && tenantId === 'ten_yeezy_01'))
-    : posStore.data.loyaltyLedger;
-
-  const outlets = tenantId 
-    ? posStore.data.outlets.filter(o => o.tenantId === tenantId)
-    : posStore.data.outlets;
-
-  const tenant = tenantId ? posStore.data.tenants.find(t => t.id === tenantId) : posStore.data.tenants[0];
+  const orders = posStore.data.orders.filter(o => o.tenantId === tenantId);
+  const tenantLedger = posStore.data.loyaltyLedger.filter(l => l.tenantId === tenantId || l.restaurant_id === tenantId);
+  const outlets = posStore.data.outlets.filter(o => o.tenantId === tenantId);
+  const tenant = posStore.data.tenants.find(t => t.id === tenantId || t.code === tenantId);
 
   const totalSales = orders.reduce((sum, o) => sum + (o.financials?.netPaid || 0), 0);
   const totalOrders = orders.length;

@@ -1,7 +1,6 @@
-// Super Admin Portal - Multi-Restaurant Management & Owner Provisioning
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
-import { apiUrl } from '../../config/api.js';
+import { apiUrl, apiFetch } from '../../config/api.js';
 
 export function renderSuperAdminView(state) {
   return `
@@ -237,7 +236,7 @@ export function attachSuperAdminListeners() {
   // Fetch and populate restaurants table
   const loadRestaurants = async () => {
     try {
-      const res = await fetch(apiUrl('/api/v1/admin/restaurants'));
+      const res = await apiFetch('/api/v1/admin/restaurants');
       const data = await res.json();
 
       if (res.ok && data.restaurants && tbody) {
@@ -249,7 +248,9 @@ export function attachSuperAdminListeners() {
         if (kpiOut) kpiOut.innerText = data.globalStats.totalOutlets;
         if (kpiDiners) kpiDiners.innerText = data.globalStats.globalDiners.toLocaleString();
 
-        tbody.innerHTML = data.restaurants.map(rest => `
+        tbody.innerHTML = data.restaurants.map(rest => {
+          const defaultPwd = rest.defaultPassword || 'owner123';
+          return `
           <tr class="hover:bg-gray-50/60 transition">
             <td class="py-3.5 px-4">
               <div class="flex items-center gap-3">
@@ -263,8 +264,11 @@ export function attachSuperAdminListeners() {
               </div>
             </td>
             <td class="py-3.5 px-4">
-              <p class="font-bold text-gray-900">${rest.ownerName}</p>
-              <p class="text-[11px] text-gray-500 font-mono">${rest.ownerEmail}</p>
+              <div class="space-y-0.5">
+                <p class="font-bold text-gray-900">${rest.ownerName}</p>
+                <p class="text-[11px] text-gray-600 font-mono">${rest.ownerEmail}</p>
+                <p class="text-[10px] text-primary/80 font-medium">Password: <span class="font-mono font-bold">${defaultPwd}</span></p>
+              </div>
             </td>
             <td class="py-3.5 px-4 text-center">
               <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-800 font-mono text-[11px] font-bold">
@@ -283,12 +287,23 @@ export function attachSuperAdminListeners() {
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   type="button" 
+                  data-copy-cred="${rest.ownerEmail}" 
+                  data-pwd="${defaultPwd}"
+                  data-brand="${rest.name}"
+                  class="btn-copy-cred px-2.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1"
+                  title="Copy Owner Credentials to clipboard"
+                >
+                  <span class="material-symbols-outlined text-xs">key</span>
+                  <span>Copy Login</span>
+                </button>
+                <button 
+                  type="button" 
                   data-copy-key="${rest.apiKey || ''}"
                   class="btn-copy-pos-key px-2.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1"
                   title="Copy Live POS API Key for RMS"
                 >
-                  <span class="material-symbols-outlined text-xs">key</span>
-                  <span>Copy POS Key</span>
+                  <span class="material-symbols-outlined text-xs">vpn_key</span>
+                  <span>POS Key</span>
                 </button>
                 <button 
                   type="button" 
@@ -301,7 +316,20 @@ export function attachSuperAdminListeners() {
               </div>
             </td>
           </tr>
-        `).join('');
+        `;
+        }).join('');
+
+        // Wire copy login credentials buttons
+        document.querySelectorAll('.btn-copy-cred').forEach(btn => {
+          btn.onclick = () => {
+            const email = btn.getAttribute('data-copy-cred');
+            const pwd = btn.getAttribute('data-pwd') || 'owner123';
+            const brand = btn.getAttribute('data-brand') || 'Restaurant';
+            const credText = `Username: ${email}\nPassword: ${pwd}\n(Or Brand Name: ${brand})`;
+            navigator.clipboard.writeText(credText);
+            showToast(`✅ Copied login for "${brand}"! (User: ${email} | Pass: ${pwd})`);
+          };
+        });
 
         // Wire copy POS key buttons
         document.querySelectorAll('.btn-copy-pos-key').forEach(btn => {
@@ -321,16 +349,12 @@ export function attachSuperAdminListeners() {
           btn.onclick = async () => {
             const tenantId = btn.getAttribute('data-impersonate-id');
             try {
-              const impRes = await fetch(apiUrl(`/api/v1/admin/impersonate/${tenantId}`), {
+              const impRes = await apiFetch(`/api/v1/admin/impersonate/${tenantId}`, {
                 method: 'POST'
               });
               const impData = await impRes.json();
               if (impRes.ok && impData.status === 'success') {
-                store.setState(s => ({
-                  ...s,
-                  user: impData.impersonatedUser,
-                  activeOutlet: impData.impersonatedUser.tenantName
-                }));
+                await store.loginUser(impData.impersonatedUser, impData.token);
                 showToast(`Now managing ${impData.impersonatedUser.tenantName}!`);
                 window.location.hash = '#dashboard';
               }
@@ -343,7 +367,7 @@ export function attachSuperAdminListeners() {
       }
     } catch (err) {
       if (tbody) {
-        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-500">Failed to connect to backend on port 4000</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-red-500">Failed to connect to backend server</td></tr>`;
       }
     }
   };
@@ -358,7 +382,7 @@ export function attachSuperAdminListeners() {
       const brandName = document.getElementById('input-brand-name')?.value.trim();
       const ownerName = document.getElementById('input-owner-name')?.value.trim();
       const ownerEmail = document.getElementById('input-owner-email')?.value.trim();
-      const password = document.getElementById('input-owner-password')?.value.trim();
+      const password = document.getElementById('input-owner-password')?.value.trim() || 'owner123';
       const primaryOutletName = document.getElementById('input-outlet-name')?.value.trim();
       const petpoojaRestID = document.getElementById('input-petpooja-restid')?.value.trim();
 
@@ -369,7 +393,7 @@ export function attachSuperAdminListeners() {
       }
 
       try {
-        const res = await fetch(apiUrl('/api/v1/admin/restaurants'), {
+        const res = await apiFetch('/api/v1/admin/restaurants', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -384,13 +408,9 @@ export function attachSuperAdminListeners() {
         const data = await res.json();
 
         if (res.ok && data.status === 'success') {
-          const key = data.data?.apiKey;
-          if (key) {
-            navigator.clipboard.writeText(key);
-            showToast(`🎉 Restaurant '${brandName}' created! Live POS API Key copied to clipboard.`);
-          } else {
-            showToast(`Restaurant '${brandName}' created! Owner can login with ${ownerEmail}`);
-          }
+          const credText = `Username: ${ownerEmail} (or "${brandName}")\nPassword: ${password}`;
+          navigator.clipboard.writeText(credText);
+          showToast(`🎉 Restaurant "${brandName}" created!\nOwner can login with: ${ownerEmail} (or "${brandName}") | Password: ${password}`, 'info', 7000);
           form.reset();
           toggleCard(false);
           loadRestaurants();

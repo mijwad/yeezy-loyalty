@@ -10,6 +10,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { SegmentEngine } from '../whatsapp/segmentEngine.js';
 import { MetaWhatsAppClient } from '../whatsapp/metaClient.js';
 import { CampaignSender } from '../whatsapp/campaignSender.js';
+import { LoyaltyTemplateService, LOYALTY_EVENT_TYPES, LOYALTY_TEMPLATES, validateAllTemplates } from '../whatsapp/loyaltyTemplates.js';
 
 export const whatsappRouter = Router();
 
@@ -295,6 +296,200 @@ whatsappRouter.post('/templates', asyncHandler(async (req, res) => {
       meta_status: metaStatus,
       meta_template_id: metaTemplateId
     }
+  });
+}));
+
+// ============================================================================
+// 3B. LOYALTY SYSTEM TEMPLATES (Auto-provisioned per Restaurant)
+// ============================================================================
+
+/**
+ * GET /api/whatsapp/templates/loyalty
+ * Get all loyalty system template definitions with their current status
+ */
+whatsappRouter.get('/templates/loyalty', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+
+  const service = new LoyaltyTemplateService(restaurantId);
+  const statuses = await service.getAllTemplateStatuses();
+
+  // Merge definitions with live statuses
+  const templates = Object.values(LOYALTY_EVENT_TYPES).map(eventType => {
+    const def = LOYALTY_TEMPLATES[eventType];
+    const status = statuses.find(s => s.event_type === eventType) || {};
+    return {
+      ...def,
+      meta_status: status.meta_status || 'DRAFT',
+      meta_template_id: status.meta_template_id || null,
+      meta_rejection_reason: status.meta_rejection_reason || null,
+      last_synced_at: status.last_synced_at || null,
+      is_system_template: true
+    };
+  });
+
+  res.json({
+    status: 'success',
+    templates
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/provision
+ * Provision all 6 loyalty system templates for this restaurant
+ * Creates in database and submits to Meta for approval
+ */
+whatsappRouter.post('/templates/loyalty/provision', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+
+  const service = new LoyaltyTemplateService(restaurantId);
+  const results = await service.ensureAllSystemTemplates();
+
+  const successful = results.filter(r => r.success).length;
+  const failed = results.filter(r => !r.success).length;
+
+  res.json({
+    status: 'success',
+    message: `Provisioned ${successful} templates, ${failed} failed`,
+    results
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/:eventType/provision
+ * Provision a single loyalty template by event type
+ */
+whatsappRouter.post('/templates/loyalty/:eventType/provision', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { eventType } = req.params;
+
+  if (!LOYALTY_EVENT_TYPES[eventType]) {
+    return res.status(400).json({ error: `Invalid event type. Must be one of: ${Object.values(LOYALTY_EVENT_TYPES).join(', ')}` });
+  }
+
+  const service = new LoyaltyTemplateService(restaurantId);
+  const result = await service.ensureSystemTemplate(LOYALTY_EVENT_TYPES[eventType]);
+
+  res.status(201).json({
+    status: 'success',
+    message: `Template provisioned for ${eventType}`,
+    template: result
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/sync
+ * Sync status of all loyalty templates from Meta
+ */
+whatsappRouter.post('/templates/loyalty/sync', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+
+  const service = new LoyaltyTemplateService(restaurantId);
+  const results = await service.syncAllTemplateStatuses();
+
+  res.json({
+    status: 'success',
+    message: 'Template statuses synced from Meta',
+    results
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/:eventType/sync
+ * Sync status of a single loyalty template from Meta
+ */
+whatsappRouter.post('/templates/loyalty/:eventType/sync', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { eventType } = req.params;
+
+  if (!LOYALTY_EVENT_TYPES[eventType]) {
+    return res.status(400).json({ error: `Invalid event type` });
+  }
+
+  const service = new LoyaltyTemplateService(restaurantId);
+  const templateName = LOYALTY_TEMPLATES[LOYALTY_EVENT_TYPES[eventType]].name;
+  const status = await service.syncTemplateStatus(templateName);
+
+  res.json({
+    status: 'success',
+    template: templateName,
+    ...status
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/validate
+ * Validate all loyalty templates for Meta compliance
+ */
+whatsappRouter.post('/templates/loyalty/validate', asyncHandler(async (req, res) => {
+  const validation = validateAllTemplates();
+  const allValid = Object.values(validation).every(v => v.valid);
+
+  res.json({
+    status: 'success',
+    allValid,
+    validation
+  });
+}));
+
+/**
+ * POST /api/whatsapp/templates/loyalty/test-send
+ * Send a test loyalty message to a phone number
+ * Requires: eventType, testPhone, and optional variable overrides
+ */
+whatsappRouter.post('/templates/loyalty/test-send', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { eventType, testPhone, variableOverrides } = req.body;
+
+  if (!eventType || !testPhone) {
+    return res.status(400).json({ error: 'eventType and testPhone are required' });
+  }
+
+  if (!LOYALTY_EVENT_TYPES[eventType]) {
+    return res.status(400).json({ error: `Invalid event type` });
+  }
+
+  const service = new LoyaltyTemplateService(restaurantId);
+
+  // Get template to check status
+  const templateName = LOYALTY_TEMPLATES[LOYALTY_EVENT_TYPES[eventType]].name;
+  const statuses = await service.getAllTemplateStatuses();
+  const templateStatus = statuses.find(s => s.name === templateName);
+
+  if (templateStatus?.meta_status !== 'APPROVED') {
+    return res.status(400).json({
+      error: `Template is not APPROVED by Meta (current: ${templateStatus?.meta_status || 'DRAFT'}). Cannot send test.`,
+      templateStatus
+    });
+  }
+
+  // Build mock context for test send
+  const mockContext = {
+    customer: {
+      id: 'test-customer',
+      fullName: 'Test Customer',
+      phoneNumber: testPhone,
+      pointsBalance: 350,
+      totalVisitsCount: 5,
+      currentTier: { tierName: 'Gold' }
+    },
+    restaurant: { name: 'Test Restaurant' },
+    pointsEarned: 100,
+    pointsBalance: 350,
+    pointsExpiring: 50,
+    expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    reward: { name: 'Free Dessert' },
+    pointsUsed: 200,
+    offer: { details: '20% off next visit', expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) }
+  };
+
+  // Apply any variable overrides
+  Object.assign(mockContext, variableOverrides);
+
+  const result = await service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES[eventType], testPhone, mockContext);
+
+  res.json({
+    status: 'success',
+    result
   });
 }));
 

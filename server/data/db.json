@@ -9,10 +9,10 @@
   "tenants": [
     {
       "id": "ten_yeezy_01",
-      "name": "Downtown Bistro Group",
+      "name": "Downtown Bistro",
       "brandName": "Downtown Bistro",
       "ownerId": "usr_owner_01",
-      "ownerName": "Alex Rivera",
+      "ownerName": "Downtown Bistro Owner",
       "ownerEmail": "alex.rivera@downtownbistro.com",
       "plan": "ENTERPRISE",
       "active": true,
@@ -20,14 +20,16 @@
       "primaryRestID": "PP_DEL_101",
       "outletsCount": 1,
       "totalDiners": 0,
-      "lifetimeSales": 0
+      "lifetimeSales": 0,
+      "supabaseId": "277b2100-b267-4a4a-ab3a-2aaa27733a9e",
+      "code": "ten_yeezy_01"
     },
     {
       "id": "ten_smokehouse_02",
       "name": "Smoke House Deli",
       "brandName": "Smoke House Deli",
       "ownerId": "usr_owner_02",
-      "ownerName": "Riyaz Amlani",
+      "ownerName": "Smoke House Deli Owner",
       "ownerEmail": "riyaz@smokehousedeli.in",
       "plan": "GROWTH",
       "active": true,
@@ -35,7 +37,77 @@
       "primaryRestID": "PP_MUM_303",
       "outletsCount": 1,
       "totalDiners": 0,
-      "lifetimeSales": 0
+      "lifetimeSales": 0,
+      "supabaseId": "12aaaee0-64f2-4ba5-a8e1-5878ce34f26f",
+      "code": "ten_smokehouse_02"
+    },
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "name": "My Restaurant Group",
+      "brandName": "My Restaurant Group",
+      "ownerId": "usr_11111111-2222-3333-4444-555555555555",
+      "ownerName": "My Restaurant Group",
+      "ownerEmail": "11111111-2222-3333-4444-555555555555@restaurant.com",
+      "plan": "ENTERPRISE",
+      "active": true,
+      "createdAt": "2026-10-24T02:15:34.903655+00:00",
+      "primaryRestID": "11111111-2222-3333-4444-555555555555",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0,
+      "supabaseId": "11111111-2222-3333-4444-555555555555",
+      "code": "NULL"
+    },
+    {
+      "id": "ten_durbar_mvnrq6po",
+      "name": "Durbar Cafe",
+      "brandName": "Durbar Cafe",
+      "ownerId": "usr_ten_durbar_mvnrq6po",
+      "ownerName": "Durbar Admin",
+      "ownerEmail": "durbar@restaurant.com",
+      "plan": "ENTERPRISE",
+      "active": true,
+      "createdAt": "2026-10-25T15:15:58.336691+00:00",
+      "primaryRestID": "ten_durbar_mvnrq6po",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0,
+      "supabaseId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "code": "ten_durbar_mvnrq6po"
+    },
+    {
+      "id": "ten_farzi_mvnvc99o",
+      "name": "Farzi Cafe",
+      "brandName": "Farzi Cafe",
+      "ownerId": "usr_ten_farzi_mvnvc99o",
+      "ownerName": "Farzi Cafe Owner",
+      "ownerEmail": "farzi@restaurant.com",
+      "plan": "ENTERPRISE",
+      "active": true,
+      "createdAt": "2026-10-25T15:16:48.704457+00:00",
+      "primaryRestID": "ten_farzi_mvnvc99o",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0,
+      "supabaseId": "578ee9af-639b-4b66-a891-fe8aeaa3a9ea",
+      "code": "ten_farzi_mvnvc99o"
+    },
+    {
+      "id": "ten_mandi_lounge_mvs52wbd",
+      "name": "mandi lounge",
+      "brandName": "mandi lounge",
+      "ownerId": "usr_ten_mandi_lounge_mvs52wbd",
+      "ownerName": "sabeer",
+      "ownerEmail": "mandilounge@gmail.com",
+      "plan": "ENTERPRISE",
+      "active": true,
+      "createdAt": "2026-10-28T13:17:29.777458+00:00",
+      "primaryRestID": "ten_mandi_lounge_mvs52wbd",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0,
+      "supabaseId": "7f45bb61-614b-4afb-a15a-9addf3d9fcfb",
+      "code": "ten_mandi_lounge_mvs52wbd"
     }
   ],
   "users": [
@@ -45,7 +117,8 @@
       "email": "admin@yeezy.com",
       "passwordHash": "$2b$10$o1YGarWPl4SX22Gbb5kxEOYolz5uyxyWKq9F7q7CY6iMRM17ZHWwi",
       "role": "SUPER_ADMIN",
-      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "tenantId": null
     },
     {
       "id": "usr_owner_01",
@@ -64,6 +137,42 @@
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_smokehouse_02",
       "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"
+    },
+    {
+      "id": "e4876d4b-fad6-46ab-9817-50c16c3b9353",
+      "name": "My Restaurant Group",
+      "email": "null@restaurant.com",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "11111111-2222-3333-4444-555555555555",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=My%20Restaurant%20Group"
+    },
+    {
+      "id": "c7b49eac-40d5-40ec-ace6-e5bb855aa919",
+      "name": "Durbar Admin",
+      "email": "durbar@restaurant.com",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Durbar%20Admin"
+    },
+    {
+      "id": "ffdea753-aa48-4904-997e-33800e1b30e7",
+      "name": "Farzi Cafe Owner",
+      "email": "farzi@restaurant.com",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "578ee9af-639b-4b66-a891-fe8aeaa3a9ea",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Farzi%20Cafe%20Owner"
+    },
+    {
+      "id": "78d59f71-9a31-4f23-b5dc-c5c747babc0c",
+      "name": "sabeer",
+      "email": "mandilounge@gmail.com",
+      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "7f45bb61-614b-4afb-a15a-9addf3d9fcfb",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=sabeer"
     }
   ],
   "outlets": [
@@ -314,6 +423,213 @@
       },
       "created_at": "2026-01-01T00:00:00Z",
       "updated_at": "2026-10-24T00:00:00Z"
+    },
+    "ten_test_burger_mvs5c4cz": {
+      "id": "prog_1793193879202",
+      "restaurant_id": "ten_test_burger_mvs5c4cz",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T13:24:39.202Z",
+      "updated_at": "2026-10-28T13:24:39.202Z"
+    },
+    "ten_paradise_biryan_mvs5tko8": {
+      "id": "prog_1793194693483",
+      "restaurant_id": "ten_paradise_biryan_mvs5tko8",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T13:38:13.483Z",
+      "updated_at": "2026-10-28T13:38:13.483Z"
+    },
+    "ten_saffron___spice_mvs80mqu": {
+      "id": "prog_1793198381990",
+      "restaurant_id": "ten_saffron___spice_mvs80mqu",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T14:39:41.990Z",
+      "updated_at": "2026-10-28T14:39:41.990Z"
     }
   },
   "loyaltyMembers": [

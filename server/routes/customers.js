@@ -8,18 +8,22 @@ export const customersRouter = Router();
 // GET /api/v1/customers - Search, filter, and sort scoped to authenticated tenant
 customersRouter.get('/', authMiddleware, async (req, res) => {
   const { search = '', tier = 'all', sort = 'spend_desc' } = req.query;
-  const tenantId = req.tenantId || req.query.tenantId || req.user?.tenantId || 'ten_yeezy_01';
+  const tenantId = req.tenantId || req.headers['x-tenant-id'] || req.query.tenantId || req.user?.tenantId;
+
+  if (!tenantId) {
+    return res.json({ status: 'success', count: 0, customers: [] });
+  }
 
   let customers = [];
   const client = supabaseAdmin || supabase;
 
   if (client) {
     try {
-      let query = client.from('loyalty_members').select('*');
-      if (tenantId) {
-        query = query.eq('restaurant_id', tenantId);
-      }
-      const { data: dbMembers, error } = await query;
+      const { data: dbMembers, error } = await client
+        .from('loyalty_members')
+        .select('*')
+        .eq('restaurant_id', tenantId);
+
       if (!error && Array.isArray(dbMembers) && dbMembers.length > 0) {
         const memberIds = dbMembers.map((m) => m.id);
         const { data: ledgerEntries } = await client
@@ -71,13 +75,9 @@ customersRouter.get('/', authMiddleware, async (req, res) => {
     }
   }
 
-  // Fallback to posStore if no Supabase data exists
-  if (customers.length === 0) {
-    customers = tenantId
-      ? posStore.data.customers.filter(
-          (c) => c.tenantId === tenantId || (!c.tenantId && tenantId === 'ten_yeezy_01'),
-        )
-      : posStore.data.customers;
+  // Fallback to posStore ONLY if Supabase is unavailable and strictly matching tenantId
+  if (!client && customers.length === 0) {
+    customers = posStore.data.customers.filter((c) => c.tenantId === tenantId);
   }
 
   // Search filter

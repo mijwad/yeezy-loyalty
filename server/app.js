@@ -21,11 +21,18 @@ import { authMiddleware } from './middleware/auth.js';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
 import { supabaseAdmin } from './db/supabase.js';
-import { posAdapterFactory } from './pos/POSAdapterFactory.js';
+import { posStore } from './db/store.js';
 
 dotenv.config();
 
 const app = express();
+
+// Sync cloud database at startup
+if (posStore.syncWithSupabase) {
+  posStore.syncWithSupabase().catch(err => {
+    console.warn('[Startup] Supabase initial sync notice:', err.message);
+  });
+}
 
 // Trust proxy for correct IP behind load balancers
 app.set('trust proxy', 1);
