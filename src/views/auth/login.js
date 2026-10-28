@@ -1,272 +1,363 @@
-// Production Multi-Tenant Auth Screen View Module
+// Professional Enterprise Login View Module
+// Styled like Microsoft/Google/AWS enterprise login pages
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
-import { apiFetch, apiUrl } from '../../config/api.js';
-
-let authMode = 'login'; // 'login' | 'register'
+import { apiFetch } from '../../config/api.js';
 
 export function renderLoginView() {
   return `
-    <div class="min-h-screen bg-gradient-to-br from-[#12052b] via-[#1a0e38] to-[#0a0319] flex items-center justify-center p-4 sm:p-6 antialiased">
-      <div class="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl p-8 sm:p-10 shadow-2xl border border-white/20 animate-fade-in relative overflow-hidden">
-        
-        <!-- Ambient background glow -->
-        <div class="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-primary/20 blur-2xl pointer-events-none"></div>
-        <div class="absolute -bottom-16 -left-16 w-44 h-44 rounded-full bg-teal-500/20 blur-2xl pointer-events-none"></div>
-
-        <!-- Brand Header -->
-        <div class="flex flex-col items-center text-center mb-6 relative z-10">
-          <div class="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-2xl shadow-lg mb-3">
-            Y
+    <div class="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6 antialiased">
+      <div class="w-full max-w-md">
+        <!-- Header with Logo -->
+        <div class="text-center mb-10">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary-600 mx-auto mb-4">
+            <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
           </div>
-          <h1 class="text-2xl font-black text-gray-900 tracking-tight">Yeezy Loyalty Platform</h1>
-          <p class="text-xs text-gray-500 mt-1 font-medium">Enterprise multi-brand restaurant loyalty software</p>
+          <h1 class="text-2xl font-bold text-gray-900">Yeezy Loyalty Platform</h1>
+          <p class="text-sm text-gray-500 mt-1">Enterprise multi-brand restaurant loyalty software</p>
         </div>
 
-        <!-- Auth Mode Switcher Pills -->
-        <div class="mb-6 p-1 bg-slate-100 rounded-xl grid grid-cols-2 gap-1 relative z-10 select-none">
-          <button 
-            id="tab-mode-login" 
-            type="button" 
-            class="py-2 rounded-lg text-xs font-bold transition-all ${authMode === 'login' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'}"
-          >
-            Sign In
-          </button>
-          <button 
-            id="tab-mode-register" 
-            type="button" 
-            class="py-2 rounded-lg text-xs font-bold transition-all ${authMode === 'register' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'}"
-          >
-            Register Restaurant
-          </button>
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 sm:p-10">
+          <!-- Alert/Error Message Container -->
+          <div id="login-alert" class="hidden mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2" role="alert">
+            <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <span id="login-alert-message"></span>
+          </div>
+
+          <!-- Login Form -->
+          <form id="login-form" class="space-y-5" novalidate>
+            <!-- Identifier Field -->
+            <div>
+              <label for="login-identifier" class="block text-sm font-medium text-gray-700 mb-1.5">
+                Email, Username, or Restaurant Name
+              </label>
+              <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                <input
+                  type="text"
+                  id="login-identifier"
+                  name="identifier"
+                  required
+                  autocomplete="username"
+                  placeholder="e.g. name@restaurant.com, username, or restaurant name"
+                  class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white text-gray-900 placeholder-gray-400"
+                  aria-describedby="identifier-hint"
+                >
+              </div>
+              <p id="identifier-hint" class="mt-1.5 text-xs text-gray-500">
+                Sign in with your email, username, or restaurant name
+              </p>
+            </div>
+
+            <!-- Password Field -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="login-password" class="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  id="toggle-password"
+                  class="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:underline"
+                  aria-label="Show password"
+                >
+                  Show
+                </button>
+              </div>
+              <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                <input
+                  type="password"
+                  id="login-password"
+                  name="password"
+                  required
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  class="w-full pl-10 pr-12 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors bg-white text-gray-900 placeholder-gray-400"
+                >
+                <button
+                  type="button"
+                  id="toggle-password-visibility"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  aria-label="Toggle password visibility"
+                >
+                  <svg id="password-eye-open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  <svg id="password-eye-closed" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L3 3m15.87 15.87l-3.59-3.59"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="flex items-center justify-between">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="login-remember"
+                  name="rememberMe"
+                  class="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+                >
+                <span class="text-sm text-gray-600">Remember me</span>
+              </label>
+              <button
+                type="button"
+                id="btn-forgot-password"
+                class="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              id="btn-submit-login"
+              class="w-full py-3 px-4 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <span id="btn-login-text">Sign in</span>
+              <svg id="btn-login-spinner" class="w-5 h-5 hidden animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+            </button>
+
+            <!-- Demo Credentials (Development Only) -->
+            <div id="demo-credentials" class="hidden p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+              <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Demo Credentials (Development)</p>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-fill="superadmin"
+                  class="px-3 py-2 text-xs font-medium bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span class="font-semibold text-gray-900">Super Admin</span>
+                  <br><span class="text-gray-500">admin@yeezy.com / admin123</span>
+                </button>
+                <button
+                  type="button"
+                  data-fill="owner"
+                  class="px-3 py-2 text-xs font-medium bg-white border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                >
+                  <span class="font-semibold text-gray-900">Restaurant Owner</span>
+                  <br><span class="text-gray-500">alex.rivera@downtownbistro.com / owner123</span>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Forgot Password Form (Hidden by default) -->
+          <form id="forgot-password-form" class="hidden space-y-5">
+            <div class="text-center mb-6">
+              <h2 class="text-lg font-semibold text-gray-900">Reset your password</h2>
+              <p class="text-sm text-gray-500 mt-1">Enter your email and we'll send you a reset link</p>
+            </div>
+            <div>
+              <label for="forgot-email" class="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+              <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <input
+                  type="email"
+                  id="forgot-email"
+                  name="email"
+                  required
+                  autocomplete="email"
+                  placeholder="name@restaurant.com"
+                  class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                >
+              </div>
+            </div>
+            <button
+              type="submit"
+              id="btn-submit-forgot"
+              class="w-full py-3 px-4 rounded-lg bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <span>Send reset link</span>
+              <svg class="w-5 h-5 hidden animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+              </svg>
+            </button>
+            <div class="text-center">
+              <button
+                type="button"
+                id="btn-back-to-login"
+                class="text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:underline"
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          </form>
+
+          <!-- Forgot Password Success State (Hidden by default) -->
+          <div id="forgot-success" class="hidden text-center py-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 mb-4">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h2 class="text-lg font-semibold text-gray-900">Check your email</h2>
+            <p class="text-sm text-gray-500 mt-1">If an account exists, you'll receive a password reset link shortly.</p>
+            <button
+              type="button"
+              id="btn-back-to-login-from-success"
+              class="mt-6 text-sm text-primary-600 hover:text-primary-700 font-medium focus:outline-none focus:underline"
+            >
+              ← Back to sign in
+            </button>
+          </div>
+
+          <!-- Footer -->
+          <div class="mt-8 pt-6 border-t border-gray-100 text-center">
+            <p class="text-xs text-gray-400">
+              Each restaurant operates in a fully isolated, secure tenant environment.
+            </p>
+            <p class="text-xs text-gray-400 mt-1">
+              Need help? Contact <a href="mailto:support@yeezy.app" class="text-primary-600 hover:underline">support@yeezy.app</a>
+            </p>
+          </div>
         </div>
 
-        ${authMode === 'login' ? renderLoginForm() : renderRegisterForm()}
-
-        <!-- Footer notes -->
-        <div class="mt-6 pt-5 border-t border-gray-100 text-center relative z-10">
-          <p class="text-[11px] text-gray-400">
-            Each restaurant operates in a fully isolated, secure tenant environment.
-          </p>
-        </div>
-
+        <!-- Version Info -->
+        <p class="text-center text-xs text-gray-400 mt-6">v1.0.0 · Enterprise Edition</p>
       </div>
     </div>
   `;
 }
 
-function renderLoginForm() {
-  return `
-    <form id="login-form" class="space-y-4 relative z-10">
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1.5">Username, Restaurant Name, or Email</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">person</span>
-          <input 
-            id="login-username" 
-            type="text" 
-            required 
-            autocomplete="username"
-            placeholder="e.g. Downtown Bistro, alex, or name@restaurant.com" 
-            class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-        <p class="text-[11px] text-gray-500 mt-1.5 font-medium flex items-center gap-1">
-          <span class="material-symbols-outlined text-[13px] text-primary">info</span>
-          Sign in with your email, username, or restaurant name (default password: <span class="font-mono font-bold text-gray-700">owner123</span>)
-        </p>
-      </div>
-
-      <div>
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="text-xs font-bold text-gray-700">Password</label>
-          <a href="javascript:void(0)" class="text-[11px] text-primary hover:underline font-bold" onclick="window.showToast('Please contact platform administrator for password recovery')">Forgot?</a>
-        </div>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">lock</span>
-          <input 
-            id="login-password" 
-            type="password" 
-            required 
-            autocomplete="current-password"
-            placeholder="••••••••" 
-            class="w-full pl-10 pr-4 py-3 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-      </div>
-
-      <!-- Quick Demo Credentials -->
-      <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5">
-        <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Quick Demo Fill</p>
-        <div class="grid grid-cols-2 gap-1.5">
-          <button 
-            type="button" 
-            id="btn-fill-superadmin" 
-            class="px-2.5 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 rounded-lg transition text-left flex items-center justify-between"
-          >
-            <span>👑 Super Admin</span>
-            <span class="text-[10px] text-slate-400">Fill</span>
-          </button>
-          <button 
-            type="button" 
-            id="btn-fill-owner" 
-            class="px-2.5 py-1.5 text-[11px] font-semibold bg-white border border-slate-200 hover:border-primary/50 hover:bg-primary/5 text-slate-700 rounded-lg transition text-left flex items-center justify-between"
-          >
-            <span>🏪 Restaurant</span>
-            <span class="text-[10px] text-slate-400">Fill</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="pt-1">
-        <button 
-          id="btn-submit-login" 
-          type="submit" 
-          class="w-full py-3.5 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-primary/25 flex items-center justify-center gap-2 active:scale-98"
-        >
-          <span>Sign In to Yeezy</span>
-          <span class="material-symbols-outlined text-base">arrow_forward</span>
-        </button>
-      </div>
-    </form>
-  `;
-}
-
-function renderRegisterForm() {
-  return `
-    <form id="register-restaurant-form" class="space-y-3.5 relative z-10">
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1">Restaurant / Brand Name</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">restaurant</span>
-          <input 
-            id="reg-brand-name" 
-            type="text" 
-            required 
-            placeholder="e.g. Copper Chimney Bistro" 
-            class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-      </div>
-
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1">Owner / Operator Full Name</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">badge</span>
-          <input 
-            id="reg-owner-name" 
-            type="text" 
-            required 
-            placeholder="e.g. Vikram Sharma" 
-            class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-      </div>
-
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1">Business Email Address</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">mail</span>
-          <input 
-            id="reg-owner-email" 
-            type="email" 
-            required 
-            placeholder="vikram@copperchimney.com" 
-            class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-      </div>
-
-      <div>
-        <label class="text-xs font-bold text-gray-700 block mb-1">Account Password</label>
-        <div class="relative">
-          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg">lock</span>
-          <input 
-            id="reg-password" 
-            type="password" 
-            required 
-            placeholder="Create password" 
-            class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 transition font-medium text-gray-900"
-          >
-        </div>
-      </div>
-
-      <div class="pt-2">
-        <button 
-          id="btn-submit-register" 
-          type="submit" 
-          class="w-full py-3.5 px-4 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-xs uppercase tracking-wider transition shadow-lg shadow-teal-700/25 flex items-center justify-center gap-2 active:scale-98"
-        >
-          <span>Create Restaurant & Sign In</span>
-          <span class="material-symbols-outlined text-base">check_circle</span>
-        </button>
-      </div>
-    </form>
-  `;
-}
-
 export function attachLoginListeners() {
-  const tabLogin = document.getElementById('tab-mode-login');
-  const tabRegister = document.getElementById('tab-mode-register');
-
-  if (tabLogin && tabRegister) {
-    tabLogin.onclick = () => {
-      authMode = 'login';
-      store.notify();
-    };
-    tabRegister.onclick = () => {
-      authMode = 'register';
-      store.notify();
-    };
-  }
-
-  // Quick demo fill buttons
-  const btnFillSuperAdmin = document.getElementById('btn-fill-superadmin');
-  const btnFillOwner = document.getElementById('btn-fill-owner');
-
-  if (btnFillSuperAdmin) {
-    btnFillSuperAdmin.onclick = () => {
-      const usernameInput = document.getElementById('login-username');
-      const passwordInput = document.getElementById('login-password');
-      if (usernameInput) usernameInput.value = 'admin@yeezy.com';
-      if (passwordInput) passwordInput.value = 'admin123';
-      showToast('Filled Super Admin demo credentials', 'info');
-    };
-  }
-
-  if (btnFillOwner) {
-    btnFillOwner.onclick = () => {
-      const usernameInput = document.getElementById('login-username');
-      const passwordInput = document.getElementById('login-password');
-      if (usernameInput) usernameInput.value = 'alex.rivera@downtownbistro.com';
-      if (passwordInput) passwordInput.value = 'owner123';
-      showToast('Filled Downtown Bistro Owner demo credentials', 'info');
-    };
-  }
-
-  // Handle Login submission
   const loginForm = document.getElementById('login-form');
-  const usernameInput = document.getElementById('login-username');
+  const forgotForm = document.getElementById('forgot-password-form');
+  const identifierInput = document.getElementById('login-identifier');
   const passwordInput = document.getElementById('login-password');
   const submitLoginBtn = document.getElementById('btn-submit-login');
+  const loginAlert = document.getElementById('login-alert');
+  const loginAlertMessage = document.getElementById('login-alert-message');
+  const togglePasswordBtn = document.getElementById('toggle-password-visibility');
+  const forgotPasswordBtn = document.getElementById('btn-forgot-password');
+  const backToLoginBtn = document.getElementById('btn-back-to-login');
+  const backToLoginFromSuccessBtn = document.getElementById('btn-back-to-login-from-success');
+  const forgotSubmitBtn = document.getElementById('btn-submit-forgot');
+  const forgotEmailInput = document.getElementById('forgot-email');
+  const demoButtons = document.querySelectorAll('[data-fill]');
 
+  // Demo credential fill buttons (only show in development)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    const demoContainer = document.getElementById('demo-credentials');
+    if (demoContainer) demoContainer.classList.remove('hidden');
+
+    demoButtons.forEach(btn => {
+      btn.onclick = () => {
+        if (btn.dataset.fill === 'superadmin') {
+          identifierInput.value = 'admin@yeezy.com';
+          passwordInput.value = 'admin123';
+        } else if (btn.dataset.fill === 'owner') {
+          identifierInput.value = 'alex.rivera@downtownbistro.com';
+          passwordInput.value = 'owner123';
+        }
+        identifierInput.focus();
+        showToast('Demo credentials filled', 'info');
+      };
+    });
+  }
+
+  // Password visibility toggle
+  if (togglePasswordBtn) {
+    togglePasswordBtn.onclick = () => {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
+      document.getElementById('password-eye-open').classList.toggle('hidden', type === 'text');
+      document.getElementById('password-eye-closed').classList.toggle('hidden', type === 'password');
+      togglePasswordBtn.setAttribute('aria-label', type === 'password' ? 'Show password' : 'Hide password');
+    };
+  }
+
+  // Show/hide password link (alternative)
+  const showPasswordLink = document.getElementById('toggle-password');
+  if (showPasswordLink) {
+    showPasswordLink.onclick = () => {
+      const type = passwordInput.type === 'password' ? 'text' : 'password';
+      passwordInput.type = type;
+      showPasswordLink.textContent = type === 'password' ? 'Show' : 'Hide';
+      document.getElementById('password-eye-open').classList.toggle('hidden', type === 'text');
+      document.getElementById('password-eye-closed').classList.toggle('hidden', type === 'password');
+    };
+  }
+
+  // Forgot password flow
+  const showForgotForm = () => {
+    loginForm.classList.add('hidden');
+    document.getElementById('forgot-password-form').classList.remove('hidden');
+    document.getElementById('forgot-success').classList.add('hidden');
+    forgotEmailInput?.focus();
+    hideAlert();
+  };
+
+  const showLoginForm = () => {
+    loginForm.classList.remove('hidden');
+    document.getElementById('forgot-password-form').classList.add('hidden');
+    document.getElementById('forgot-success').classList.add('hidden');
+    identifierInput?.focus();
+    hideAlert();
+  };
+
+  const showForgotSuccess = () => {
+    loginForm.classList.add('hidden');
+    document.getElementById('forgot-password-form').classList.add('hidden');
+    document.getElementById('forgot-success').classList.remove('hidden');
+    hideAlert();
+  };
+
+  if (forgotPasswordBtn) forgotPasswordBtn.onclick = showForgotForm;
+  if (backToLoginBtn) backToLoginBtn.onclick = showLoginForm;
+  if (backToLoginFromSuccessBtn) backToLoginFromSuccessBtn.onclick = showLoginForm;
+
+  // Hide alert
+  function hideAlert() {
+    loginAlert.classList.add('hidden');
+  }
+
+  function showAlert(message) {
+    loginAlertMessage.textContent = message;
+    loginAlert.classList.remove('hidden');
+  }
+
+  // Handle Login Submission
   if (loginForm) {
     loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      const identifier = usernameInput?.value.trim();
-      const password = passwordInput?.value.trim();
 
-      if (!identifier || !password) return;
+      const identifier = identifierInput?.value.trim();
+      const password = passwordInput?.value;
+      const rememberMe = document.getElementById('login-remember')?.checked || false;
 
-      if (submitLoginBtn) {
-        submitLoginBtn.disabled = true;
-        submitLoginBtn.innerHTML = `<span>Authenticating...</span>`;
+      if (!identifier || !password) {
+        showAlert('Please enter both identifier and password');
+        return;
       }
+
+      // Disable form
+      setLoadingState(true);
+      hideAlert();
 
       // If backend is sleeping on Render free tier, notify user after 2.5s
       const wakeTimer = setTimeout(() => {
         if (submitLoginBtn && submitLoginBtn.disabled) {
-          submitLoginBtn.innerHTML = `<span>Waking backend server...</span>`;
+          document.getElementById('btn-login-text').textContent = 'Waking backend server...';
         }
       }, 2500);
 
@@ -274,9 +365,9 @@ export function attachLoginListeners() {
         const res = await apiFetch('/api/v1/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: identifier, username: identifier, password })
+          body: JSON.stringify({ identifier, password, rememberMe })
         });
-        
+
         let data;
         try {
           data = await res.json();
@@ -285,72 +376,65 @@ export function attachLoginListeners() {
         }
 
         if (res.ok && data.status === 'success') {
-          // Cleanly initialize store state strictly for this authenticated tenant
+          // Store token and user
+          localStorage.setItem('yeezy_auth_token', data.token);
+          if (data.refreshToken) {
+            localStorage.setItem('yeezy_refresh_token', data.refreshToken);
+          }
+          localStorage.setItem('yeezy_auth_user', JSON.stringify(data.user));
+
+          // Initialize store state
           await store.loginUser(data.user, data.token);
 
-          showToast(`Welcome back, ${data.user.name.split(' ')[0]}! (${data.user.role === 'SUPER_ADMIN' ? 'Super Admin' : data.user.tenantName || 'Restaurant Owner'})`);
+          showToast(`Welcome back, ${data.user.name.split(' ')[0]}!`);
 
+          // Redirect based on role
           if (data.user.role === 'SUPER_ADMIN') {
             window.location.hash = '#super-admin';
           } else {
             window.location.hash = '#dashboard';
           }
         } else {
-          showToast(data.message || 'Invalid username, restaurant name, or password. (Default restaurant password is owner123)', 'error');
-          if (submitLoginBtn) {
-            submitLoginBtn.disabled = false;
-            submitLoginBtn.innerHTML = `<span>Sign In to Yeezy</span><span class="material-symbols-outlined text-base">arrow_forward</span>`;
-          }
+          showAlert(data.message || 'Invalid credentials. Please try again.');
+          setLoadingState(false);
         }
       } catch (err) {
         console.error('[Login Error]', err);
-        showToast('Error connecting to backend authentication server. Please retry in a few seconds.', 'error');
-        if (submitLoginBtn) {
-          submitLoginBtn.disabled = false;
-          submitLoginBtn.innerHTML = `<span>Sign In to Yeezy</span><span class="material-symbols-outlined text-base">arrow_forward</span>`;
-        }
+        showAlert('Error connecting to server. Please try again in a few seconds.');
+        setLoadingState(false);
       } finally {
         clearTimeout(wakeTimer);
       }
     };
   }
 
-  // Handle Registration submission
-  const registerForm = document.getElementById('register-restaurant-form');
-  const brandNameInput = document.getElementById('reg-brand-name');
-  const ownerNameInput = document.getElementById('reg-owner-name');
-  const ownerEmailInput = document.getElementById('reg-owner-email');
-  const regPasswordInput = document.getElementById('reg-password');
-  const submitRegisterBtn = document.getElementById('btn-submit-register');
-
-  if (registerForm) {
-    registerForm.onsubmit = async (e) => {
+  // Handle Forgot Password Submission
+  if (forgotForm) {
+    forgotForm.onsubmit = async (e) => {
       e.preventDefault();
-      const brandName = brandNameInput?.value.trim();
-      const ownerName = ownerNameInput?.value.trim();
-      const ownerEmail = ownerEmailInput?.value.trim();
-      const password = regPasswordInput?.value.trim();
 
-      if (!brandName || !ownerName || !ownerEmail || !password) return;
+      const email = forgotEmailInput?.value.trim();
 
-      if (submitRegisterBtn) {
-        submitRegisterBtn.disabled = true;
-        submitRegisterBtn.innerHTML = `<span>Provisioning Restaurant...</span>`;
+      if (!email) {
+        showAlert('Please enter your email address');
+        return;
       }
 
-      const wakeTimer = setTimeout(() => {
-        if (submitRegisterBtn && submitRegisterBtn.disabled) {
-          submitRegisterBtn.innerHTML = `<span>Waking backend server...</span>`;
-        }
-      }, 2500);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showAlert('Please enter a valid email address');
+        return;
+      }
+
+      setForgotLoadingState(true);
+      hideAlert();
 
       try {
-        const res = await apiFetch('/api/v1/auth/register-restaurant', {
+        const res = await apiFetch('/api/v1/auth/forgot-password', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brandName, ownerName, ownerEmail, password })
+          body: JSON.stringify({ email })
         });
-        
+
         let data;
         try {
           data = await res.json();
@@ -359,28 +443,38 @@ export function attachLoginListeners() {
         }
 
         if (res.ok && data.status === 'success') {
-          // Initialize brand new restaurant state
-          await store.loginUser(data.user, data.token);
-
-          showToast(`🎉 Restaurant "${brandName}" successfully created! Welcome, ${ownerName.split(' ')[0]}.`);
-          window.location.hash = '#dashboard';
+          showForgotSuccess();
         } else {
-          showToast(data.message || 'Failed to register restaurant', 'error');
-          if (submitRegisterBtn) {
-            submitRegisterBtn.disabled = false;
-            submitRegisterBtn.innerHTML = `<span>Create Restaurant & Sign In</span><span class="material-symbols-outlined text-base">check_circle</span>`;
-          }
+          showAlert(data.message || 'Failed to send reset link. Please try again.');
+          setForgotLoadingState(false);
         }
       } catch (err) {
-        console.error('[Register Error]', err);
-        showToast('Network error during restaurant registration. Please retry in a few seconds.', 'error');
-        if (submitRegisterBtn) {
-          submitRegisterBtn.disabled = false;
-          submitRegisterBtn.innerHTML = `<span>Create Restaurant & Sign In</span><span class="material-symbols-outlined text-base">check_circle</span>`;
-        }
-      } finally {
-        clearTimeout(wakeTimer);
+        console.error('[Forgot Password Error]', err);
+        showAlert('Error connecting to server. Please try again.');
+        setForgotLoadingState(false);
       }
     };
+  }
+
+  // Loading state helpers
+  function setLoadingState(loading) {
+    if (submitLoginBtn) {
+      submitLoginBtn.disabled = loading;
+      document.getElementById('btn-login-text').textContent = loading ? 'Signing in...' : 'Sign in';
+      document.getElementById('btn-login-spinner').classList.toggle('hidden', !loading);
+    }
+    if (identifierInput) identifierInput.disabled = loading;
+    if (passwordInput) passwordInput.disabled = loading;
+    const rememberCheckbox = document.getElementById('login-remember');
+    if (rememberCheckbox) rememberCheckbox.disabled = loading;
+  }
+
+  function setForgotLoadingState(loading) {
+    if (forgotSubmitBtn) {
+      forgotSubmitBtn.disabled = loading;
+      forgotSubmitBtn.querySelector('span').textContent = loading ? 'Sending...' : 'Send reset link';
+      forgotSubmitBtn.querySelector('svg').classList.toggle('hidden', !loading);
+    }
+    if (forgotEmailInput) forgotEmailInput.disabled = loading;
   }
 }
