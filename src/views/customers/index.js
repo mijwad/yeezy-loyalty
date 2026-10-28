@@ -258,13 +258,12 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
       </div>
     </div>
 
-    <!-- Customer Lifecycle Segments Bento Grid (Exact Second Design) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+    <!-- Customer Lifecycle Segments Bento Grid (Exact Second Design with Hover Info Popovers) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch overflow-visible">
       <!-- Column 1: New – First Timer (Tall Card spanning full height) -->
       <div 
-        class="segment-bento-card bg-[#EBF9F1] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D4F4DF]" 
+        class="segment-bento-card relative group bg-[#EBF9F1] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D4F4DF]" 
         data-segment-key="new"
-        title="Click to filter New – First Timer diners"
       >
         <div class="self-start">
           <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D4F4DF] text-[#166534]">
@@ -277,15 +276,41 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
         <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
           ${segments.firstTimers.count} Customer${segments.firstTimers.count === 1 ? '' : 's'}
         </div>
+
+        <!-- Hover Popover Tooltip (Image 1) -->
+        <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-2 md:left-full top-2 md:top-6 md:ml-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <!-- Arrow Caret pointing Left to Card -->
+          <div class="hidden md:block absolute -left-2 top-8 w-4 h-4 bg-white rotate-45 border-l border-b border-gray-200/60"></div>
+          
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D4F4DF] text-[#166534]">
+            New – First Timer
+          </span>
+          <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+            Visited once recently - drive their second visit
+          </p>
+          <div class="border-t border-gray-100 my-3"></div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+            CRITERIA
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EAF8F0] text-gray-800 text-xs font-medium">
+              <span class="text-base leading-none">📅</span>
+              <span class="leading-tight">0-45 days since last visit</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+              <span class="text-base leading-none">🚶</span>
+              <span class="leading-tight">1 lifetime visit</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Column 2: Promising (Top) & Loyal (Bottom) -->
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4 overflow-visible">
         <!-- Promising -->
         <div 
-          class="segment-bento-card bg-[#FDF0F6] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FCE3EE]" 
+          class="segment-bento-card relative group bg-[#FDF0F6] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FCE3EE]" 
           data-segment-key="promising"
-          title="Click to filter Promising diners"
         >
           <div class="self-start">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FCE3EE] text-[#9D174D]">
@@ -298,13 +323,39 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
             ${segments.promising.count} Customer${segments.promising.count === 1 ? '' : 's'}
           </div>
+
+          <!-- Hover Popover Tooltip (Image 2) -->
+          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-0 md:left-1/2 md:-translate-x-1/2 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+            <!-- Arrow Caret pointing Up to Card -->
+            <div class="absolute -top-2 left-8 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-200/60"></div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FCE3EE] text-[#9D174D]">
+              Promising
+            </span>
+            <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+              Visited 2-2 times recently - building a habit
+            </p>
+            <div class="border-t border-gray-100 my-3"></div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              CRITERIA
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#FDF0F6] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">📅</span>
+                <span class="leading-tight">0-45 days since last visit</span>
+              </div>
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">🚶</span>
+                <span class="leading-tight">2 lifetime visits</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Loyal -->
         <div 
-          class="segment-bento-card bg-[#E6F9F9] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D0F5F6]" 
+          class="segment-bento-card relative group bg-[#E6F9F9] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D0F5F6]" 
           data-segment-key="loyal"
-          title="Click to filter Loyal diners"
         >
           <div class="self-start">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D0F5F6] text-[#0F766E]">
@@ -317,14 +368,44 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
             ${segments.loyal.count} Customer${segments.loyal.count === 1 ? '' : 's'}
           </div>
+
+          <!-- Hover Popover Tooltip (Image 3) -->
+          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-0 md:left-1/2 md:-translate-x-1/2 bottom-full mb-3 w-[290px] sm:w-[340px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+            <!-- Arrow Caret pointing Down to Card -->
+            <div class="absolute -bottom-2 left-8 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200/60"></div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#D0F5F6] text-[#0F766E]">
+              Loyal
+            </span>
+            <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+              Your frequent visitors - they keep coming back
+            </p>
+            <div class="border-t border-gray-100 my-3"></div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              CRITERIA
+            </div>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#E6F9F9] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">📅</span>
+                <span class="leading-tight">0-45 days since last visit</span>
+              </div>
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">🚶</span>
+                <span class="leading-tight">3+ lifetime visits</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#FEFCE8] text-gray-800 text-xs font-medium w-full">
+              <span class="text-base leading-none">🛍️</span>
+              <span class="leading-tight">2+ visits in last 12 months</span>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Column 3: At Risk (Tall Card spanning full height) -->
       <div 
-        class="segment-bento-card bg-[#FEFCE8] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FEF08A]" 
+        class="segment-bento-card relative group bg-[#FEFCE8] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FEF08A]" 
         data-segment-key="at-risk"
-        title="Click to filter At Risk diners"
       >
         <div class="self-start">
           <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FEF08A] text-[#854D0E]">
@@ -337,15 +418,41 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
         <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
           ${segments.atRisk.count} Customer${segments.atRisk.count === 1 ? '' : 's'}
         </div>
+
+        <!-- Hover Popover Tooltip (Image 4) -->
+        <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-2 md:right-full top-2 md:top-6 md:mr-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <!-- Arrow Caret pointing Right to Card -->
+          <div class="hidden md:block absolute -right-2 top-8 w-4 h-4 bg-white rotate-45 border-r border-t border-gray-200/60"></div>
+          
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FEF08A] text-[#854D0E]">
+            At Risk
+          </span>
+          <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+            Were engaged but haven't visited recently - win them back
+          </p>
+          <div class="border-t border-gray-100 my-3"></div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+            CRITERIA
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#FEFCE8] text-gray-800 text-xs font-medium">
+              <span class="text-base leading-none">📅</span>
+              <span class="leading-tight">46-120 days since last visit</span>
+            </div>
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+              <span class="text-base leading-none">🚶</span>
+              <span class="leading-tight">2+ lifetime visits</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Column 4: One-Time Visitor (Top) & Lost (Bottom) -->
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col gap-4 overflow-visible">
         <!-- One-Time Visitor -->
         <div 
-          class="segment-bento-card bg-[#EFF6FF] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#DBEAFE]" 
+          class="segment-bento-card relative group bg-[#EFF6FF] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#DBEAFE]" 
           data-segment-key="one-time"
-          title="Click to filter One-Time Visitors"
         >
           <div class="self-start">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#DBEAFE] text-[#1E40AF]">
@@ -358,13 +465,39 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
             ${segments.oneTimeVisitors.count} Customer${segments.oneTimeVisitors.count === 1 ? '' : 's'}
           </div>
+
+          <!-- Hover Popover Tooltip (Image 5) -->
+          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-0 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+            <!-- Arrow Caret pointing Up to Card -->
+            <div class="absolute -top-2 right-8 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-200/60"></div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#DBEAFE] text-[#1E40AF]">
+              One-Time Visitor (Didn’t Return)
+            </span>
+            <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+              Visited once but never came back
+            </p>
+            <div class="border-t border-gray-100 my-3"></div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              CRITERIA
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">📅</span>
+                <span class="leading-tight">46+ days since last visit</span>
+              </div>
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">🚶</span>
+                <span class="leading-tight">1 lifetime visit</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Lost -->
         <div 
-          class="segment-bento-card bg-[#FFF1F2] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FFE4E6]" 
+          class="segment-bento-card relative group bg-[#FFF1F2] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FFE4E6]" 
           data-segment-key="lost"
-          title="Click to filter Lost diners"
         >
           <div class="self-start">
             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FFE4E6] text-[#9F1239]">
@@ -376,6 +509,33 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           </div>
           <div class="text-xs md:text-sm font-semibold text-gray-800 mt-1">
             ${segments.lost.count} Customer${segments.lost.count === 1 ? '' : 's'}
+          </div>
+
+          <!-- Hover Popover Tooltip (Lost) -->
+          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-0 bottom-full mb-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+            <!-- Arrow Caret pointing Down to Card -->
+            <div class="absolute -bottom-2 right-8 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200/60"></div>
+            
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[#FFE4E6] text-[#9F1239]">
+              Lost
+            </span>
+            <p class="text-xs text-gray-500 font-normal mt-2 leading-relaxed">
+              Lapsed guests who have stopped visiting - high churn risk
+            </p>
+            <div class="border-t border-gray-100 my-3"></div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              CRITERIA
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#FFF1F2] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">📅</span>
+                <span class="leading-tight">120+ days since last visit</span>
+              </div>
+              <div class="flex items-center gap-2 p-2.5 rounded-xl bg-[#EFF6FF] text-gray-800 text-xs font-medium">
+                <span class="text-base leading-none">🚶</span>
+                <span class="leading-tight">Inactive long term</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
