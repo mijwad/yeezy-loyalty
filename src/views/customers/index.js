@@ -258,11 +258,11 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
       </div>
     </div>
 
-    <!-- Customer Lifecycle Segments Bento Grid (Exact Second Design with Hover Info Popovers) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch overflow-visible">
+    <!-- Customer Lifecycle Segments Bento Grid (Exact Second Design with Top-Priority Hover Info Popovers) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch overflow-visible relative z-20">
       <!-- Column 1: New – First Timer (Tall Card spanning full height) -->
       <div 
-        class="segment-bento-card relative group bg-[#EBF9F1] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D4F4DF]" 
+        class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#EBF9F1] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D4F4DF]" 
         data-segment-key="new"
       >
         <div class="self-start">
@@ -278,7 +278,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
         </div>
 
         <!-- Hover Popover Tooltip (Image 1) -->
-        <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-2 md:left-full top-2 md:top-6 md:ml-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+        <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] left-2 md:left-full top-2 md:top-6 md:ml-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
           <!-- Arrow Caret pointing Left to Card -->
           <div class="hidden md:block absolute -left-2 top-8 w-4 h-4 bg-white rotate-45 border-l border-b border-gray-200/60"></div>
           
@@ -306,10 +306,10 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
       </div>
 
       <!-- Column 2: Promising (Top) & Loyal (Bottom) -->
-      <div class="flex flex-col gap-4 overflow-visible">
+      <div class="flex flex-col gap-4 overflow-visible relative z-10 hover:z-[80]">
         <!-- Promising -->
         <div 
-          class="segment-bento-card relative group bg-[#FDF0F6] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FCE3EE]" 
+          class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#FDF0F6] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FCE3EE]" 
           data-segment-key="promising"
         >
           <div class="self-start">
@@ -325,7 +325,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           </div>
 
           <!-- Hover Popover Tooltip (Image 2) -->
-          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-0 md:left-1/2 md:-translate-x-1/2 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] left-0 md:left-1/2 md:-translate-x-1/2 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
             <!-- Arrow Caret pointing Up to Card -->
             <div class="absolute -top-2 left-8 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-200/60"></div>
             
@@ -354,7 +354,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
 
         <!-- Loyal -->
         <div 
-          class="segment-bento-card relative group bg-[#E6F9F9] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D0F5F6]" 
+          class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#E6F9F9] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#D0F5F6]" 
           data-segment-key="loyal"
         >
           <div class="self-start">
@@ -370,7 +370,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           </div>
 
           <!-- Hover Popover Tooltip (Image 3) -->
-          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 left-0 md:left-1/2 md:-translate-x-1/2 bottom-full mb-3 w-[290px] sm:w-[340px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] left-0 md:left-1/2 md:-translate-x-1/2 bottom-full mb-3 w-[290px] sm:w-[340px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
             <!-- Arrow Caret pointing Down to Card -->
             <div class="absolute -bottom-2 left-8 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200/60"></div>
             
@@ -404,7 +404,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
 
       <!-- Column 3: At Risk (Tall Card spanning full height) -->
       <div 
-        class="segment-bento-card relative group bg-[#FEFCE8] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FEF08A]" 
+        class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#FEFCE8] rounded-2xl p-5 md:p-6 flex flex-col justify-start min-h-[220px] transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FEF08A]" 
         data-segment-key="at-risk"
       >
         <div class="self-start">
@@ -420,7 +420,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
         </div>
 
         <!-- Hover Popover Tooltip (Image 4) -->
-        <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-2 md:right-full top-2 md:top-6 md:mr-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+        <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] right-2 md:right-full top-2 md:top-6 md:mr-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
           <!-- Arrow Caret pointing Right to Card -->
           <div class="hidden md:block absolute -right-2 top-8 w-4 h-4 bg-white rotate-45 border-r border-t border-gray-200/60"></div>
           
@@ -448,10 +448,10 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
       </div>
 
       <!-- Column 4: One-Time Visitor (Top) & Lost (Bottom) -->
-      <div class="flex flex-col gap-4 overflow-visible">
+      <div class="flex flex-col gap-4 overflow-visible relative z-10 hover:z-[80]">
         <!-- One-Time Visitor -->
         <div 
-          class="segment-bento-card relative group bg-[#EFF6FF] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#DBEAFE]" 
+          class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#EFF6FF] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#DBEAFE]" 
           data-segment-key="one-time"
         >
           <div class="self-start">
@@ -467,7 +467,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           </div>
 
           <!-- Hover Popover Tooltip (Image 5) -->
-          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-0 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] right-0 top-full mt-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
             <!-- Arrow Caret pointing Up to Card -->
             <div class="absolute -top-2 right-8 w-4 h-4 bg-white rotate-45 border-l border-t border-gray-200/60"></div>
             
@@ -496,7 +496,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
 
         <!-- Lost -->
         <div 
-          class="segment-bento-card relative group bg-[#FFF1F2] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FFE4E6]" 
+          class="segment-bento-card relative z-10 hover:z-[90] focus-within:z-[90] group bg-[#FFF1F2] rounded-2xl p-5 flex-1 flex flex-col justify-start transition-all hover:scale-[1.01] hover:shadow-sm cursor-pointer select-none border border-transparent hover:border-[#FFE4E6]" 
           data-segment-key="lost"
         >
           <div class="self-start">
@@ -512,7 +512,7 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
           </div>
 
           <!-- Hover Popover Tooltip (Lost) -->
-          <div class="pointer-events-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 absolute z-50 right-0 bottom-full mb-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
+          <div class="pointer-events-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 absolute z-[100] right-0 bottom-full mb-3 w-[290px] sm:w-[330px] bg-white rounded-2xl p-4 md:p-5 shadow-2xl border border-gray-100 text-left">
             <!-- Arrow Caret pointing Down to Card -->
             <div class="absolute -bottom-2 right-8 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-200/60"></div>
             
