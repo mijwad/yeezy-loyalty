@@ -179,6 +179,109 @@ export function renderCustomerInsights(state, filters = {}) {
   `;
 }
 
+function renderCompareSegmentsTable(segments) {
+  const segData = [
+    {
+      key: 'new',
+      label: 'New – First Timer',
+      badgeClass: 'bg-[#D4F4DF] text-[#166534]',
+      items: segments.firstTimers?.items || []
+    },
+    {
+      key: 'promising',
+      label: 'Promising',
+      badgeClass: 'bg-[#FCE3EE] text-[#9D174D]',
+      items: segments.promising?.items || []
+    },
+    {
+      key: 'loyal',
+      label: 'Loyal',
+      badgeClass: 'bg-[#D0F5F6] text-[#0F766E]',
+      items: segments.loyal?.items || []
+    },
+    {
+      key: 'at-risk',
+      label: 'At Risk',
+      badgeClass: 'bg-[#FEF08A] text-[#854D0E]',
+      items: segments.atRisk?.items || []
+    },
+    {
+      key: 'one-time',
+      label: 'One-Time Visitor',
+      badgeClass: 'bg-[#DBEAFE] text-[#1E40AF]',
+      items: segments.oneTimeVisitors?.items || []
+    },
+    {
+      key: 'lost',
+      label: 'Lost',
+      badgeClass: 'bg-[#FFE4E6] text-[#9F1239]',
+      items: segments.lost?.items || []
+    }
+  ];
+
+  return `
+    <div class="mt-8">
+      <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-4 tracking-tight">Compare Segments</h2>
+      
+      <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div class="min-w-[760px] flex flex-col gap-2.5">
+          <!-- Table Header -->
+          <div class="grid grid-cols-[180px_1fr_1fr_1.3fr_1fr_1fr_36px] items-center px-6 py-2 text-sm font-semibold text-gray-900">
+            <div>Segment</div>
+            <div>Customers</div>
+            <div>Visits</div>
+            <div>Avg visit / customer</div>
+            <div>AOV</div>
+            <div>Total Sales</div>
+            <div></div>
+          </div>
+
+          <!-- Segment Rows as Soft Gray Strip Cards -->
+          ${segData.map(row => {
+            const custCount = row.items.length;
+            const visitsCount = row.items.reduce((s, c) => s + (c.visits || 0), 0);
+            const avgVisit = custCount > 0 ? (visitsCount / custCount).toFixed(2) : '0.00';
+            const totalSales = row.items.reduce((s, c) => s + (c.numericSpend || 0), 0);
+            const aov = visitsCount > 0 ? Math.round(totalSales / visitsCount) : 0;
+
+            return `
+              <div 
+                class="compare-segment-row grid grid-cols-[180px_1fr_1fr_1.3fr_1fr_1fr_36px] items-center px-6 py-4 bg-[#F9FAFB] hover:bg-slate-100 rounded-2xl transition-all cursor-pointer select-none group border border-transparent hover:border-gray-200/60"
+                data-segment-key="${row.key}"
+                title="View ${row.label} customers in directory"
+              >
+                <div>
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${row.badgeClass}">
+                    ${row.label}
+                  </span>
+                </div>
+                <div class="text-sm font-medium text-gray-900">
+                  ${custCount}
+                </div>
+                <div class="text-sm font-medium text-gray-900">
+                  ${visitsCount}
+                </div>
+                <div class="text-sm font-medium text-gray-900">
+                  ${avgVisit}
+                </div>
+                <div class="text-sm font-medium text-gray-900">
+                  ₹${aov}
+                </div>
+                <div class="text-sm font-medium text-gray-900">
+                  ₹${totalSales}
+                </div>
+                <div class="flex items-center justify-end text-gray-700 group-hover:translate-x-0.5 transition-transform">
+                  <span class="material-symbols-outlined text-lg leading-none">chevron_right</span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newCount, avgSpend, avgVisits, avgCheckSize, totalSpend, totalVisits, totalPoints, repeatDiners, repeatRate, segmentsInput) {
   const segments = segmentsInput || categorizeCustomerSegments(customers);
   // Aggregate real dish data from all registered customers and orders
@@ -540,6 +643,9 @@ function renderOverviewTab(customers, vipCount, frequentCount, atRiskCount, newC
         </div>
       </div>
     </div>
+
+    <!-- Compare Segments Table -->
+    ${renderCompareSegmentsTable(segments)}
 
     <!-- Retention Insights -->
     <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
@@ -1159,7 +1265,7 @@ export function attachCustomerInsightsListeners() {
     };
   });
 
-  document.querySelectorAll('.segment-bento-card').forEach(card => {
+  document.querySelectorAll('.segment-bento-card, .compare-segment-row').forEach(card => {
     card.onclick = () => {
       const segKey = card.getAttribute('data-segment-key');
       if (segKey) {
