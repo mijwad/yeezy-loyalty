@@ -872,6 +872,13 @@ class POSDataStore {
       this.persist();
     }
 
+    // Attach calculated points balance and tenant properties for POS and customer consumers
+    member.tenantId = member.restaurant_id;
+    member.phone = member.phone_e164;
+    member.visits = member.visit_count || 0;
+    member.lifetimeSpend = Math.round((member.lifetime_spend_paise || 0) / 100);
+    member.pointsBalance = this.getMemberBalance(restId, member.id);
+
     return member;
   }
 
@@ -879,10 +886,22 @@ class POSDataStore {
     return this.data.loyaltyMembers.find(m => m.id === memberId) || null;
   }
 
+  updateCustomerTier(customer) {
+    if (!customer) return 'Silver';
+    const visits = customer.visits ?? customer.visit_count ?? 0;
+    let tier = 'Silver';
+    if (visits >= 12) tier = 'Platinum';
+    else if (visits >= 5) tier = 'Gold';
+    customer.tier = tier;
+    if (customer.visit_count !== undefined) customer.visit_count = visits;
+    this.persist();
+    return tier;
+  }
+
   // 4. Calculate member points balance from append-only ledger
   getMemberBalance(restaurantId, memberId) {
     const memberEntries = this.data.loyaltyLedger.filter(
-      e => e.restaurant_id === restaurantId && e.member_id === memberId
+      e => (e.restaurant_id === restaurantId || e.tenantId === restaurantId) && (e.member_id === memberId || e.customerId === memberId)
     );
     return calculateLedgerBalance(memberEntries);
   }
@@ -1077,9 +1096,12 @@ class POSDataStore {
   }
 
   recordLedgerEntry(params) {
+    const restId = params.tenantId || params.restaurant_id || 'ten_yeezy_01';
     return this.appendLoyaltyLedgerEntry({
-      restaurant_id: params.tenantId || 'ten_yeezy_01',
+      restaurant_id: restId,
+      tenantId: restId,
       member_id: params.customerId,
+      customerId: params.customerId,
       order_id: params.orderId,
       type: params.type.toLowerCase().includes('earn') ? 'earn_base' : 'redeem',
       points: params.pointsDelta,

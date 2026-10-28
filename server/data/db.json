@@ -19,10 +19,11 @@
       "createdAt": "2026-01-10T10:00:00Z",
       "primaryRestID": "PP_DEL_101",
       "outletsCount": 1,
-      "totalDiners": 0,
-      "lifetimeSales": 0,
+      "totalDiners": 1,
+      "lifetimeSales": 9900,
       "supabaseId": "277b2100-b267-4a4a-ab3a-2aaa27733a9e",
-      "code": "ten_yeezy_01"
+      "code": "ten_yeezy_01",
+      "status": "ACTIVE"
     },
     {
       "id": "ten_smokehouse_02",
@@ -39,7 +40,8 @@
       "totalDiners": 0,
       "lifetimeSales": 0,
       "supabaseId": "12aaaee0-64f2-4ba5-a8e1-5878ce34f26f",
-      "code": "ten_smokehouse_02"
+      "code": "ten_smokehouse_02",
+      "status": "ACTIVE"
     },
     {
       "id": "11111111-2222-3333-4444-555555555555",
@@ -56,7 +58,8 @@
       "totalDiners": 0,
       "lifetimeSales": 0,
       "supabaseId": "11111111-2222-3333-4444-555555555555",
-      "code": "NULL"
+      "code": "NULL",
+      "status": "ACTIVE"
     },
     {
       "id": "ten_durbar_mvnrq6po",
@@ -90,7 +93,8 @@
       "totalDiners": 0,
       "lifetimeSales": 0,
       "supabaseId": "578ee9af-639b-4b66-a891-fe8aeaa3a9ea",
-      "code": "ten_farzi_mvnvc99o"
+      "code": "ten_farzi_mvnvc99o",
+      "status": "ACTIVE"
     },
     {
       "id": "ten_mandi_lounge_mvs52wbd",
@@ -108,6 +112,24 @@
       "lifetimeSales": 0,
       "supabaseId": "7f45bb61-614b-4afb-a15a-9addf3d9fcfb",
       "code": "ten_mandi_lounge_mvs52wbd"
+    },
+    {
+      "id": "ten_durbar_mvsfe21f",
+      "code": "ten_durbar_mvsfe21f",
+      "supabaseId": "62a54a2f-9c2a-4c71-a9cc-3a8a133bd1fa",
+      "name": "durbar",
+      "brandName": "durbar",
+      "ownerId": "usr_ten_durbar_mvsfe21f",
+      "ownerName": "samad",
+      "ownerEmail": "durbar@gmail.com",
+      "plan": "ENTERPRISE",
+      "status": "ACTIVE",
+      "active": true,
+      "createdAt": "2026-10-28T18:06:06.523711+00:00",
+      "primaryRestID": "ten_durbar_mvsfe21f",
+      "outletsCount": 1,
+      "totalDiners": 0,
+      "lifetimeSales": 0
     }
   ],
   "users": [
@@ -173,6 +195,15 @@
       "role": "RESTAURANT_OWNER",
       "tenantId": "7f45bb61-614b-4afb-a15a-9addf3d9fcfb",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=sabeer"
+    },
+    {
+      "id": "a20ba119-de31-4be4-bda3-362eb77f63a4",
+      "name": "samad",
+      "email": "durbar@gmail.com",
+      "passwordHash": "$2b$10$9RqDTSQtf3/S2/hrhDMa9uhMUDpGP/bkRAbWmSbTLDjSfXhNrBcMi",
+      "role": "RESTAURANT_OWNER",
+      "tenantId": "ten_durbar_mvsfe21f",
+      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=samad"
     }
   ],
   "outlets": [
@@ -349,11 +380,1648 @@
         ]
       },
       "created_at": "2026-10-23T22:27:12.239Z"
+    },
+    {
+      "id": "led_1793211074074_1r42hp",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211074072_25d9m",
+      "order_id": "ORD_DURBAR_1793211073958",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:11:14.074Z"
+    },
+    {
+      "id": "led_1793211104626_nd4s7o",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211074072_25d9m",
+      "order_id": "ORD_DURBAR_1793211104548",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:11:44.626Z"
+    },
+    {
+      "id": "led_1793211141558_rdbkog",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211074072_25d9m",
+      "order_id": "ORD_DURBAR_1793211141490",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:12:21.558Z"
+    },
+    {
+      "id": "led_1793211141600_673vya",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "member_id": "mem_1793211141598_3iw5f",
+      "order_id": "ORD_FARZI_1793211141591",
+      "type": "earn_base",
+      "points": 60,
+      "remaining": 60,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_FARZI_202 (Net ₹600)"
+      },
+      "created_at": "2026-10-28T18:12:21.600Z"
+    },
+    {
+      "id": "led_1793211177126_2sn7wz",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211074072_25d9m",
+      "order_id": "ORD_DURBAR_1793211177064",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:12:57.126Z"
+    },
+    {
+      "id": "led_1793211177179_fyeqr8",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "member_id": "mem_1793211141598_3iw5f",
+      "order_id": "ORD_FARZI_1793211177172",
+      "type": "earn_base",
+      "points": 60,
+      "remaining": 60,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_FARZI_202 (Net ₹600)"
+      },
+      "created_at": "2026-10-28T18:12:57.179Z"
+    },
+    {
+      "id": "led_1793211193480_yv3v3b",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211193478_ea47y",
+      "order_id": "ORD_DURBAR_1793211193417",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:13:13.480Z"
+    },
+    {
+      "id": "led_1793211193549_s3k1fn",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "member_id": "mem_1793211193547_0zv3u",
+      "order_id": "ORD_FARZI_1793211193540",
+      "type": "earn_base",
+      "points": 60,
+      "remaining": 60,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_FARZI_202 (Net ₹600)"
+      },
+      "created_at": "2026-10-28T18:13:13.549Z"
+    },
+    {
+      "id": "led_1793211231789_nw7v9t",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "member_id": "mem_1793211231787_g4cb0",
+      "order_id": "ORD_DURBAR_1793211231705",
+      "type": "earn_base",
+      "points": 150,
+      "remaining": 150,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_DURBAR_101 (Net ₹1500)"
+      },
+      "created_at": "2026-10-28T18:13:51.789Z"
+    },
+    {
+      "id": "led_1793211231852_4glv13",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "member_id": "mem_1793211231850_qy0e2",
+      "order_id": "ORD_FARZI_1793211231845",
+      "type": "earn_base",
+      "points": 60,
+      "remaining": 60,
+      "expires_at": null,
+      "meta": {
+        "reason": "Points earned on Bill #BILL_FARZI_202 (Net ₹600)"
+      },
+      "created_at": "2026-10-28T18:13:51.852Z"
     }
   ],
-  "orders": [],
-  "redemptionSessions": {},
-  "webhookLogs": [],
+  "orders": [
+    {
+      "orderId": "ORD_FARZI_1793211231845",
+      "tenantId": "ten_farzi_mvnvc99o",
+      "billNo": "BILL_FARZI_202",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211231850_qy0e2",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919911231705",
+      "financials": {
+        "subtotal": 600,
+        "tax": 0,
+        "grossAmount": 600,
+        "loyaltyDiscount": 0,
+        "netPaid": 600,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 60,
+      "newBalance": 0,
+      "settledAt": "2026-10-28T18:13:51.863Z"
+    },
+    {
+      "orderId": "ORD_DURBAR_1793211231705",
+      "tenantId": "ten_durbar_mvnrq6po",
+      "billNo": "BILL_DURBAR_101",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211231787_g4cb0",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919911231705",
+      "financials": {
+        "subtotal": 1500,
+        "tax": 0,
+        "grossAmount": 1500,
+        "loyaltyDiscount": 0,
+        "netPaid": 1500,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 150,
+      "newBalance": 0,
+      "settledAt": "2026-10-28T18:13:51.803Z"
+    },
+    {
+      "orderId": "ORD_FARZI_1793211193540",
+      "tenantId": "ten_farzi_mvnvc99o",
+      "billNo": "BILL_FARZI_202",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211193547_0zv3u",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919911193417",
+      "financials": {
+        "subtotal": 600,
+        "tax": 0,
+        "grossAmount": 600,
+        "loyaltyDiscount": 0,
+        "netPaid": 600,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 60,
+      "newBalance": 0,
+      "settledAt": "2026-10-28T18:13:13.562Z"
+    },
+    {
+      "orderId": "ORD_DURBAR_1793211193417",
+      "tenantId": "ten_durbar_mvnrq6po",
+      "billNo": "BILL_DURBAR_101",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211193478_ea47y",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919911193417",
+      "financials": {
+        "subtotal": 1500,
+        "tax": 0,
+        "grossAmount": 1500,
+        "loyaltyDiscount": 0,
+        "netPaid": 1500,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 150,
+      "newBalance": 0,
+      "settledAt": "2026-10-28T18:13:13.494Z"
+    },
+    {
+      "orderId": "ORD_FARZI_1793211177172",
+      "tenantId": "ten_farzi_mvnvc99o",
+      "billNo": "BILL_FARZI_202",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211141598_3iw5f",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919988776655",
+      "financials": {
+        "subtotal": 600,
+        "tax": 0,
+        "grossAmount": 600,
+        "loyaltyDiscount": 0,
+        "netPaid": 600,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 60,
+      "newBalance": 60,
+      "settledAt": "2026-10-28T18:12:57.183Z"
+    },
+    {
+      "orderId": "ORD_DURBAR_1793211177064",
+      "tenantId": "ten_durbar_mvnrq6po",
+      "billNo": "BILL_DURBAR_101",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211074072_25d9m",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919988776655",
+      "financials": {
+        "subtotal": 1500,
+        "tax": 0,
+        "grossAmount": 1500,
+        "loyaltyDiscount": 0,
+        "netPaid": 1500,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 150,
+      "newBalance": 450,
+      "settledAt": "2026-10-28T18:12:57.128Z"
+    },
+    {
+      "orderId": "ORD_FARZI_1793211141591",
+      "tenantId": "ten_farzi_mvnvc99o",
+      "billNo": "BILL_FARZI_202",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211141598_3iw5f",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919988776655",
+      "financials": {
+        "subtotal": 600,
+        "tax": 0,
+        "grossAmount": 600,
+        "loyaltyDiscount": 0,
+        "netPaid": 600,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 60,
+      "newBalance": 0,
+      "settledAt": "2026-10-28T18:12:21.624Z"
+    },
+    {
+      "orderId": "ORD_DURBAR_1793211141490",
+      "tenantId": "ten_durbar_mvnrq6po",
+      "billNo": "BILL_DURBAR_101",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211074072_25d9m",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919988776655",
+      "financials": {
+        "subtotal": 1500,
+        "tax": 0,
+        "grossAmount": 1500,
+        "loyaltyDiscount": 0,
+        "netPaid": 1500,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 150,
+      "newBalance": 300,
+      "settledAt": "2026-10-28T18:12:21.559Z"
+    },
+    {
+      "orderId": "ORD_DURBAR_1793211104548",
+      "tenantId": "ten_durbar_mvnrq6po",
+      "billNo": "BILL_DURBAR_101",
+      "restID": "PP_DEL_101",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "customerId": "mem_1793211074072_25d9m",
+      "customerName": "Ananya Sharma",
+      "customerPhone": "+919988776655",
+      "financials": {
+        "subtotal": 1500,
+        "tax": 0,
+        "grossAmount": 1500,
+        "loyaltyDiscount": 0,
+        "netPaid": 1500,
+        "paymentMode": "CARD"
+      },
+      "items": [],
+      "pointsBurned": 0,
+      "pointsEarned": 150,
+      "newBalance": 150,
+      "settledAt": "2026-10-28T18:11:44.628Z"
+    }
+  ],
+  "redemptionSessions": {
+    "red_sess_1793211141668_a9iitp": {
+      "sessionToken": "red_sess_1793211141668_a9iitp",
+      "customerId": "mem_1793211074072_25d9m",
+      "customerPhone": "+919988776655",
+      "orderId": "ORD-1793211141668",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 450,
+      "maxDiscountAmount": 450,
+      "availableOptions": [
+        {
+          "id": "OPT_100_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "100₹ off on entire purchase (100)",
+          "description": "Deduct ₹100 from bill (burn 100 pts)",
+          "pointsToBurn": 100,
+          "discountInr": 100,
+          "isRecommended": true,
+          "eligible": true
+        },
+        {
+          "id": "OPT_200_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "200₹ off on entire purchase (200)",
+          "description": "Deduct ₹200 from bill (burn 200 pts)",
+          "pointsToBurn": 200,
+          "discountInr": 200,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹450 OFF",
+          "description": "Burn 450 points (50% bill cap)",
+          "pointsToBurn": 450,
+          "discountInr": 450,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 450 pts",
+          "maxPoints": 450,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:12:21.668Z"
+    },
+    "red_sess_1793211177230_mnij2w": {
+      "sessionToken": "red_sess_1793211177230_mnij2w",
+      "customerId": "mem_1793211074072_25d9m",
+      "customerPhone": "+919988776655",
+      "orderId": "ORD-1793211177230",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 500,
+      "maxDiscountAmount": 500,
+      "availableOptions": [
+        {
+          "id": "OPT_100_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "100₹ off on entire purchase (100)",
+          "description": "Deduct ₹100 from bill (burn 100 pts)",
+          "pointsToBurn": 100,
+          "discountInr": 100,
+          "isRecommended": true,
+          "eligible": true
+        },
+        {
+          "id": "OPT_200_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "200₹ off on entire purchase (200)",
+          "description": "Deduct ₹200 from bill (burn 200 pts)",
+          "pointsToBurn": 200,
+          "discountInr": 200,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹500 OFF",
+          "description": "Burn 500 points (50% bill cap)",
+          "pointsToBurn": 500,
+          "discountInr": 500,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_500",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem 500 Points: ₹500 OFF",
+          "description": "Deduct ₹500 from bill (burn 500 pts)",
+          "pointsToBurn": 500,
+          "discountInr": 500,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 500 pts",
+          "maxPoints": 500,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:12:57.230Z"
+    },
+    "red_sess_1793211193612_za365q": {
+      "sessionToken": "red_sess_1793211193612_za365q",
+      "customerId": "mem_1793211193478_ea47y",
+      "customerPhone": "+919911193417",
+      "orderId": "ORD-1793211193612",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 150,
+      "maxDiscountAmount": 150,
+      "availableOptions": [
+        {
+          "id": "OPT_100_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "100₹ off on entire purchase (100)",
+          "description": "Deduct ₹100 from bill (burn 100 pts)",
+          "pointsToBurn": 100,
+          "discountInr": 100,
+          "isRecommended": true,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹150 OFF",
+          "description": "Burn 150 points (50% bill cap)",
+          "pointsToBurn": 150,
+          "discountInr": 150,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 150 pts",
+          "maxPoints": 150,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:13:13.612Z"
+    },
+    "red_sess_1793211193645_6o9ho6": {
+      "sessionToken": "red_sess_1793211193645_6o9ho6",
+      "customerId": "mem_1793211193547_0zv3u",
+      "customerPhone": "+919911193417",
+      "orderId": "ORD-1793211193645",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 60,
+      "maxDiscountAmount": 60,
+      "availableOptions": [
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹60 OFF",
+          "description": "Burn 60 points (50% bill cap)",
+          "pointsToBurn": 60,
+          "discountInr": 60,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 60 pts",
+          "maxPoints": 60,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:13:13.645Z"
+    },
+    "red_sess_1793211231906_z52fe1": {
+      "sessionToken": "red_sess_1793211231906_z52fe1",
+      "customerId": "mem_1793211231787_g4cb0",
+      "customerPhone": "+919911231705",
+      "orderId": "ORD-1793211231906",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 150,
+      "maxDiscountAmount": 150,
+      "availableOptions": [
+        {
+          "id": "OPT_100_OFF",
+          "type": "POINTS_DISCOUNT",
+          "label": "100₹ off on entire purchase (100)",
+          "description": "Deduct ₹100 from bill (burn 100 pts)",
+          "pointsToBurn": 100,
+          "discountInr": 100,
+          "isRecommended": true,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹150 OFF",
+          "description": "Burn 150 points (50% bill cap)",
+          "pointsToBurn": 150,
+          "discountInr": 150,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 150 pts",
+          "maxPoints": 150,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:13:51.906Z"
+    },
+    "red_sess_1793211231936_c5jp7d": {
+      "sessionToken": "red_sess_1793211231936_c5jp7d",
+      "customerId": "mem_1793211231850_qy0e2",
+      "customerPhone": "+919911231705",
+      "orderId": "ORD-1793211231936",
+      "tableNo": "T-1",
+      "serverName": "Staff",
+      "billAmount": 1000,
+      "discountableAmount": 1000,
+      "restID": "PP_DEL_101",
+      "maxRedeemablePoints": 60,
+      "maxDiscountAmount": 60,
+      "availableOptions": [
+        {
+          "id": "OPT_POINTS_MAX",
+          "type": "POINTS_DISCOUNT",
+          "label": "Redeem Max Points: ₹60 OFF",
+          "description": "Burn 60 points (50% bill cap)",
+          "pointsToBurn": 60,
+          "discountInr": 60,
+          "eligible": true
+        },
+        {
+          "id": "OPT_POINTS_CUSTOM",
+          "type": "CUSTOM_POINTS",
+          "label": "Custom Points Deduction",
+          "description": "Enter points up to 60 pts",
+          "maxPoints": 60,
+          "eligible": true
+        }
+      ],
+      "status": "OFFERED",
+      "createdAt": "2026-10-28T18:13:51.936Z"
+    }
+  },
+  "webhookLogs": [
+    {
+      "id": "log_1793211231938_dd72a",
+      "timestamp": "2026-10-28T18:13:51.938Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211231936",
+      "payload": {
+        "customer_phone": "9911231705",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211231850_qy0e2",
+          "name": "Ananya Sharma",
+          "phone": "+919911231705",
+          "tier": "Silver",
+          "visits": 1,
+          "points_balance": 60,
+          "points_value_inr": 60
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211231936",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211231936_c5jp7d",
+          "is_eligible": true,
+          "max_redeemable_points": 60,
+          "max_discount_amount": 60,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 60 points available. Maximum eligible discount is ₹60."
+        },
+        "available_points": 60,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹60 OFF",
+            "description": "Burn 60 points (50% bill cap)",
+            "pointsToBurn": 60,
+            "discountInr": 60,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 60 pts",
+            "maxPoints": 60,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹60 OFF",
+            "description": "Burn 60 points (50% bill cap)",
+            "pointsToBurn": 60,
+            "discountInr": 60,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 60 pts",
+            "maxPoints": 60,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211231909_jeupu",
+      "timestamp": "2026-10-28T18:13:51.909Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211231906",
+      "payload": {
+        "customer_phone": "9911231705",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211231787_g4cb0",
+          "name": "Ananya Sharma",
+          "phone": "+919911231705",
+          "tier": "Silver",
+          "visits": 1,
+          "points_balance": 150,
+          "points_value_inr": 150
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211231906",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211231906_z52fe1",
+          "is_eligible": true,
+          "max_redeemable_points": 150,
+          "max_discount_amount": 150,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 150 points available. Maximum eligible discount is ₹150."
+        },
+        "available_points": 150,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹150 OFF",
+            "description": "Burn 150 points (50% bill cap)",
+            "pointsToBurn": 150,
+            "discountInr": 150,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 150 pts",
+            "maxPoints": 150,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹150 OFF",
+            "description": "Burn 150 points (50% bill cap)",
+            "pointsToBurn": 150,
+            "discountInr": 150,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 150 pts",
+            "maxPoints": 150,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211231875_viobu",
+      "timestamp": "2026-10-28T18:13:51.875Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_FARZI_1793211231845",
+      "payload": {
+        "order_id": "ORD_FARZI_1793211231845",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "phone": "9911231705",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 600,
+        "financials": {
+          "subtotal": 600,
+          "gross_amount": 600,
+          "net_paid": 600
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_FARZI_1793211231845",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919911231705",
+          "tier": "Silver",
+          "points_earned": 60,
+          "points_burned": 0,
+          "new_balance": 0
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919911231705",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 60 Yeezy loyalty points on Bill #BILL_FARZI_202. Your new total balance is 0 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211231815_yckfy",
+      "timestamp": "2026-10-28T18:13:51.815Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_DURBAR_1793211231705",
+      "payload": {
+        "order_id": "ORD_DURBAR_1793211231705",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "phone": "9911231705",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 1500,
+        "financials": {
+          "subtotal": 1500,
+          "gross_amount": 1500,
+          "net_paid": 1500
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_DURBAR_1793211231705",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919911231705",
+          "tier": "Silver",
+          "points_earned": 150,
+          "points_burned": 0,
+          "new_balance": 0
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919911231705",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 150 Yeezy loyalty points on Bill #BILL_DURBAR_101. Your new total balance is 0 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211193646_7zzl2",
+      "timestamp": "2026-10-28T18:13:13.646Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211193645",
+      "payload": {
+        "customer_phone": "9911193417",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211193547_0zv3u",
+          "name": "Ananya Sharma",
+          "phone": "+919911193417",
+          "tier": "Silver",
+          "visits": 1,
+          "points_balance": 60,
+          "points_value_inr": 60
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211193645",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211193645_6o9ho6",
+          "is_eligible": true,
+          "max_redeemable_points": 60,
+          "max_discount_amount": 60,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 60 points available. Maximum eligible discount is ₹60."
+        },
+        "available_points": 60,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹60 OFF",
+            "description": "Burn 60 points (50% bill cap)",
+            "pointsToBurn": 60,
+            "discountInr": 60,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 60 pts",
+            "maxPoints": 60,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹60 OFF",
+            "description": "Burn 60 points (50% bill cap)",
+            "pointsToBurn": 60,
+            "discountInr": 60,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 60 pts",
+            "maxPoints": 60,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211193615_k2zzb",
+      "timestamp": "2026-10-28T18:13:13.615Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211193612",
+      "payload": {
+        "customer_phone": "9911193417",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211193478_ea47y",
+          "name": "Ananya Sharma",
+          "phone": "+919911193417",
+          "tier": "Silver",
+          "visits": 1,
+          "points_balance": 150,
+          "points_value_inr": 150
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211193612",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211193612_za365q",
+          "is_eligible": true,
+          "max_redeemable_points": 150,
+          "max_discount_amount": 150,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 150 points available. Maximum eligible discount is ₹150."
+        },
+        "available_points": 150,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹150 OFF",
+            "description": "Burn 150 points (50% bill cap)",
+            "pointsToBurn": 150,
+            "discountInr": 150,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 150 pts",
+            "maxPoints": 150,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹150 OFF",
+            "description": "Burn 150 points (50% bill cap)",
+            "pointsToBurn": 150,
+            "discountInr": 150,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 150 pts",
+            "maxPoints": 150,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211193576_2b0k3",
+      "timestamp": "2026-10-28T18:13:13.576Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_FARZI_1793211193540",
+      "payload": {
+        "order_id": "ORD_FARZI_1793211193540",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "phone": "9911193417",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 600,
+        "financials": {
+          "subtotal": 600,
+          "gross_amount": 600,
+          "net_paid": 600
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_FARZI_1793211193540",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919911193417",
+          "tier": "Silver",
+          "points_earned": 60,
+          "points_burned": 0,
+          "new_balance": 0
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919911193417",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 60 Yeezy loyalty points on Bill #BILL_FARZI_202. Your new total balance is 0 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211193508_tixcr",
+      "timestamp": "2026-10-28T18:13:13.508Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_DURBAR_1793211193417",
+      "payload": {
+        "order_id": "ORD_DURBAR_1793211193417",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "phone": "9911193417",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 1500,
+        "financials": {
+          "subtotal": 1500,
+          "gross_amount": 1500,
+          "net_paid": 1500
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_DURBAR_1793211193417",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919911193417",
+          "tier": "Silver",
+          "points_earned": 150,
+          "points_burned": 0,
+          "new_balance": 0
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919911193417",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 150 Yeezy loyalty points on Bill #BILL_DURBAR_101. Your new total balance is 0 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211177235_9z1rv",
+      "timestamp": "2026-10-28T18:12:57.235Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211177230",
+      "payload": {
+        "customer_phone": "9988776655",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211074072_25d9m",
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "visits": 3,
+          "points_balance": 600,
+          "points_value_inr": 600
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211177230",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211177230_mnij2w",
+          "is_eligible": true,
+          "max_redeemable_points": 500,
+          "max_discount_amount": 500,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 600 points available. Maximum eligible discount is ₹500."
+        },
+        "available_points": 600,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_200_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "200₹ off on entire purchase (200)",
+            "description": "Deduct ₹200 from bill (burn 200 pts)",
+            "pointsToBurn": 200,
+            "discountInr": 200,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹500 OFF",
+            "description": "Burn 500 points (50% bill cap)",
+            "pointsToBurn": 500,
+            "discountInr": 500,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_500",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem 500 Points: ₹500 OFF",
+            "description": "Deduct ₹500 from bill (burn 500 pts)",
+            "pointsToBurn": 500,
+            "discountInr": 500,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 500 pts",
+            "maxPoints": 500,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_200_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "200₹ off on entire purchase (200)",
+            "description": "Deduct ₹200 from bill (burn 200 pts)",
+            "pointsToBurn": 200,
+            "discountInr": 200,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹500 OFF",
+            "description": "Burn 500 points (50% bill cap)",
+            "pointsToBurn": 500,
+            "discountInr": 500,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_500",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem 500 Points: ₹500 OFF",
+            "description": "Deduct ₹500 from bill (burn 500 pts)",
+            "pointsToBurn": 500,
+            "discountInr": 500,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 500 pts",
+            "maxPoints": 500,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211177195_s8po9",
+      "timestamp": "2026-10-28T18:12:57.195Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_FARZI_1793211177172",
+      "payload": {
+        "order_id": "ORD_FARZI_1793211177172",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "phone": "9988776655",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 600,
+        "financials": {
+          "subtotal": 600,
+          "gross_amount": 600,
+          "net_paid": 600
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_FARZI_1793211177172",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "points_earned": 60,
+          "points_burned": 0,
+          "new_balance": 60
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919988776655",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 60 Yeezy loyalty points on Bill #BILL_FARZI_202. Your new total balance is 60 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211177142_rhtry",
+      "timestamp": "2026-10-28T18:12:57.142Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_DURBAR_1793211177064",
+      "payload": {
+        "order_id": "ORD_DURBAR_1793211177064",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "phone": "9988776655",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 1500,
+        "financials": {
+          "subtotal": 1500,
+          "gross_amount": 1500,
+          "net_paid": 1500
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_DURBAR_1793211177064",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "points_earned": 150,
+          "points_burned": 0,
+          "new_balance": 450
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919988776655",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 150 Yeezy loyalty points on Bill #BILL_DURBAR_101. Your new total balance is 450 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211141676_8pcob",
+      "timestamp": "2026-10-28T18:12:21.676Z",
+      "eventType": "PETPOOJA_LOYALTY_INQUIRE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD-1793211141668",
+      "payload": {
+        "customer_phone": "9988776655",
+        "bill_amount": 1000
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "outlet": {
+          "name": "Downtown Bistro",
+          "restID": "PP_DEL_101"
+        },
+        "customer": {
+          "id": "mem_1793211074072_25d9m",
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "visits": 2,
+          "points_balance": 450,
+          "points_value_inr": 450
+        },
+        "bill_context": {
+          "order_id": "ORD-1793211141668",
+          "table_no": "T-1",
+          "bill_amount": 1000,
+          "discountable_amount": 1000,
+          "min_bill_amount_required": 200,
+          "max_discount_cap_inr": 500,
+          "estimated_points_to_earn": 100
+        },
+        "redemption_offer": {
+          "session_token": "red_sess_1793211141668_a9iitp",
+          "is_eligible": true,
+          "max_redeemable_points": 450,
+          "max_discount_amount": 450,
+          "requires_otp": false,
+          "message": "Ananya Sharma has 450 points available. Maximum eligible discount is ₹450."
+        },
+        "available_points": 450,
+        "loyalty_rewards": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_200_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "200₹ off on entire purchase (200)",
+            "description": "Deduct ₹200 from bill (burn 200 pts)",
+            "pointsToBurn": 200,
+            "discountInr": 200,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹450 OFF",
+            "description": "Burn 450 points (50% bill cap)",
+            "pointsToBurn": 450,
+            "discountInr": 450,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 450 pts",
+            "maxPoints": 450,
+            "eligible": true
+          }
+        ],
+        "redemption_options": [
+          {
+            "id": "OPT_100_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "100₹ off on entire purchase (100)",
+            "description": "Deduct ₹100 from bill (burn 100 pts)",
+            "pointsToBurn": 100,
+            "discountInr": 100,
+            "isRecommended": true,
+            "eligible": true
+          },
+          {
+            "id": "OPT_200_OFF",
+            "type": "POINTS_DISCOUNT",
+            "label": "200₹ off on entire purchase (200)",
+            "description": "Deduct ₹200 from bill (burn 200 pts)",
+            "pointsToBurn": 200,
+            "discountInr": 200,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_MAX",
+            "type": "POINTS_DISCOUNT",
+            "label": "Redeem Max Points: ₹450 OFF",
+            "description": "Burn 450 points (50% bill cap)",
+            "pointsToBurn": 450,
+            "discountInr": 450,
+            "eligible": true
+          },
+          {
+            "id": "OPT_POINTS_CUSTOM",
+            "type": "CUSTOM_POINTS",
+            "label": "Custom Points Deduction",
+            "description": "Enter points up to 450 pts",
+            "maxPoints": 450,
+            "eligible": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "log_1793211141636_4373e",
+      "timestamp": "2026-10-28T18:12:21.636Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_FARZI_1793211141591",
+      "payload": {
+        "order_id": "ORD_FARZI_1793211141591",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "phone": "9988776655",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 600,
+        "financials": {
+          "subtotal": 600,
+          "gross_amount": 600,
+          "net_paid": 600
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_FARZI_1793211141591",
+        "bill_no": "BILL_FARZI_202",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "points_earned": 60,
+          "points_burned": 0,
+          "new_balance": 0
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919988776655",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 60 Yeezy loyalty points on Bill #BILL_FARZI_202. Your new total balance is 0 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211141562_2dm91",
+      "timestamp": "2026-10-28T18:12:21.562Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_DURBAR_1793211141490",
+      "payload": {
+        "order_id": "ORD_DURBAR_1793211141490",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "phone": "9988776655",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 1500,
+        "financials": {
+          "subtotal": 1500,
+          "gross_amount": 1500,
+          "net_paid": 1500
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_DURBAR_1793211141490",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "points_earned": 150,
+          "points_burned": 0,
+          "new_balance": 300
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919988776655",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 150 Yeezy loyalty points on Bill #BILL_DURBAR_101. Your new total balance is 300 points. Redeem rewards on your next visit!"
+        }
+      }
+    },
+    {
+      "id": "log_1793211104643_0yci2",
+      "timestamp": "2026-10-28T18:11:44.643Z",
+      "eventType": "PETPOOJA_ORDER_SAVE",
+      "restID": "PP_DEL_101",
+      "orderId": "ORD_DURBAR_1793211104548",
+      "payload": {
+        "order_id": "ORD_DURBAR_1793211104548",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "phone": "9988776655",
+          "name": "Ananya Sharma"
+        },
+        "net_paid": 1500,
+        "financials": {
+          "subtotal": 1500,
+          "gross_amount": 1500,
+          "net_paid": 1500
+        }
+      },
+      "status": "SUCCESS",
+      "response": {
+        "status": "success",
+        "order_id": "ORD_DURBAR_1793211104548",
+        "bill_no": "BILL_DURBAR_101",
+        "customer": {
+          "name": "Ananya Sharma",
+          "phone": "+919988776655",
+          "tier": "Silver",
+          "points_earned": 150,
+          "points_burned": 0,
+          "new_balance": 150
+        },
+        "simulated_notification": {
+          "channel": "WHATSAPP_UTILITY",
+          "recipient": "+919988776655",
+          "sent": true,
+          "message": "Hello Ananya Sharma! 🎉 Thank you for dining with us at Downtown Bistro. You earned 150 Yeezy loyalty points on Bill #BILL_DURBAR_101. Your new total balance is 150 points. Redeem rewards on your next visit!"
+        }
+      }
+    }
+  ],
   "loyaltyPrograms": {
     "ten_yeezy_01": {
       "id": "prog_yeezy_01",
@@ -630,6 +2298,144 @@
       },
       "created_at": "2026-10-28T14:39:41.990Z",
       "updated_at": "2026-10-28T14:39:41.990Z"
+    },
+    "ten_durbar_mvnrq6po": {
+      "id": "prog_1793211074073",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T18:11:14.073Z",
+      "updated_at": "2026-10-28T18:11:14.073Z"
+    },
+    "ten_farzi_mvnvc99o": {
+      "id": "prog_1793211141599",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "is_active": true,
+      "config": {
+        "point_value_paise": 100,
+        "earn": {
+          "base_rate_bps": 500,
+          "eligible_amount": "subtotal_after_discount_excl_tax_and_service_charge",
+          "big_bill": {
+            "enabled": true,
+            "threshold_paise": 50000,
+            "bonus_points": 25
+          },
+          "streak": {
+            "enabled": true,
+            "within_days": 7,
+            "bonus_points": 10
+          },
+          "bonus_points_expiry_days": 30,
+          "points_expiry_days": 90
+        },
+        "tiers": [
+          {
+            "name": "Silver",
+            "min_visits": 0,
+            "multiplier": 1
+          },
+          {
+            "name": "Gold",
+            "min_visits": 5,
+            "multiplier": 1.25
+          },
+          {
+            "name": "Platinum",
+            "min_visits": 12,
+            "multiplier": 1.5
+          }
+        ],
+        "redeem": {
+          "min_points": 50,
+          "min_bill_paise": 30000,
+          "max_percent_of_bill": 20,
+          "stackable_with_discounts": false,
+          "allowed_order_types": [
+            "dine_in",
+            "takeaway"
+          ]
+        },
+        "referral": {
+          "enabled": true,
+          "referrer_points": 50,
+          "referee_points": 50,
+          "qualify_min_first_bill_paise": 30000,
+          "max_referrals_per_month": 10
+        },
+        "winback": {
+          "enabled": true,
+          "inactive_days": 21,
+          "multiplier": 2,
+          "valid_days": 7
+        },
+        "guardrail": {
+          "max_effective_earn_rate_bps": 800
+        }
+      },
+      "created_at": "2026-10-28T18:12:21.599Z",
+      "updated_at": "2026-10-28T18:12:21.599Z"
     }
   },
   "loyaltyMembers": [
@@ -644,6 +2450,114 @@
       "visit_count": 2,
       "lifetime_spend_paise": 240000,
       "referred_by_member_id": null
+    },
+    {
+      "id": "mem_1793211074072_25d9m",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "phone_e164": "+919988776655",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:11:14.072Z",
+      "last_visit_at": null,
+      "visit_count": 3,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_durbar_mvnrq6po",
+      "phone": "+919988776655",
+      "visits": 3,
+      "lifetimeSpend": 0,
+      "pointsBalance": 600,
+      "lastVisit": "Today"
+    },
+    {
+      "id": "mem_1793211141598_3iw5f",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "phone_e164": "+919988776655",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:12:21.598Z",
+      "last_visit_at": null,
+      "visit_count": 2,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_farzi_mvnvc99o",
+      "phone": "+919988776655",
+      "visits": 2,
+      "lifetimeSpend": 600,
+      "pointsBalance": 60,
+      "lastVisit": "Today"
+    },
+    {
+      "id": "mem_1793211193478_ea47y",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "phone_e164": "+919911193417",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:13:13.478Z",
+      "last_visit_at": null,
+      "visit_count": 1,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_durbar_mvnrq6po",
+      "phone": "+919911193417",
+      "visits": 1,
+      "lifetimeSpend": 0,
+      "pointsBalance": 150,
+      "lastVisit": "Today"
+    },
+    {
+      "id": "mem_1793211193547_0zv3u",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "phone_e164": "+919911193417",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:13:13.547Z",
+      "last_visit_at": null,
+      "visit_count": 1,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_farzi_mvnvc99o",
+      "phone": "+919911193417",
+      "visits": 1,
+      "lifetimeSpend": 0,
+      "pointsBalance": 60,
+      "lastVisit": "Today"
+    },
+    {
+      "id": "mem_1793211231787_g4cb0",
+      "restaurant_id": "ten_durbar_mvnrq6po",
+      "phone_e164": "+919911231705",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:13:51.787Z",
+      "last_visit_at": null,
+      "visit_count": 1,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_durbar_mvnrq6po",
+      "phone": "+919911231705",
+      "visits": 1,
+      "lifetimeSpend": 0,
+      "pointsBalance": 150,
+      "lastVisit": "Today"
+    },
+    {
+      "id": "mem_1793211231850_qy0e2",
+      "restaurant_id": "ten_farzi_mvnvc99o",
+      "phone_e164": "+919911231705",
+      "name": "Ananya Sharma",
+      "tier": "Silver",
+      "joined_at": "2026-10-28T18:13:51.850Z",
+      "last_visit_at": null,
+      "visit_count": 1,
+      "lifetime_spend_paise": 0,
+      "referred_by_member_id": null,
+      "tenantId": "ten_farzi_mvnvc99o",
+      "phone": "+919911231705",
+      "visits": 1,
+      "lifetimeSpend": 0,
+      "pointsBalance": 60,
+      "lastVisit": "Today"
     }
   ],
   "loyaltyReferrals": [],

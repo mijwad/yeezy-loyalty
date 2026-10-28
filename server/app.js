@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 
 import { v1PublicRouter } from './routes/v1Public.js';
 import { posUnifiedRouter } from './routes/posUnified.js';
+import { posRouter } from './routes/pos.js';
 import { loyaltyRouter } from './routes/loyalty.js';
 import { authRouter } from './routes/auth.js';
 import { adminRouter } from './routes/admin.js';
@@ -141,6 +142,8 @@ app.use('/v1', v1PublicRouter);
 
 // Multi-POS Unified Routes (scalable adapter pattern)
 app.use('/pos', posUnifiedRouter);
+app.use('/pos', posRouter);
+app.use('/api/pos', posRouter);
 
 // WhatsApp Cloud API Webhook (unauthenticated Meta handshake & event ingestion)
 app.use('/api/whatsapp/webhook', whatsappWebhookRouter);
@@ -154,7 +157,8 @@ app.use('/api/whatsapp', whatsappRouter);
 // API Routes with validation
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/admin', adminRouter);
-app.use('/api/v1/pos', posUnifiedRouter); // Also available under /api for dashboard
+app.use('/api/v1/pos', posRouter);
+app.use('/api/v1/pos', posUnifiedRouter);
 app.use('/api/v1/customers', customersRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/loyalty', loyaltyRouter);

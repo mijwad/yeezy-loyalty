@@ -1,7 +1,17 @@
 // Supabase Cloud PostgreSQL Client & Sync Adapter
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 dotenv.config();
+
+function toUuid(str) {
+  if (!str) return '00000000-0000-0000-0000-000000000001';
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
+    return str.toLowerCase();
+  }
+  const hash = crypto.createHash('md5').update(str).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
@@ -198,12 +208,34 @@ export async function syncOutletToSupabase(outlet) {
 
 // Async helper to push a customer to Supabase (legacy compatibility)
 export async function syncCustomerToSupabase(customer) {
-  if (!supabase) return null;
+  const client = supabaseAdmin || supabase;
+  if (!client) return null;
   try {
-    const { data, error } = await supabase
+    const tenantId = customer.tenantId || DEFAULT_TENANT_ID;
+    const rawPhone = (customer.phone || customer.phoneNumber || '').replace(/\D/g, '').slice(-10);
+    const phoneE164 = rawPhone.length === 10 ? `+91${rawPhone}` : (customer.phone || '');
+
+    // 1. Sync to loyalty_members table (primary multi-tenant table used by /api/v1/customers)
+    if (tenantId && phoneE164) {
+      await client
+        .from('loyalty_members')
+        .upsert({
+          restaurant_id: tenantId,
+          phone_e164: phoneE164,
+          name: customer.name || 'Valued Guest',
+          tier: customer.tier || 'Silver',
+          last_visit_at: new Date().toISOString(),
+          visit_count: customer.visits || 1,
+          lifetime_spend_paise: Math.round((customer.lifetimeSpend || 0) * 100),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'restaurant_id,phone_e164' });
+    }
+
+    // 2. Legacy customers table sync
+    const { data, error } = await client
       .from('customers')
       .upsert({
-        tenant_id: DEFAULT_TENANT_ID,
+        tenant_id: toUuid(tenantId),
         phone_number: customer.phone,
         full_name: customer.name,
         email: customer.email,
@@ -223,12 +255,14 @@ export async function syncCustomerToSupabase(customer) {
 
 // Async helper to push an ingested Petpooja order to Supabase (legacy compatibility)
 export async function syncOrderToSupabase(order) {
-  if (!supabase) return null;
+  const client = supabaseAdmin || supabase;
+  if (!client) return null;
   try {
-    const { data, error } = await supabase
+    const tenantId = order.tenantId || DEFAULT_TENANT_ID;
+    const { data, error } = await client
       .from('orders')
       .upsert({
-        tenant_id: DEFAULT_TENANT_ID,
+        tenant_id: toUuid(tenantId),
         outlet_id: DEFAULT_OUTLET_ID,
         pos_system: 'PETPOOJA',
         pos_order_id: String(order.orderId),

@@ -6,21 +6,50 @@ import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
 
 export const posRouter = Router();
 
+const PILOT_KEYS = {
+  'ten_yeezy_01': 'lk_live_6b6f34465f168ee1d824915e5c0cb1c7cf1224b998eba8f1005e6e0d6fd9b194',
+  'ten_smokehouse_02': 'lk_live_730ba5b943263d58c363b5605a9ffc3bdbfa739274e9e6ba58d4c872ce4eabbb',
+  'ten_durbar_mvnrq6po': 'lk_live_c511_durbar_cafe_live_pos_key_2026_9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d',
+  'ten_farzi_mvnvc99o': 'lk_live_0049_farzi_cafe_pos_key_2026_9bca1234567890abcdef1234567890abcdef'
+};
+
 function resolveTenantId(req, restID) {
   // 1. Check API Key in headers or body
-  const rawKey = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'] || req.body?.api_key || req.body?.reelo_key;
+  const rawKey = (req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'] || req.body?.api_key || req.body?.reelo_key || req.query?.api_key || req.query?.key)?.trim();
+  
   if (rawKey) {
-    if (rawKey.includes('durbar') || rawKey.includes('c511')) return 'ten_durbar_mvnrq6po';
-    if (rawKey.includes('farzi') || rawKey.includes('0049')) return 'ten_farzi_mvnvc99o';
-    if (rawKey.includes('smokehouse') || rawKey.includes('730ba5')) return 'ten_smokehouse_02';
-    if (rawKey.includes('6b6f34')) return 'ten_yeezy_01';
+    // Check known pilot keys
+    for (const [tId, key] of Object.entries(PILOT_KEYS)) {
+      if (rawKey === key) return tId;
+    }
+
+    // Check all tenants in store by apiKey, code, or id substring
+    if (posStore.data.tenants && Array.isArray(posStore.data.tenants)) {
+      const match = posStore.data.tenants.find(t => 
+        t.apiKey === rawKey || 
+        (t.id && rawKey.includes(t.id)) ||
+        (t.code && rawKey.includes(t.code)) ||
+        (t.id && rawKey === `lk_live_${t.id.replace(/[^a-z0-9]/g, '')}9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d`)
+      );
+      if (match) return match.id;
+    }
+
+    // Check outlets by appKey or reeloKey
+    if (posStore.data.outlets && Array.isArray(posStore.data.outlets)) {
+      const outMatch = posStore.data.outlets.find(o => o.appKey === rawKey || o.reeloKey === rawKey);
+      if (outMatch && outMatch.tenantId) return outMatch.tenantId;
+    }
   }
 
   // 2. Check explicit restaurant/tenant parameter
   const explicit = req.body?.restaurant_id || req.body?.tenant_id || req.query?.restaurant_id || req.query?.tenant_id || req.headers['x-tenant-id'];
-  if (explicit) return explicit;
+  if (explicit) {
+    const tenantExists = posStore.data.tenants?.find(t => t.id === explicit || t.code === explicit || t.supabaseId === explicit);
+    if (tenantExists) return tenantExists.id;
+    return explicit;
+  }
 
-  // 3. Match restID
+  // 3. Match restID to outlet or tenant
   if (restID) {
     const o = posStore.data.outlets.find(out => out.restID === restID);
     if (o && o.tenantId) return o.tenantId;
@@ -29,6 +58,15 @@ function resolveTenantId(req, restID) {
   }
 
   return 'ten_yeezy_01';
+}
+
+function checkTenantActive(tenantId) {
+  if (!tenantId) return { active: true };
+  const tenant = posStore.data.tenants?.find(t => t.id === tenantId || t.code === tenantId);
+  if (tenant && (tenant.active === false || tenant.status === 'INACTIVE' || tenant.status === 'SUSPENDED')) {
+    return { active: false, tenant };
+  }
+  return { active: true, tenant };
 }
 
 /**
@@ -53,8 +91,17 @@ posRouter.post(['/loyalty/inquire', '/petpooja/loyalty/inquire'], (req, res) => 
     }
 
   const tenantId = resolveTenantId(req, restID);
+  const activeCheck = checkTenantActive(tenantId);
+  if (!activeCheck.active) {
+    return res.status(403).json({
+      status: 'error',
+      code: 'RESTAURANT_INACTIVE',
+      message: `POS integration for restaurant '${activeCheck.tenant?.name || tenantId}' is temporarily paused by Super Admin.`
+    });
+  }
+
   const outlet = posStore.data.outlets.find(o => o.restID === restID || o.tenantId === tenantId) || posStore.data.outlets[0];
-  const program = posStore.data.loyaltyProgram;
+  const program = posStore.getLoyaltyProgram(tenantId)?.config || posStore.data.loyaltyProgram;
   const customer = posStore.getOrCreateCustomer(customer_phone, customer_name, tenantId);
 
   const billTotal = parseFloat(bill_amount) || 0;
@@ -349,12 +396,21 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   }
 
   const tenantId = resolveTenantId(req, restID);
+  const activeCheck = checkTenantActive(tenantId);
+  if (!activeCheck.active) {
+    return res.status(403).json({
+      status: 'error',
+      code: 'RESTAURANT_INACTIVE',
+      message: `POS integration for restaurant '${activeCheck.tenant?.name || tenantId}' is temporarily paused by Super Admin.`
+    });
+  }
+
   const outlet = posStore.data.outlets.find(o => o.restID === restID || o.tenantId === tenantId) || posStore.data.outlets[0];
   const phone = customerInput?.phone || '9876543210';
   const name = customerInput?.name || 'Guest';
   const customer = posStore.getOrCreateCustomer(phone, name, tenantId);
 
-  const program = posStore.data.loyaltyProgram;
+  const program = posStore.getLoyaltyProgram(tenantId)?.config || posStore.data.loyaltyProgram;
   const netPaid = parseFloat(req.body.net_paid ?? financials?.net_paid ?? financials?.gross_amount ?? 0);
   const loyaltyDiscount = parseFloat(req.body.loyalty_discount ?? financials?.loyalty_discount ?? 0);
 
@@ -367,6 +423,7 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
     if (pointsBurned > 0) {
       posStore.recordLedgerEntry({
         customerId: customer.id,
+        tenantId: tenantId,
         type: 'REDEEM_BURN',
         pointsDelta: -pointsBurned,
         orderId: order_id,
@@ -379,6 +436,7 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
     pointsBurned = Math.round(loyaltyDiscount / (program.pointValueInr || 1.0));
     posStore.recordLedgerEntry({
       customerId: customer.id,
+      tenantId: tenantId,
       type: 'REDEEM_BURN',
       pointsDelta: -pointsBurned,
       orderId: order_id,
@@ -398,6 +456,7 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
     if (pointsEarned > 0) {
       posStore.recordLedgerEntry({
         customerId: customer.id,
+        tenantId: tenantId,
         type: 'EARN_PURCHASE',
         pointsDelta: pointsEarned,
         orderId: order_id,
@@ -420,10 +479,10 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
 
   // Update Tenant aggregate lifetime stats
   if (posStore.data.tenants && Array.isArray(posStore.data.tenants)) {
-    const tenant = posStore.data.tenants.find(t => t.primaryRestID === restID) || posStore.data.tenants[0];
+    const tenant = posStore.data.tenants.find(t => t.id === tenantId || t.primaryRestID === restID);
     if (tenant) {
       tenant.lifetimeSales = (tenant.lifetimeSales || 0) + netPaid;
-      tenant.totalDiners = posStore.data.customers.length;
+      tenant.totalDiners = posStore.data.loyaltyMembers ? posStore.data.loyaltyMembers.filter(m => m.restaurant_id === tenant.id).length : 0;
     }
   }
 
@@ -521,6 +580,7 @@ posRouter.post(['/orders/cancel', '/loyalty/unlock', '/petpooja/orders/cancel', 
   if (order.pointsEarned > 0) {
     posStore.recordLedgerEntry({
       customerId: customer.id,
+      tenantId: order.tenantId,
       type: 'REVERSAL_VOID',
       pointsDelta: -order.pointsEarned,
       orderId: order_id,
@@ -532,6 +592,7 @@ posRouter.post(['/orders/cancel', '/loyalty/unlock', '/petpooja/orders/cancel', 
   if (order.pointsBurned > 0) {
     posStore.recordLedgerEntry({
       customerId: customer.id,
+      tenantId: order.tenantId,
       type: 'REVERSAL_VOID',
       pointsDelta: order.pointsBurned,
       orderId: order_id,

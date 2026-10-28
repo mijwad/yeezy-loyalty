@@ -207,12 +207,16 @@ customersRouter.get('/:id', authMiddleware, async (req, res) => {
 
   const cleanPhone = customer.phone ? String(customer.phone).replace(/\D/g, '').slice(-10) : '';
   const orders = posStore.data.orders.filter(o => 
-    o.customerId === customer.id || 
-    (cleanPhone && o.customerPhone && String(o.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+    (!tenantId || o.tenantId === tenantId || req.user?.role === 'SUPER_ADMIN') && (
+      o.customerId === customer.id || 
+      (cleanPhone && o.customerPhone && String(o.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+    )
   );
   const ledger = posStore.data.loyaltyLedger.filter(l => 
-    l.customerId === customer.id ||
-    (cleanPhone && l.customerPhone && String(l.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+    (!tenantId || l.tenantId === tenantId || l.restaurant_id === tenantId || req.user?.role === 'SUPER_ADMIN') && (
+      l.customerId === customer.id ||
+      (cleanPhone && l.customerPhone && String(l.customerPhone).replace(/\D/g, '').slice(-10) === cleanPhone)
+    )
   );
 
   return res.json({
