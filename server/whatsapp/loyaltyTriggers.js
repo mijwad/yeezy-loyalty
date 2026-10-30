@@ -34,14 +34,14 @@ export class LoyaltyEventTriggers {
    * Call this after bill settlement in POS webhook handler
    */
   async onBillSettled(customer, restaurant, order, pointsEarned, pointsBalance, isFirstPurchase = false) {
-    // Check WhatsApp opt-in
-    if (!customer.is_whatsapp_opt_in) {
-      console.log(`[LoyaltyTriggers] Customer ${customer.id} opted out of WhatsApp`);
+    // Check WhatsApp opt-in (transactional receipts are opt-in by default unless explicitly opted out)
+    if (customer.is_whatsapp_opt_in === false || customer.whatsapp_opt_in === false) {
+      console.log(`[LoyaltyTriggers] Customer ${customer.id || customer.phone} opted out of WhatsApp`);
       return { skipped: true, reason: 'opt_out' };
     }
 
     // Check if first purchase (visit_count === 1 after this order)
-    const isFirst = isFirstPurchase || (customer.total_visits_count || 0) <= 1;
+    const isFirst = isFirstPurchase || (customer.total_visits_count || customer.visits || customer.visit_count || 0) <= 1;
 
     try {
       if (isFirst) {

@@ -6,6 +6,7 @@ import { Router } from 'express';
 import { posAdapterFactory } from '../pos/POSAdapterFactory.js';
 import { supabaseAdmin } from '../db/supabase.js';
 import { calculateEarn, previewRedeem, commitRedeem, normalizePhone } from '../../lib/loyalty/engine.js';
+import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
 
 export const posUnifiedRouter = Router();
 
@@ -506,7 +507,34 @@ posUnifiedRouter.post('/:posSystem/orders/save', posAdapterMiddleware, async (re
       p_member_id: member.id
     });
 
-    // 6. Generate notification
+    // 6. Automated WhatsApp Notification Trigger (First Purchase vs Repeat Purchase)
+    try {
+      const isFirstVisit = (member.visit_count || 1) <= 1;
+      const triggers = new LoyaltyEventTriggers(tenantId);
+      triggers.onBillSettled(
+        {
+          id: member.id,
+          phoneNumber: customer.phone,
+          fullName: customer.name,
+          is_whatsapp_opt_in: member.whatsapp_opt_in !== false,
+          total_visits_count: member.visit_count || 1,
+          currentTier: { tierName: parsedEarn.tier || 'Silver' },
+          pointsBalance: newBalance || pointsEarned
+        },
+        { name: 'Our Restaurant' },
+        savedOrder,
+        pointsEarned,
+        newBalance || pointsEarned,
+        isFirstVisit
+      ).then(res => {
+        console.log(`[Unified POS WhatsApp Trigger] Sent ${isFirstVisit ? 'FIRST_PURCHASE' : 'REPEAT_PURCHASE'} notification to ${customer.phone}:`, res?.success ? 'OK' : res?.reason || res?.error);
+      }).catch(err => {
+        console.warn(`[Unified POS WhatsApp Trigger] Notification failed:`, err.message);
+      });
+    } catch (err) {
+      console.warn('[Unified POS WhatsApp Trigger Error]', err.message);
+    }
+
     const simulatedNotification = {
       channel: 'WHATSAPP_UTILITY',
       recipient: customer.phone,

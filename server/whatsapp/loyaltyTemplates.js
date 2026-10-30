@@ -184,13 +184,13 @@ export const LOYALTY_TEMPLATES = {
  * These are used to resolve template variables at send time
  */
 export const VARIABLE_RESOLVERS = {
-  'customer.name': (context) => context.customer?.fullName || 'Valued Guest',
-  'customer.phone': (context) => context.customer?.phoneNumber || '',
-  'customer.visits': (context) => String(context.customer?.totalVisitsCount || 0),
-  'customer.tier': (context) => context.customer?.currentTier?.tierName || 'Silver',
+  'customer.name': (context) => context.customer?.fullName || context.customer?.name || 'Valued Guest',
+  'customer.phone': (context) => context.customer?.phoneNumber || context.customer?.phone || context.customer?.phone_e164 || '',
+  'customer.visits': (context) => String(context.customer?.totalVisitsCount || context.customer?.visits || context.customer?.visit_count || 1),
+  'customer.tier': (context) => context.customer?.currentTier?.tierName || context.customer?.tier || 'Silver',
   'restaurant.name': (context) => context.restaurant?.name || context.outlet?.name || 'Our Restaurant',
   'loyalty.points_earned': (context) => String(context.pointsEarned || 0),
-  'loyalty.points_balance': (context) => String(context.customer?.pointsBalance || 0),
+  'loyalty.points_balance': (context) => String(context.pointsBalance ?? context.customer?.pointsBalance ?? 0),
   'loyalty.points_expiring': (context) => String(context.pointsExpiring || 0),
   'loyalty.expiry_date': (context) => context.expiryDate ? formatDate(context.expiryDate) : '',
   'loyalty.reward_name': (context) => context.reward?.name || 'Reward',

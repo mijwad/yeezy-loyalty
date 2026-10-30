@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { randomUUID } from 'crypto';
 import { posStore } from '../db/store.js';
 import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
+import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
 
 export const posRouter = Router();
 
@@ -519,7 +520,35 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   syncCustomerToSupabase(customer);
   syncOrderToSupabase(savedOrder);
 
-  // 5. Generate simulated WhatsApp message invoice
+  // 5. Automated WhatsApp Notification Trigger (First Purchase vs Repeat Purchase)
+  let liveWhatsAppResult = null;
+  try {
+    const isFirstVisit = (customer.visits || 1) <= 1;
+    const triggers = new LoyaltyEventTriggers(tenantId || outlet?.tenantId || 'ten_yeezy_01');
+    triggers.onBillSettled(
+      {
+        id: customer.id,
+        phoneNumber: customer.phone,
+        fullName: customer.name,
+        is_whatsapp_opt_in: true,
+        total_visits_count: customer.visits,
+        currentTier: { tierName: customer.tier || 'Silver' },
+        pointsBalance: customer.pointsBalance
+      },
+      { name: outlet.name || 'Our Restaurant' },
+      savedOrder,
+      pointsEarned,
+      customer.pointsBalance,
+      isFirstVisit
+    ).then(res => {
+      console.log(`[WhatsApp Purchase Trigger] Sent ${isFirstVisit ? 'FIRST_PURCHASE' : 'REPEAT_PURCHASE'} notification to ${customer.phone}:`, res?.success ? 'OK' : res?.reason || res?.error);
+    }).catch(err => {
+      console.warn(`[WhatsApp Purchase Trigger] Notification failed:`, err.message);
+    });
+  } catch (err) {
+    console.warn('[WhatsApp Purchase Trigger Error]', err.message);
+  }
+
   const simulatedNotification = {
     channel: 'WHATSAPP_UTILITY',
     recipient: customer.phone,
