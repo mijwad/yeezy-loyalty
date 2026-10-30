@@ -676,8 +676,15 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
       return res.status(400).json({ error: 'testPhone is required for test send' });
     }
 
-    const targetTemplate = templateName || 'hello_world';
-    const params = targetTemplate === 'hello_world' ? [] : [title || 'Special Offer', String(rewardValue || '20%'), expiryDate || 'this week'];
+    const targetTemplate = templateName || 'bee_first_purchase';
+    let params = [];
+    if (targetTemplate === 'bee_first_purchase') {
+      params = ['Valued Guest'];
+    } else if (targetTemplate === 'bee_subsequent_purc' || targetTemplate === 'bee_points_reminder' || targetTemplate === 'bee_points_expiry') {
+      params = [];
+    } else {
+      params = ['Valued Guest'];
+    }
 
     let sendRes = await client.sendTemplateMessage({
       recipientPhone: testPhone,
@@ -746,7 +753,7 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
     }));
   }
 
-  const targetTemplate = templateName || 'hello_world';
+  const targetTemplate = templateName || 'bee_first_purchase';
   let sentCount = 0;
   let failedCount = 0;
   const sampleResults = [];
@@ -1047,7 +1054,7 @@ whatsappRouter.post('/meta-review/save-credentials', asyncHandler(async (req, re
  */
 whatsappRouter.post('/meta-review/send-message', asyncHandler(async (req, res) => {
   const restaurantId = getTenantId(req);
-  const { recipientPhone, templateName = 'hello_world', language = 'en_US', parameters = [] } = req.body;
+  const { recipientPhone, templateName = 'bee_first_purchase', language = 'en', parameters = ['Valued Guest'] } = req.body;
 
   if (!recipientPhone) {
     return res.status(400).json({ error: 'recipientPhone is required' });

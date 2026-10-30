@@ -4,6 +4,7 @@ import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
 import { t } from '../../../lib/loyalty/i18n.js';
 import { renderLoyaltyCardPreview } from '../loyalty/index.js';
+import { apiUrl } from '../../config/api.js';
 
 let currentLang = 'en';
 let customerPhone = '9847012345';
@@ -293,7 +294,7 @@ export function attachCustomerPortalListeners() {
   if (verifyOtpBtn) {
     verifyOtpBtn.onclick = async () => {
       try {
-        const res = await fetch('/api/loyalty/members/lookup', {
+        const res = await fetch(apiUrl('/api/loyalty/members/lookup'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: customerPhone })

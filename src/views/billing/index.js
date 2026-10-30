@@ -3,6 +3,7 @@
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
 import { t } from '../../../lib/loyalty/i18n.js';
+import { apiUrl } from '../../config/api.js';
 
 let currentLang = 'en';
 let activeMember = null;
@@ -450,7 +451,7 @@ export function attachBillingScreenListeners() {
       try {
         // If discount applied, commit redemption first
         if (pointsToRedeem > 0) {
-          await fetch('/api/loyalty/redeem/commit', {
+          await fetch(apiUrl('/api/loyalty/redeem/commit'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -464,7 +465,7 @@ export function attachBillingScreenListeners() {
         }
 
         // Call Earn API
-        const earnRes = await fetch('/api/loyalty/earn', {
+        const earnRes = await fetch(apiUrl('/api/loyalty/earn'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -509,7 +510,7 @@ export function attachBillingScreenListeners() {
 
 async function triggerLookup(phone) {
   try {
-    const res = await fetch('/api/loyalty/members/lookup', {
+    const res = await fetch(apiUrl('/api/loyalty/members/lookup'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -562,7 +563,7 @@ async function recalculatePreview() {
 
   if (!activeMember) return;
   try {
-    const res = await fetch('/api/loyalty/redeem/preview', {
+    const res = await fetch(apiUrl('/api/loyalty/redeem/preview'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -646,7 +647,7 @@ async function recalculatePreview() {
 
 async function loadThermalReceipt(orderId) {
   try {
-    const res = await fetch(`/api/loyalty/receipt/${orderId}?lang=${currentLang}`);
+    const res = await fetch(apiUrl(`/api/loyalty/receipt/${orderId}?lang=${currentLang}`));
     const receiptText = await res.text();
     const box = document.getElementById('receipt-modal-box');
     const content = document.getElementById('receipt-ascii-content');

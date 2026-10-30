@@ -5,6 +5,7 @@ import { showToast } from '../../utils/toast.js';
 import { calculateROI } from '../../../lib/loyalty/roi.js';
 import { DEFAULT_LOYALTY_CONFIG, PRESET_CONFIGS } from '../../../lib/loyalty/config.js';
 import { t } from '../../../lib/loyalty/i18n.js';
+import { apiUrl } from '../../config/api.js';
 
 let currentLang = 'en';
 
@@ -581,7 +582,7 @@ export function attachLoyaltySettingsListeners() {
   if (saveBtn) {
     saveBtn.onclick = async () => {
       try {
-        const res = await fetch('/api/loyalty/program', {
+        const res = await fetch(apiUrl('/api/loyalty/program'), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ config: currentConfig })
@@ -601,7 +602,7 @@ export function attachLoyaltySettingsListeners() {
 
 async function loadLiveMetrics() {
   try {
-    const res = await fetch('/api/loyalty/dashboard/metrics');
+    const res = await fetch(apiUrl('/api/loyalty/dashboard/metrics'));
     const data = await res.json();
     if (data.status === 'success') {
       liveMetrics = data.metrics;

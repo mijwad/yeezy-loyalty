@@ -3,6 +3,7 @@
 
 import { store } from '../../state/store.js';
 import { categorizeCustomerSegments } from '../customers/index.js';
+import { apiUrl } from '../../config/api.js';
 
 // Curated high-res restaurant & hospitality imagery presets
 export const BANNER_PRESETS = [
@@ -1259,7 +1260,7 @@ export function attachCampaignsListeners() {
           campaigns: (s.campaigns || []).filter(c => c.id !== campId)
         }));
         try {
-          await fetch(`/api/whatsapp/campaigns/${campId}`, {
+          await fetch(apiUrl(`/api/whatsapp/campaigns/${campId}`), {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || ''}`,
@@ -1572,29 +1573,30 @@ export function attachCampaignsListeners() {
       btnSendTest.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">refresh</span><span>Sending...</span>`;
 
       try {
-        const res = await fetch('/api/whatsapp/campaigns/dispatch-live', {
+        const res = await fetch(apiUrl('/api/whatsapp/campaigns/dispatch-live'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-            'x-tenant-id': 'ten_yeezy_01'
+            'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || localStorage.getItem('token') || ''}`,
+            'x-tenant-id': store.getState().user?.tenantId || 'ten_yeezy_01'
           },
           body: JSON.stringify({
             isTest: true,
             testPhone: phone,
             title: form.title,
             rewardValue: form.discountValue,
-            expiryDate: form.expiryDate
+            expiryDate: form.expiryDate,
+            templateName: 'bee_first_purchase'
           })
         });
         const data = await res.json();
         if (data.status === 'success' || data.result?.success) {
           window.showToast?.(`✅ Test WhatsApp message sent to ${phone}!`);
         } else {
-          window.showToast?.(`⚠️ Send response: ${data.result?.errorMessage || data.error || 'Triggered test preview'}`);
+          window.showToast?.(`⚠️ Send error: ${data.result?.errorMessage || data.error || 'Triggered test preview'}`);
         }
       } catch (err) {
-        window.showToast?.(`Test preview sent to ${phone} via WhatsApp!`);
+        window.showToast?.(`⚠️ Network error: ${err.message}`);
       } finally {
         btnSendTest.disabled = false;
         btnSendTest.innerHTML = `<span class="material-symbols-outlined text-sm">send_to_mobile</span><span>Send Test</span>`;
@@ -1669,7 +1671,7 @@ async function handleCampaignLaunch() {
   let apiSent = 0;
   let backendCampaign = null;
   try {
-    const res = await fetch('/api/whatsapp/campaigns/dispatch-live', {
+    const res = await fetch(apiUrl('/api/whatsapp/campaigns/dispatch-live'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1681,14 +1683,25 @@ async function handleCampaignLaunch() {
         title: form.title,
         subtitle: form.subtitle,
         rewardValue: form.discountValue,
-        expiryDate: form.expiryDate
+        expiryDate: form.expiryDate,
+        templateName: 'bee_first_purchase'
       })
     });
     const data = await res.json();
-    apiSent = data.sentCount || 0;
-    backendCampaign = data.campaign || null;
+    if (res.ok && data.status === 'success') {
+      apiSent = data.sentCount || 0;
+      backendCampaign = data.campaign || null;
+      if (apiSent > 0) {
+        window.showToast?.(`✅ Broadcast sent! ${apiSent} WhatsApp messages delivered successfully.`);
+      } else {
+        window.showToast?.(`⚠️ Broadcast completed: 0 delivered (${data.failedCount || 0} failed or opted out)`);
+      }
+    } else {
+      window.showToast?.(`⚠️ Campaign dispatch issue: ${data.error || 'Please check connection'}`);
+    }
   } catch (e) {
     console.warn('[Campaign Launch API fallback]', e);
+    window.showToast?.(`⚠️ Could not reach server: ${e.message}`);
   }
 
   const newCampaign = {

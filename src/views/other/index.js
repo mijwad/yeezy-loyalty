@@ -760,7 +760,7 @@ export function attachSettingsListeners() {
       }
 
       try {
-        const res = await fetch('/api/v1/loyalty/redeem/preview', {
+        const res = await fetch(apiUrl('/api/v1/loyalty/redeem/preview'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone, bill_amount_paise: billPaise })
@@ -789,7 +789,7 @@ export function attachSettingsListeners() {
       }
 
       try {
-        const res = await fetch('/api/v1/loyalty/earn', {
+        const res = await fetch(apiUrl('/api/v1/loyalty/earn'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -19,6 +19,7 @@ import { dashboardRouter } from './routes/dashboard.js';
 import { marketplaceRouter } from './routes/marketplace.js';
 import { whatsappWebhookRouter } from './routes/whatsappWebhook.js';
 import { whatsappRouter } from './routes/whatsappModule.js';
+import { petpoojaRouter } from './integrations/petpooja/routes.js';
 import { authMiddleware } from './middleware/auth.js';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
@@ -125,6 +126,9 @@ app.get('/health', (req, res) => {
     version: process.env.npm_package_version || '1.0.0'
   });
 });
+
+// Petpooja Loyalty Integration (exact API spec)
+app.use('/integrations/petpooja', petpoojaRouter);
 
 app.get('/ready', async (req, res) => {
   // Deep health check - verify DB connectivity
