@@ -325,12 +325,22 @@ class Store {
           return;
         }
 
+        const realPrevCampaigns = (this.state.campaigns || []).filter(c => 
+          c && c.id !== 'camp-1' && c.id !== 'camp-2' && c.id !== 'camp-3' &&
+          c.title !== "Weekend Chef's Truffle Special" &&
+          c.title !== "We Miss You - Flat 20% OFF" &&
+          c.title !== "Thursday Dinner Double Points"
+        );
+        const resolvedCampaigns = Array.isArray(backendCampaigns) && backendCampaigns.length > 0 
+          ? backendCampaigns 
+          : realPrevCampaigns;
+
         // Set state replacing customers with clean tenant array
         this.setState(prev => ({
           ...prev,
           activeOutlet: statsRes.activeOutlet || statsRes.restaurantName || prev.activeOutlet,
           customers: formattedCustomers,
-          campaigns: backendCampaigns,
+          campaigns: resolvedCampaigns,
           todayStats: {
             ...prev.todayStats,
             ...todayStats

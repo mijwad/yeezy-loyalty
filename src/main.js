@@ -197,6 +197,9 @@ class YeezyLoyaltyApp {
         mainContentHtml = renderSmartInsightsView(state);
         break;
       case 'customer-insights':
+      case 'customers':
+      case 'customer':
+      case 'insights':
         mainContentHtml = renderCustomerInsights(state, uiState.customerFilters);
         break;
       case 'loyalty':
@@ -366,6 +369,9 @@ class YeezyLoyaltyApp {
         attachDashboardListeners();
         break;
       case 'customer-insights':
+      case 'customers':
+      case 'customer':
+      case 'insights':
         attachCustomerInsightsListeners();
         break;
       case 'campaigns':

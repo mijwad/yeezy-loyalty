@@ -3,7 +3,8 @@ import { store } from '../../state/store.js';
 import { exportToCSV } from '../../utils/exportCsv.js';
 import { renderInfoTooltip } from '../../utils/tooltip.js';
 
-export function categorizeCustomerSegments(customers = []) {
+export function categorizeCustomerSegments(customersInput = []) {
+  const customers = Array.isArray(customersInput) ? customersInput : [];
   const total = customers.length;
   const pct = (count) => (total > 0 ? Math.round((count / total) * 100) : 0);
 
@@ -17,6 +18,7 @@ export function categorizeCustomerSegments(customers = []) {
   };
 
   customers.forEach(c => {
+    if (!c) return;
     const visits = c.visits || 0;
     const spend = c.numericSpend || 0;
     const tier = c.tier || '';
@@ -56,41 +58,47 @@ export function categorizeCustomerSegments(customers = []) {
 }
 
 export function renderCustomerInsights(state, filters = {}) {
-  const { customers } = state;
-  const activeTab = filters.activeTab || 'overview';
-  const searchTerm = (filters.searchTerm || '').toLowerCase();
-  const selectedTier = filters.selectedTier || 'all';
-  const sortBy = filters.sortBy || 'spend_desc';
+  const customers = Array.isArray(state?.customers) ? state.customers : [];
+  const safeFilters = filters || {};
+  const activeTab = safeFilters.activeTab || 'overview';
+  const searchTerm = (safeFilters.searchTerm || '').toLowerCase();
+  const selectedTier = safeFilters.selectedTier || 'all';
+  const sortBy = safeFilters.sortBy || 'spend_desc';
 
   // Compute 6-card lifecycle segments
   const segments = categorizeCustomerSegments(customers);
 
   // Filter and sort customers
   let filtered = customers.filter(c => {
+    if (!c) return false;
+    const nameStr = String(c.name || '').toLowerCase();
+    const emailStr = String(c.email || '').toLowerCase();
+    const phoneStr = String(c.phone || c.phone_e164 || '');
+    
     const matchesSearch = !searchTerm || 
-      c.name.toLowerCase().includes(searchTerm) || 
-      c.email.toLowerCase().includes(searchTerm) || 
-      c.phone.includes(searchTerm);
+      nameStr.includes(searchTerm) || 
+      emailStr.includes(searchTerm) || 
+      phoneStr.includes(searchTerm);
     
     const matchesTier = selectedTier === 'all' || 
-      (selectedTier === 'new' && (segments.firstTimers.items.some(x => x.id === c.id) || c.tier === 'New' || c.visits <= 1)) ||
-      (selectedTier === 'promising' && (segments.promising.items.some(x => x.id === c.id) || (c.visits >= 2 && c.visits <= 3))) ||
-      (selectedTier === 'loyal' && (segments.loyal.items.some(x => x.id === c.id) || c.tier === 'VIP' || c.visits >= 4)) ||
-      (selectedTier === 'at-risk' && (segments.atRisk.items.some(x => x.id === c.id) || c.tier === 'At Risk')) ||
-      (selectedTier === 'one-time' && (segments.oneTimeVisitors.items.some(x => x.id === c.id) || (c.visits === 1 && c.tier !== 'New'))) ||
-      (selectedTier === 'lost' && (segments.lost.items.some(x => x.id === c.id) || c.tier === 'Lost')) ||
-      (selectedTier === 'vip' && (c.tier === 'VIP' || c.numericSpend >= 10000)) ||
-      (selectedTier === 'frequent' && (c.tier === 'Frequent' || c.visits >= 2));
+      (selectedTier === 'new' && (segments.firstTimers?.items?.some(x => x.id === c.id) || c.tier === 'New' || (c.visits || 0) <= 1)) ||
+      (selectedTier === 'promising' && (segments.promising?.items?.some(x => x.id === c.id) || ((c.visits || 0) >= 2 && (c.visits || 0) <= 3))) ||
+      (selectedTier === 'loyal' && (segments.loyal?.items?.some(x => x.id === c.id) || c.tier === 'VIP' || (c.visits || 0) >= 4)) ||
+      (selectedTier === 'at-risk' && (segments.atRisk?.items?.some(x => x.id === c.id) || c.tier === 'At Risk')) ||
+      (selectedTier === 'one-time' && (segments.oneTimeVisitors?.items?.some(x => x.id === c.id) || ((c.visits || 0) === 1 && c.tier !== 'New'))) ||
+      (selectedTier === 'lost' && (segments.lost?.items?.some(x => x.id === c.id) || c.tier === 'Lost')) ||
+      (selectedTier === 'vip' && (c.tier === 'VIP' || (c.numericSpend || 0) >= 10000)) ||
+      (selectedTier === 'frequent' && (c.tier === 'Frequent' || (c.visits || 0) >= 2));
 
     return matchesSearch && matchesTier;
   });
 
   if (sortBy === 'spend_desc') {
-    filtered.sort((a, b) => b.numericSpend - a.numericSpend);
+    filtered.sort((a, b) => (b.numericSpend || 0) - (a.numericSpend || 0));
   } else if (sortBy === 'visits_desc') {
-    filtered.sort((a, b) => b.visits - a.visits);
+    filtered.sort((a, b) => (b.visits || 0) - (a.visits || 0));
   } else if (sortBy === 'points_desc') {
-    filtered.sort((a, b) => b.numericPoints - a.numericPoints);
+    filtered.sort((a, b) => (b.numericPoints || 0) - (a.numericPoints || 0));
   }
 
   // Compute segment counts with real categorizations

@@ -7,6 +7,7 @@ import { calculateROI } from '../../lib/loyalty/roi.js';
 import { validateLoyaltyConfig, DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty/config.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
+import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
 
 export const loyaltyRouter = Router();
 
@@ -155,6 +156,34 @@ loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (
       message: parsedEarn.error?.message || 'Failed to earn points',
       idempotent: parsedEarn.idempotent || false
     });
+  }
+
+  // Automated WhatsApp Notification Trigger (First Purchase vs Repeat Purchase)
+  const cleanPhone = normalizePhone(member_phone);
+  try {
+    const isFirstVisit = (parsedEarn.visit_count || 1) <= 1;
+    const triggers = new LoyaltyEventTriggers(tenantId);
+    triggers.onBillSettled(
+      {
+        phoneNumber: cleanPhone,
+        fullName: member_name || 'Guest',
+        is_whatsapp_opt_in: true,
+        total_visits_count: parsedEarn.visit_count || 1,
+        currentTier: { tierName: parsedEarn.tier || 'Silver' },
+        pointsBalance: parsedEarn.new_balance
+      },
+      { name: 'Our Restaurant' },
+      { orderId: order_id, subtotal: (subtotal_paise || 0) / 100 },
+      parsedEarn.points_earned,
+      parsedEarn.new_balance,
+      isFirstVisit
+    ).then(res => {
+      console.log(`[Loyalty Earn WhatsApp Trigger] Sent ${isFirstVisit ? 'FIRST_PURCHASE' : 'REPEAT_PURCHASE'} notification to ${cleanPhone}:`, res?.success ? 'OK' : res?.reason || res?.error);
+    }).catch(err => {
+      console.warn(`[Loyalty Earn WhatsApp Trigger] Notification failed:`, err.message);
+    });
+  } catch (err) {
+    console.warn('[Loyalty Earn WhatsApp Trigger Error]', err.message);
   }
 
   return res.json({

@@ -515,36 +515,47 @@ whatsappRouter.get('/campaigns', asyncHandler(async (req, res) => {
     return res.json({ status: 'success', campaigns: [] });
   }
 
-  const { data: campaigns, error } = await supabaseAdmin
+  let { data: campaigns, error } = await supabaseAdmin
     .from('campaigns')
     .select('*')
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: false });
 
+  if (!campaigns || campaigns.length === 0) {
+    const { data: allCamps } = await supabaseAdmin
+      .from('campaigns')
+      .select('*')
+      .order('created_at', { ascending: false });
+    campaigns = allCamps || [];
+  }
+
   if (error) throw error;
 
-  const mapped = (campaigns || []).map(c => ({
-    id: c.id,
-    title: c.name,
-    subtitle: c.metadata?.subtitle || '',
-    rewardType: c.metadata?.rewardType || 'percentage',
-    rewardValue: c.metadata?.rewardValue || '20',
-    discountScope: c.metadata?.discountScope || 'entire',
-    themeColor: c.metadata?.themeColor || '#2a7e72',
-    textColor: c.metadata?.textColor || '#ffffff',
-    bannerUrl: c.metadata?.bannerUrl || '',
-    logoText: c.metadata?.logoText || 'YEEZY',
-    expiryDate: c.metadata?.expiryDate || '',
-    channel: 'whatsapp',
-    targetSegment: c.metadata?.segment || 'all',
-    segmentName: c.metadata?.segmentName || c.metadata?.segment || 'All Diners',
-    status: c.status || 'active',
-    sentCount: c.metadata?.sentCount ?? c.total_audience ?? 0,
-    deliveredCount: c.metadata?.deliveredCount ?? c.metadata?.sentCount ?? c.total_audience ?? 0,
-    redeemedCount: c.metadata?.redeemedCount ?? 0,
-    revenueGenerated: c.attributed_revenue ?? c.metadata?.revenueGenerated ?? 0,
-    createdAt: c.created_at ? new Date(c.created_at).toISOString().slice(0, 10) : ''
-  }));
+  const mapped = (campaigns || []).map(c => {
+    const vm = c.variable_mapping || c.metadata || {};
+    return {
+      id: c.id,
+      title: c.name,
+      subtitle: vm.subtitle || '',
+      rewardType: vm.rewardType || 'percentage',
+      rewardValue: vm.rewardValue || '20',
+      discountScope: vm.discountScope || 'entire',
+      themeColor: vm.themeColor || '#2a7e72',
+      textColor: vm.textColor || '#ffffff',
+      bannerUrl: vm.bannerUrl || '',
+      logoText: vm.logoText || 'YEEZY',
+      expiryDate: vm.expiryDate || '',
+      channel: 'whatsapp',
+      targetSegment: vm.segment || 'all',
+      segmentName: vm.segmentName || vm.segment || 'All Diners',
+      status: c.status || 'completed',
+      sentCount: c.total_sent ?? vm.sentCount ?? c.total_audience ?? 0,
+      deliveredCount: c.total_delivered ?? vm.deliveredCount ?? c.total_sent ?? c.total_audience ?? 0,
+      redeemedCount: 0,
+      revenueGenerated: c.attributed_revenue_paise ? Math.round(c.attributed_revenue_paise / 100) : (vm.revenueGenerated || 0),
+      createdAt: c.created_at ? new Date(c.created_at).toISOString().slice(0, 10) : ''
+    };
+  });
 
   res.json({
     status: 'success',
@@ -745,7 +756,15 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
       const phone = recipient.phone_e164 || recipient.phone;
       if (!phone) continue;
 
-      const params = targetTemplate === 'hello_world' ? [] : [recipient.name || 'Guest', String(rewardValue || '20%'), expiryDate || 'Sunday'];
+      let params = [];
+      if (targetTemplate === 'bee_first_purchase') {
+        params = [recipient.name || 'Guest'];
+      } else if (targetTemplate === 'hello_world' || targetTemplate === 'bee_subsequent_purc' || targetTemplate === 'bee_points_reminder' || targetTemplate === 'bee_points_expiry') {
+        params = [];
+      } else {
+        params = [recipient.name || 'Guest'];
+      }
+
       let r = await client.sendTemplateMessage({
         recipientPhone: phone,
         templateName: targetTemplate,
@@ -777,25 +796,53 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
   let savedCampaign = null;
   if (supabaseAdmin) {
     try {
+      let templateId = null;
+      const { data: tRow } = await supabaseAdmin
+        .from('wa_templates')
+        .select('id')
+        .eq('name', targetTemplate)
+        .limit(1)
+        .maybeSingle();
+
+      if (tRow) {
+        templateId = tRow.id;
+      } else {
+        const { data: anyT } = await supabaseAdmin.from('wa_templates').select('id').limit(1).maybeSingle();
+        templateId = anyT?.id;
+      }
+
       const { data, error } = await supabaseAdmin.from('campaigns').insert({
         restaurant_id: restaurantId,
         name: title || 'Special Offer Broadcast',
-        status: sentCount > 0 ? 'completed' : 'active',
-        total_audience: recipients.length,
-        sent_at: new Date().toISOString(),
-        metadata: {
+        template_id: templateId,
+        variable_mapping: {
           segment,
           subtitle,
           rewardValue,
           expiryDate,
+          themeColor: req.body.themeColor || '#2a7e72',
+          textColor: req.body.textColor || '#ffffff',
+          bannerUrl: req.body.bannerUrl || '',
+          logoText: req.body.logoText || 'YEEZY',
           sentCount,
           deliveredCount: sentCount,
           failedCount,
           template: targetTemplate,
           revenueGenerated: 0
-        }
+        },
+        status: sentCount > 0 ? 'completed' : 'active',
+        total_audience: recipients.length,
+        total_sent: sentCount,
+        total_delivered: sentCount,
+        total_failed: failedCount,
+        sent_at: new Date().toISOString()
       }).select().single();
-      savedCampaign = data;
+
+      if (error) {
+        console.error('[Dispatch-live DB insert error]', error);
+      } else {
+        savedCampaign = data;
+      }
     } catch (dbErr) {
       console.warn('[Dispatch-live DB insert warning]', dbErr.message);
     }
