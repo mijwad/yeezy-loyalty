@@ -326,19 +326,21 @@ export const initialData = {
     isActive: true,
     activationDate: '2026-10-23',
     type: 'amount_spent',
-    name: 'Downtown Bistro Rewards',
-    title: 'Downtown Bistro Rewards',
+    name: 'durbar',
+    title: 'durbar',
     subtitle: 'Get rewarded on every purchase',
-    logoUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=128&q=80',
-    bannerUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80',
-    themeColor: '#0a7d74',
-    themePalette: 'teal',
-    cardBg: '#1e293b',
+    logoText: 'DURBAR',
+    logoUrl: '',
+    bannerUrl: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=800&q=80',
+    topUnlockBanner: 'Spend ₹10000 to unlock the next reward',
+    cardBg: '#261d1a',
+    themeColor: '#261d1a',
+    textColor: '#ffffff',
     spendRate: 100,
     pointsRate: 10,
     pointValueInr: 1.0,
     minBillToEarn: 100,
-    minBillToRedeem: 200,
+    minBillToRedeem: 250,
     maxDiscountPercentage: 50.0,
     maxPointsPerBill: 5000,
     welcomeBonusPoints: 100,
@@ -346,7 +348,7 @@ export const initialData = {
       {
         id: 'tier-1',
         points: 500,
-        title: 'Get a free coffee or dessert',
+        title: 'Get a free coffee',
         condition: '*Minimum purchase of ₹250 required to redeem reward.',
         rewardType: 'item'
       },
@@ -354,49 +356,50 @@ export const initialData = {
         id: 'tier-2',
         points: 1000,
         title: "You're special. Get ₹125 off",
-        condition: '*Valid on food & beverage bills above ₹500.',
+        condition: '*Valid on food & beverage bills.',
         rewardType: 'discount_amount'
       },
       {
         id: 'tier-3',
-        points: 1500,
-        title: 'VIP Celebration: Flat 15% OFF entire bill',
-        condition: '*Up to maximum discount of ₹400.',
-        rewardType: 'discount_percentage'
+        points: 2000,
+        title: 'You deserve it. Get ₹300 off',
+        condition: '*Valid on bills above ₹600.',
+        rewardType: 'discount_amount'
+      },
+      {
+        id: 'tier-4',
+        points: 3000,
+        title: 'We love your loyalty. Get ₹500 off',
+        condition: '*Valid on bills above ₹1000.',
+        rewardType: 'discount_amount'
+      },
+      {
+        id: 'tier-5',
+        points: 5000,
+        title: 'Party time! Get ₹1000 off on your bill!',
+        condition: '*Valid on bills above ₹2000.',
+        rewardType: 'discount_amount'
       }
     ],
+    termsAndConditions: 'Terms & Conditions\n*Minimum purchase required.\n*2 offers cannot be clubbed.',
+    whatsappPurchaseNotification: {
+      enabled: true,
+      senderName: 'Reelo',
+      template: 'Dear Customer,\n\nYour purchase at {restaurant_name} has been completed.\n\nYou have earned {points} points on this purchase.\n\nThis message has been sent to inform you about an account update related to your recent purchase.\n\nClick below to share feedback and view account details.',
+      buttonLabel: 'Share Feedback & View Pass',
+      passShortLink: 'https://beebill.online/#my-rewards'
+    },
     reminders: {
       inactivityReminderDays: 30,
       inactivityReminderEnabled: true,
-      inactivityMessage: "We miss you at Downtown Bistro! You have {points} loyalty points waiting. Visit us this week and enjoy a complimentary chef's treat!",
+      inactivityMessage: "We miss you at {restaurant_name}! You have {points} loyalty points waiting. Visit us this week and enjoy a complimentary chef's treat!",
       expiryAlertMonths: 11,
       expiryAlertDays: 11,
       expiryAlertEnabled: true,
       expiryAlertMessage: 'Reminder: Your {points} points will expire soon. Redeem them before they lapse on your next visit!',
       pointsExpiryMonths: 12,
       pointsExpiryEnabled: true
-    },
-    channels: {
-      sms: {
-        enabled: true,
-        senderId: 'DWNTWN',
-        template: 'Hi {name}, you just earned {points} points at Downtown Bistro! Total Balance: {balance} pts. Redeem at: bit.ly/yeezy-r'
-      },
-      whatsappUtility: {
-        enabled: true,
-        verifiedBadge: true,
-        template: 'Hello {name}! 🎉 Thank you for dining with us today. You earned {points} Yeezy points. Current balance: {balance} points.'
-      },
-      whatsappMarketing: {
-        enabled: true,
-        template: 'Exclusive Weekend Special for our VIP Members! Double points on all Chef Tasting menus this Saturday.'
-      },
-      email: {
-        enabled: true,
-        fromEmail: 'loyalty@downtownbistro.com',
-        subject: 'Your Downtown Bistro Loyalty Statement'
-      }
-    },
-    termsAndConditions: '1. Points are credited within 10 minutes of bill payment. 2. Points cannot be redeemed for cash or transferred. 3. Only one reward voucher can be redeemed per table per visit. 4. Downtown Bistro reserves the right to modify or terminate terms with prior notice.'
+    }
   }
 };
+

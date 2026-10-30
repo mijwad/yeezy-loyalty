@@ -3,6 +3,7 @@
 import { store } from '../../state/store.js';
 import { showToast } from '../../utils/toast.js';
 import { t } from '../../../lib/loyalty/i18n.js';
+import { renderLoyaltyCardPreview } from '../loyalty/index.js';
 
 let currentLang = 'en';
 let customerPhone = '9847012345';
@@ -133,10 +134,21 @@ export function renderCustomerPortal(state) {
               </div>
             `}
           </div>
+
+          <!-- Digital Loyalty Pass Preview (Reference Image 1) -->
+          <div class="flex flex-col items-center justify-center my-2">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Your Digital Membership Pass</span>
+            ${renderLoyaltyCardPreview(state.loyaltyProgram)}
+          </div>
         ` : `
           <!-- Customer Logged-In Rewards Dashboard -->
           <div class="space-y-5">
             
+            <!-- Digital Membership Pass (Reference Image 1) -->
+            <div class="flex flex-col items-center justify-center">
+              ${renderLoyaltyCardPreview(state.loyaltyProgram)}
+            </div>
+
             <!-- Greeting & Tier Medallion Card -->
             <div class="bg-gradient-to-tr from-purple-900 via-indigo-900 to-slate-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
               <div class="flex items-start justify-between relative z-10">

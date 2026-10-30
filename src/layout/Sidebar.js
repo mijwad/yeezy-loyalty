@@ -7,6 +7,7 @@ export function renderSidebar(currentPath = 'dashboard') {
     ...(userRole === 'SUPER_ADMIN' ? [{ path: 'super-admin', label: 'Super Admin', icon: 'shield_person', badge: 'Admin' }] : []),
     { path: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { path: 'campaigns', label: 'Campaigns', icon: 'campaign' },
+    { path: 'loyalty', label: 'Loyalty Program', icon: 'loyalty' },
     { path: 'customer-insights', label: 'Customer Insights', icon: 'group' },
     { path: 'settings', label: 'Settings', icon: 'settings' }
   ];
@@ -35,12 +36,12 @@ export function renderSidebar(currentPath = 'dashboard') {
           ${navItems.map(item => {
             const isActive = currentPath === item.path;
             
-            const isCampaign = item.path === 'campaigns';
-            const activeClasses = isCampaign 
+            const isHighlight = item.path === 'campaigns' || item.path === 'loyalty';
+            const activeClasses = isHighlight 
               ? 'bg-[#e8f4f3] text-[#167a70] font-label-lg font-bold shadow-xs' 
               : 'bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
             const inactiveClasses = 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-medium';
-            const activeIconColor = isCampaign ? 'text-[#167a70]' : 'text-primary';
+            const activeIconColor = isHighlight ? 'text-[#167a70]' : 'text-primary';
             
             return `
               <a 

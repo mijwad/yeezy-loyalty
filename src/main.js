@@ -262,9 +262,9 @@ class YeezyLoyaltyApp {
         document.querySelectorAll('#app-shell aside a, #mobile-sidebar-drawer a').forEach(a => {
           const href = a.getAttribute('href');
           const isCurrent = href === `#${route}`;
-          const isCamp = href === '#campaigns';
+          const isHighlight = href === '#campaigns' || href === '#loyalty' || href === '#activate-loyalty';
           if (isCurrent) {
-            if (isCamp) {
+            if (isHighlight) {
               a.className = 'flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all bg-[#e8f4f3] text-[#167a70] font-label-lg font-bold shadow-xs';
             } else {
               a.className = 'flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
@@ -275,7 +275,7 @@ class YeezyLoyaltyApp {
           const icon = a.querySelector('.material-symbols-outlined');
           if (icon) {
             if (isCurrent) {
-              icon.className = `material-symbols-outlined text-[20px] ${isCamp ? 'text-[#167a70]' : 'text-primary'}`;
+              icon.className = `material-symbols-outlined text-[20px] ${isHighlight ? 'text-[#167a70]' : 'text-primary'}`;
             } else {
               icon.className = 'material-symbols-outlined text-[20px] text-on-surface-variant';
             }

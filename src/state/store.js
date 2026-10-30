@@ -50,6 +50,9 @@ class Store {
     if (!this.state.campaigns || this.state.campaigns.length === 0) {
       this.state.campaigns = JSON.parse(JSON.stringify(initialData.campaigns || []));
     }
+    if (!this.state.loyaltyProgram || !this.state.loyaltyProgram.rewardTiers || this.state.loyaltyProgram.rewardTiers.length < 5) {
+      this.state.loyaltyProgram = JSON.parse(JSON.stringify(initialData.loyaltyProgram));
+    }
     
     // Non-persisted UI State
     this.uiState = {
@@ -59,6 +62,8 @@ class Store {
       amountSpentSlide: 0,
       configuratorStep: 1,
       configuratorPanel: 'theme',
+      loyaltyWizardOpen: false,
+      loyaltyStep: 1, // 1: Rules & Earning, 2: Tiers Ladder, 3: Creative & Branding, 4: WhatsApp Notification, 5: Review & Activate
       campaignWizardOpen: false,
       campaignStep: 1, // 1: Type/Reward, 2: Expiry & Rules, 3: Creative & Branding, 4: Message Template, 5: Audience & Send
       campaignFilter: 'all',
