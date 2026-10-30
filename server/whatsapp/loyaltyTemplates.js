@@ -58,13 +58,10 @@ export const LOYALTY_TEMPLATES = {
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.FIRST_PURCHASE],
     language: 'en',
     headerText: 'Welcome to Loyalty Program! 🎉',
-    bodyText: 'Dear {{1}}, Your purchase has earned you points!',
+    bodyText: 'Dear {{1}}, Your purchase has earned you loyalty points!',
     footerText: 'Visit again to earn more rewards!',
     variables: [
-      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: true, description: 'Customer full name' },
-      { index: 2, name: 'restaurant_name', sample: 'Our Restaurant', type: 'restaurant.name', required: false, description: 'Restaurant name' },
-      { index: 3, name: 'points_earned', sample: '100', type: 'loyalty.points_earned', required: false, description: 'Points earned' },
-      { index: 4, name: 'points_balance', sample: '350', type: 'loyalty.points_balance', required: false, description: 'Points balance' }
+      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: true, description: 'Customer full name' }
     ],
     buttons: [],
     description: 'Sent when a customer makes their first purchase and joins the loyalty program',
@@ -80,11 +77,7 @@ export const LOYALTY_TEMPLATES = {
     headerText: 'Thanks for Returning! 🙏',
     bodyText: 'Dear Customer, Your purchase has earned you loyalty points.',
     footerText: 'Every visit brings you closer to rewards!',
-    variables: [
-      { index: 1, name: 'customer_name', sample: 'Priya', type: 'customer.name', required: false, description: 'Customer full name' },
-      { index: 2, name: 'points_earned', sample: '85', type: 'loyalty.points_earned', required: false, description: 'Points earned' },
-      { index: 3, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: false, description: 'Points balance' }
-    ],
+    variables: [],
     buttons: [],
     description: 'Sent when a returning customer makes a purchase and earns points',
     isSystemTemplate: true
@@ -99,10 +92,7 @@ export const LOYALTY_TEMPLATES = {
     headerText: 'Your Loyalty Points Balance 💎',
     bodyText: 'Dear Customer, This is a reminder of your loyalty points balance.',
     footerText: 'Points expire after 12 months. Redeem before they\'re gone!',
-    variables: [
-      { index: 1, name: 'customer_name', sample: 'Ananya', type: 'customer.name', required: false, description: 'Customer full name' },
-      { index: 2, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: false, description: 'Current points balance' }
-    ],
+    variables: [],
     buttons: [],
     description: 'Periodic reminder of points balance',
     isSystemTemplate: true
@@ -117,15 +107,8 @@ export const LOYALTY_TEMPLATES = {
     headerText: '⚠️ Points Expiring Soon!',
     bodyText: 'Dear Customer, This is a notice that your points are scheduled to expire.',
     footerText: 'Redeem now to keep your rewards!',
-    variables: [
-      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: false, description: 'Customer full name' },
-      { index: 2, name: 'points_expiring', sample: '150', type: 'loyalty.points_expiring', required: false, description: 'Points scheduled to expire' },
-      { index: 3, name: 'expiry_date', sample: 'December 31, 2026', type: 'loyalty.expiry_date', required: false, description: 'Expiry date' }
-    ],
-    buttons: [
-      { type: 'QUICK_REPLY', text: 'Redeem Now' },
-      { type: 'QUICK_REPLY', text: 'View Balance' }
-    ],
+    variables: [],
+    buttons: [],
     description: 'Sent when points are genuinely scheduled to expire (based on restaurant\'s expiry rules)',
     isSystemTemplate: true
   },
