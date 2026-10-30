@@ -26,7 +26,15 @@ services:
         value: https://beebill.online,https://www.beebill.online,https://yeezy-loyalty.vercel.app,https://yeezy-loyalty.onrender.com
       - key: META_APP_ID
         value: "1449921280434310"
+      - key: META_PHONE_NUMBER_ID
+        value: "1369137272956532"
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        value: "1369137272956532"
+      - key: META_WABA_ID
+        value: "1139673141923119"
+      - key: WHATSAPP_WABA_ID
+        value: "1139673141923119"
       - key: WHATSAPP_ACCESS_TOKEN
         sync: false
       - key: WHATSAPP_VERIFY_TOKEN
-        value: yeezy_loyalty_webhook_verify_2026
+        value: "1234567890qwertyuiopasdf"
