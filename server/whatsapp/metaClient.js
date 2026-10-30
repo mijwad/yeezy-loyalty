@@ -260,18 +260,24 @@ export class MetaWhatsAppClient {
    */
   static normalizePhoneE164(phone) {
     if (!phone) throw new Error('Phone number is required');
-    let cleaned = phone.replace(/[^0-9+]/g, '');
+    let digits = String(phone).replace(/[^0-9]/g, '');
 
-    // Default to +91 if Indian 10-digit number
-    if (/^[6-9]\d{9}$/.test(cleaned)) {
-      return `+91${cleaned}`;
+    // If starts with 91 and has 12 digits (e.g. 919745630606)
+    if (digits.length === 12 && digits.startsWith('91')) {
+      return `+${digits}`;
     }
-    if (cleaned.startsWith('0') && cleaned.length === 11) {
-      return `+91${cleaned.substring(1)}`;
+    // If has 11 digits starting with 0 (e.g. 09745830506)
+    if (digits.length === 11 && digits.startsWith('0')) {
+      return `+91${digits.slice(1)}`;
     }
-    if (!cleaned.startsWith('+')) {
-      return `+${cleaned}`;
+    // Standard Indian 10 digits
+    if (digits.length === 10) {
+      return `+91${digits}`;
     }
-    return cleaned;
+    // Any other format, take last 10 digits if it matches Indian mobile
+    if (digits.length > 10 && /^[6-9]\d{9}$/.test(digits.slice(-10))) {
+      return `+91${digits.slice(-10)}`;
+    }
+    return `+${digits}`;
   }
 }
