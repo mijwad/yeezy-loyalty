@@ -38,4 +38,4 @@ router.post('/verifyOtp', async (req, res) => {
   await handleVerifyOtp(req, res);
 });
 
-export default router;
+export const petpoojaRouter = router;

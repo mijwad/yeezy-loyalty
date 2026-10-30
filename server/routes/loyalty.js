@@ -135,7 +135,7 @@ loyaltyRouter.post(['/members/lookup', '/lookup'], rateLimitLookup, validateRequ
  */
 loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (req, res) => {
   const { order_id, member_phone, member_name, subtotal_paise, discounts_paise, points_redeemed_paise, order_type, restaurant_id } = req.validated.body;
-  const tenantId = restaurant_id || req.tenantId || 'ten_yeezy_01';
+  const tenantId = restaurant_id || req.tenantId || req.headers['x-tenant-id'] || 'ten_durbar_mvsfe21f';
 
   const { data: earnRes, error: earnErr } = await supabaseAdmin.rpc('fn_loyalty_earn_points', {
     p_restaurant_id: tenantId,
@@ -166,7 +166,10 @@ loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (
     triggers.onBillSettled(
       {
         phoneNumber: cleanPhone,
+        phone: cleanPhone,
+        phone_e164: cleanPhone,
         fullName: member_name || 'Guest',
+        name: member_name || 'Guest',
         is_whatsapp_opt_in: true,
         total_visits_count: parsedEarn.visit_count || 1,
         currentTier: { tierName: parsedEarn.tier || 'Silver' },

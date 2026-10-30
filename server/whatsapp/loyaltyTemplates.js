@@ -480,19 +480,21 @@ export class LoyaltyTemplateService {
 
     // Log message
     if (supabaseAdmin && result.success) {
-      await supabaseAdmin.from('wa_message_log').insert({
-        tenant_id: this.restaurantId,
-        customer_id: context.customer?.id,
-        direction: 'outbound',
-        message_type: 'template',
-        wa_message_id: result.metaMessageId,
-        template_name: templateDef.name,
-        template_language: templateDef.language,
-        to_phone_e164: MetaWhatsAppClient.normalizePhoneE164(customerPhone),
-        status: result.status,
-        cost: result.cost,
-        created_at: new Date().toISOString()
-      });
+      try {
+        await supabaseAdmin.from('wa_message_log').insert({
+          tenant_id: this.restaurantId,
+          customer_id: context.customer?.id,
+          direction: 'outbound',
+          message_type: 'template',
+          wa_message_id: result.metaMessageId,
+          template_name: templateDef.name,
+          template_language: templateDef.language,
+          to_phone_e164: MetaWhatsAppClient.normalizePhoneE164(customerPhone),
+          status: result.status,
+          cost: result.cost,
+          created_at: new Date().toISOString()
+        });
+      } catch (_) {}
     }
 
     return result;
@@ -503,12 +505,17 @@ export class LoyaltyTemplateService {
 // 4. HELPER FUNCTIONS FOR COMMON LOYALTY EVENTS
 // ============================================================================
 
+function resolveCustomerPhone(customer) {
+  return customer?.phoneNumber || customer?.phone || customer?.phone_e164 || customer?.mobile || '';
+}
+
 /**
  * Send first purchase welcome message
  */
 export async function sendFirstPurchaseMessage(restaurantId, customer, restaurant, pointsEarned, pointsBalance) {
   const service = new LoyaltyTemplateService(restaurantId);
-  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.FIRST_PURCHASE, customer.phoneNumber, {
+  const phone = resolveCustomerPhone(customer);
+  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.FIRST_PURCHASE, phone, {
     customer,
     restaurant,
     pointsEarned,
@@ -521,7 +528,8 @@ export async function sendFirstPurchaseMessage(restaurantId, customer, restauran
  */
 export async function sendRepeatPurchaseMessage(restaurantId, customer, restaurant, pointsEarned, pointsBalance) {
   const service = new LoyaltyTemplateService(restaurantId);
-  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.REPEAT_PURCHASE, customer.phoneNumber, {
+  const phone = resolveCustomerPhone(customer);
+  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.REPEAT_PURCHASE, phone, {
     customer,
     restaurant,
     pointsEarned,
@@ -534,7 +542,8 @@ export async function sendRepeatPurchaseMessage(restaurantId, customer, restaura
  */
 export async function sendPointsReminderMessage(restaurantId, customer, restaurant, pointsBalance) {
   const service = new LoyaltyTemplateService(restaurantId);
-  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.POINTS_REMINDER, customer.phoneNumber, {
+  const phone = resolveCustomerPhone(customer);
+  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.POINTS_REMINDER, phone, {
     customer,
     restaurant,
     pointsBalance
@@ -546,7 +555,8 @@ export async function sendPointsReminderMessage(restaurantId, customer, restaura
  */
 export async function sendPointsExpiringMessage(restaurantId, customer, restaurant, pointsExpiring, expiryDate) {
   const service = new LoyaltyTemplateService(restaurantId);
-  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.POINTS_EXPIRING, customer.phoneNumber, {
+  const phone = resolveCustomerPhone(customer);
+  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.POINTS_EXPIRING, phone, {
     customer,
     restaurant,
     pointsExpiring,
@@ -559,7 +569,8 @@ export async function sendPointsExpiringMessage(restaurantId, customer, restaura
  */
 export async function sendRewardRedeemedMessage(restaurantId, customer, restaurant, reward, pointsUsed, pointsBalance) {
   const service = new LoyaltyTemplateService(restaurantId);
-  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.REWARD_REDEEMED, customer.phoneNumber, {
+  const phone = resolveCustomerPhone(customer);
+  return service.sendLoyaltyMessage(LOYALTY_EVENT_TYPES.REWARD_REDEEMED, phone, {
     customer,
     restaurant,
     reward,

@@ -515,7 +515,10 @@ posUnifiedRouter.post('/:posSystem/orders/save', posAdapterMiddleware, async (re
         {
           id: member.id,
           phoneNumber: customer.phone,
+          phone: customer.phone,
+          phone_e164: customer.phone,
           fullName: customer.name,
+          name: customer.name,
           is_whatsapp_opt_in: member.whatsapp_opt_in !== false,
           total_visits_count: member.visit_count || 1,
           currentTier: { tierName: parsedEarn.tier || 'Silver' },

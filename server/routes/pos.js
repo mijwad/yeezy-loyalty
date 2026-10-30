@@ -524,12 +524,15 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
   let liveWhatsAppResult = null;
   try {
     const isFirstVisit = (customer.visits || 1) <= 1;
-    const triggers = new LoyaltyEventTriggers(tenantId || outlet?.tenantId || 'ten_yeezy_01');
+    const triggers = new LoyaltyEventTriggers(tenantId || outlet?.tenantId || 'ten_durbar_mvsfe21f');
     triggers.onBillSettled(
       {
         id: customer.id,
         phoneNumber: customer.phone,
+        phone: customer.phone,
+        phone_e164: customer.phone,
         fullName: customer.name,
+        name: customer.name,
         is_whatsapp_opt_in: true,
         total_visits_count: customer.visits,
         currentTier: { tierName: customer.tier || 'Silver' },

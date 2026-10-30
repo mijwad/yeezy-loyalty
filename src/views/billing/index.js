@@ -467,10 +467,16 @@ export function attachBillingScreenListeners() {
         // Call Earn API
         const earnRes = await fetch(apiUrl('/api/loyalty/earn'), {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || localStorage.getItem('token') || ''}`,
+            'x-tenant-id': store.getState().user?.tenantId || 'ten_durbar_mvsfe21f'
+          },
           body: JSON.stringify({
+            restaurant_id: store.getState().user?.tenantId || 'ten_durbar_mvsfe21f',
             order_id: orderId,
             member_phone: activeMember.phone_e164,
+            member_name: activeMember.name,
             subtotal_paise: subtotalPaise,
             discounts_paise: appliedDiscountPaise,
             order_type: orderType
@@ -512,8 +518,13 @@ async function triggerLookup(phone) {
   try {
     const res = await fetch(apiUrl('/api/loyalty/members/lookup'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || localStorage.getItem('token') || ''}`,
+        'x-tenant-id': store.getState().user?.tenantId || 'ten_durbar_mvsfe21f'
+      },
       body: JSON.stringify({
+        restaurant_id: store.getState().user?.tenantId || 'ten_durbar_mvsfe21f',
         phone,
         bill_paise: billPaise,
         order_type: orderType

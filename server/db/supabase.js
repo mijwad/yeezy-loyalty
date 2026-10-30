@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import dotenv from 'dotenv';
 dotenv.config();
 
-function toUuid(str) {
+export function toUuid(str) {
   if (!str) return '00000000-0000-0000-0000-000000000001';
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
     return str.toLowerCase();
@@ -324,6 +324,7 @@ export default {
   supabase,
   supabaseAdmin,
   isSupabaseConfigured,
+  toUuid,
   syncLoyaltyProgramToSupabase,
   syncLoyaltyMemberToSupabase,
   syncLoyaltyLedgerEntryToSupabase,

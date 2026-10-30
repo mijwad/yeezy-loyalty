@@ -35,9 +35,12 @@ export class LoyaltyEventTriggers {
    * Call this after bill settlement in POS webhook handler
    */
   async onBillSettled(customer, restaurant, order, pointsEarned, pointsBalance, isFirstPurchase = false) {
+    if (!customer) return { skipped: true, reason: 'no_customer' };
+    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile;
+
     // Check WhatsApp opt-in (transactional receipts are opt-in by default unless explicitly opted out)
     if (customer.is_whatsapp_opt_in === false || customer.whatsapp_opt_in === false) {
-      console.log(`[LoyaltyTriggers] Customer ${customer.id || customer.phone} opted out of WhatsApp`);
+      console.log(`[LoyaltyTriggers] Customer ${customer.id || customer.phoneNumber} opted out of WhatsApp`);
       return { skipped: true, reason: 'opt_out' };
     }
 
@@ -73,7 +76,10 @@ export class LoyaltyEventTriggers {
    * Call this after successful redemption in POS
    */
   async onRewardRedeemed(customer, restaurant, reward, pointsUsed, pointsBalance) {
-    if (!customer.is_whatsapp_opt_in) {
+    if (!customer) return { skipped: true, reason: 'no_customer' };
+    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile;
+
+    if (customer.is_whatsapp_opt_in === false || customer.whatsapp_opt_in === false) {
       return { skipped: true, reason: 'opt_out' };
     }
 
