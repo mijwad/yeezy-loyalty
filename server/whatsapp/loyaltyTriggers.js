@@ -31,12 +31,58 @@ export class LoyaltyEventTriggers {
   }
 
   /**
+   * Static helper for onBillSettled
+   */
+  static async onBillSettled(...args) {
+    const restaurantId = typeof args[0] === 'string' ? args[0] : (args[0]?.tenant_id || args[0]?.tenantId || args[0]?.restaurant_id || 'ten_durbar_mvsfe21f');
+    const instance = new LoyaltyEventTriggers(restaurantId);
+    return instance.onBillSettled(...args);
+  }
+
+  /**
+   * Static helper for onRewardRedeemed
+   */
+  static async onRewardRedeemed(...args) {
+    const restaurantId = typeof args[0] === 'string' ? args[0] : (args[0]?.tenant_id || args[0]?.tenantId || args[0]?.restaurant_id || 'ten_durbar_mvsfe21f');
+    const instance = new LoyaltyEventTriggers(restaurantId);
+    return instance.onRewardRedeemed(...args);
+  }
+
+  /**
    * Trigger: Customer makes a purchase (first or repeat)
    * Call this after bill settlement in POS webhook handler
+   * Supports:
+   *  - onBillSettled(customer, restaurant, order, pointsEarned, pointsBalance, isFirstPurchase)
+   *  - onBillSettled(restaurantId, customer, order, pointsEarned, pointsBalance, isFirstPurchase)
    */
-  async onBillSettled(customer, restaurant, order, pointsEarned, pointsBalance, isFirstPurchase = false) {
+  async onBillSettled(arg1, arg2, arg3, arg4, arg5, arg6) {
+    let restaurantId = this?.restaurantId;
+    let customer;
+    let restaurant = { name: 'Our Restaurant' };
+    let order = {};
+    let pointsEarned = 0;
+    let pointsBalance = 0;
+    let isFirstPurchase = false;
+
+    if (typeof arg1 === 'string') {
+      restaurantId = arg1 || restaurantId;
+      customer = arg2;
+      restaurant = typeof arg3 === 'object' && arg3?.name ? arg3 : restaurant;
+      order = arg3 || {};
+      pointsEarned = arg4 || 0;
+      pointsBalance = arg5 || 0;
+      isFirstPurchase = Boolean(arg6);
+    } else {
+      customer = arg1;
+      restaurant = arg2 || restaurant;
+      order = arg3 || {};
+      pointsEarned = arg4 || 0;
+      pointsBalance = arg5 || 0;
+      isFirstPurchase = Boolean(arg6);
+    }
+
     if (!customer) return { skipped: true, reason: 'no_customer' };
-    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile;
+    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile || customer.customer_phone;
 
     // Check WhatsApp opt-in (transactional receipts are opt-in by default unless explicitly opted out)
     if (customer.is_whatsapp_opt_in === false || customer.whatsapp_opt_in === false) {
@@ -44,13 +90,14 @@ export class LoyaltyEventTriggers {
       return { skipped: true, reason: 'opt_out' };
     }
 
-    // Check if first purchase (visit_count === 1 after this order)
-    const isFirst = isFirstPurchase || (customer.total_visits_count || customer.visits || customer.visit_count || 0) <= 1;
+    // Check if first purchase (if visits <= 1 or isFirstPurchase is true)
+    const rawVisits = customer.visits ?? customer.total_visits_count ?? customer.total_visits ?? customer.visit_count ?? 1;
+    const isFirst = isFirstPurchase || Number(rawVisits) <= 1;
 
     try {
       if (isFirst) {
         return await sendFirstPurchaseMessage(
-          this.restaurantId,
+          restaurantId || this.restaurantId,
           customer,
           restaurant,
           pointsEarned,
@@ -58,7 +105,7 @@ export class LoyaltyEventTriggers {
         );
       } else {
         return await sendRepeatPurchaseMessage(
-          this.restaurantId,
+          restaurantId || this.restaurantId,
           customer,
           restaurant,
           pointsEarned,
@@ -75,9 +122,31 @@ export class LoyaltyEventTriggers {
    * Trigger: Customer redeems a reward
    * Call this after successful redemption in POS
    */
-  async onRewardRedeemed(customer, restaurant, reward, pointsUsed, pointsBalance) {
+  async onRewardRedeemed(arg1, arg2, arg3, arg4, arg5) {
+    let restaurantId = this?.restaurantId;
+    let customer;
+    let restaurant = { name: 'Our Restaurant' };
+    let reward = {};
+    let pointsUsed = 0;
+    let pointsBalance = 0;
+
+    if (typeof arg1 === 'string') {
+      restaurantId = arg1 || restaurantId;
+      customer = arg2;
+      restaurant = typeof arg3 === 'object' && arg3?.name ? arg3 : restaurant;
+      reward = arg3 || {};
+      pointsUsed = arg4 || 0;
+      pointsBalance = arg5 || 0;
+    } else {
+      customer = arg1;
+      restaurant = arg2 || restaurant;
+      reward = arg3 || {};
+      pointsUsed = arg4 || 0;
+      pointsBalance = arg5 || 0;
+    }
+
     if (!customer) return { skipped: true, reason: 'no_customer' };
-    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile;
+    customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile || customer.customer_phone;
 
     if (customer.is_whatsapp_opt_in === false || customer.whatsapp_opt_in === false) {
       return { skipped: true, reason: 'opt_out' };
@@ -85,7 +154,7 @@ export class LoyaltyEventTriggers {
 
     try {
       return await sendRewardRedeemedMessage(
-        this.restaurantId,
+        restaurantId || this.restaurantId,
         customer,
         restaurant,
         reward,

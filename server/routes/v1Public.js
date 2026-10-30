@@ -3,6 +3,7 @@ import { apiKeyAuth, requireScope } from '../middleware/apiKeyAuth.js';
 import { rateLimiter, idempotency } from '../middleware/rateLimitAndIdempotency.js';
 import { supabaseAdmin } from '../db/supabase.js';
 import { normalizePhone } from '../../lib/loyalty/engine.js';
+import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
 
 export const v1PublicRouter = Router();
 
@@ -396,6 +397,37 @@ v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => 
       } catch (metaErr) {
         console.warn('[Loyalty Ledger Meta Update Warning]', metaErr);
       }
+    }
+    // Automated WhatsApp Notification Trigger (First Purchase vs Repeat Purchase)
+    const isFirstVisit = (parsedEarn.visit_count || 1) <= 1;
+    try {
+      const triggers = new LoyaltyEventTriggers(req.restaurantId);
+      triggers.onBillSettled(
+        {
+          phoneNumber: phone,
+          phone: phone,
+          phone_e164: phone,
+          fullName: providedName || 'Valued Guest',
+          name: providedName || 'Valued Guest',
+          is_whatsapp_opt_in: true,
+          total_visits_count: parsedEarn.visit_count || 1,
+          visits: parsedEarn.visit_count || 1,
+          visit_count: parsedEarn.visit_count || 1,
+          currentTier: { tierName: parsedEarn.tier || 'Silver' },
+          pointsBalance: parsedEarn.new_balance
+        },
+        { name: req.apiKey?.name || 'Our Restaurant' },
+        { orderId: order_id, subtotal: subtotal_paise / 100 },
+        parsedEarn.points_earned,
+        parsedEarn.new_balance,
+        isFirstVisit
+      ).then(res => {
+        console.log(`[Public API Order WhatsApp Trigger] Sent ${isFirstVisit ? 'FIRST_PURCHASE' : 'REPEAT_PURCHASE'} notification to ${phone}:`, res?.success ? 'OK' : res?.reason || res?.error);
+      }).catch(err => {
+        console.warn(`[Public API Order WhatsApp Trigger] Notification failed:`, err.message);
+      });
+    } catch (triggerErr) {
+      console.warn('[Public API Order WhatsApp Trigger Error]', triggerErr.message);
     }
 
     return res.json({
