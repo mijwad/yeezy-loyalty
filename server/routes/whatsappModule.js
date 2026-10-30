@@ -517,15 +517,38 @@ whatsappRouter.get('/campaigns', asyncHandler(async (req, res) => {
 
   const { data: campaigns, error } = await supabaseAdmin
     .from('campaigns')
-    .select('*, segments(name, preset_type), wa_templates(name, category, meta_status)')
+    .select('*')
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: false });
 
   if (error) throw error;
 
+  const mapped = (campaigns || []).map(c => ({
+    id: c.id,
+    title: c.name,
+    subtitle: c.metadata?.subtitle || '',
+    rewardType: c.metadata?.rewardType || 'percentage',
+    rewardValue: c.metadata?.rewardValue || '20',
+    discountScope: c.metadata?.discountScope || 'entire',
+    themeColor: c.metadata?.themeColor || '#2a7e72',
+    textColor: c.metadata?.textColor || '#ffffff',
+    bannerUrl: c.metadata?.bannerUrl || '',
+    logoText: c.metadata?.logoText || 'YEEZY',
+    expiryDate: c.metadata?.expiryDate || '',
+    channel: 'whatsapp',
+    targetSegment: c.metadata?.segment || 'all',
+    segmentName: c.metadata?.segmentName || c.metadata?.segment || 'All Diners',
+    status: c.status || 'active',
+    sentCount: c.metadata?.sentCount ?? c.total_audience ?? 0,
+    deliveredCount: c.metadata?.deliveredCount ?? c.metadata?.sentCount ?? c.total_audience ?? 0,
+    redeemedCount: c.metadata?.redeemedCount ?? 0,
+    revenueGenerated: c.attributed_revenue ?? c.metadata?.revenueGenerated ?? 0,
+    createdAt: c.created_at ? new Date(c.created_at).toISOString().slice(0, 10) : ''
+  }));
+
   res.json({
     status: 'success',
-    campaigns: campaigns || []
+    campaigns: mapped
   });
 }));
 
@@ -563,6 +586,25 @@ whatsappRouter.post('/campaigns', asyncHandler(async (req, res) => {
   }
 
   res.status(201).json({ status: 'success', campaign: { name, status: 'draft' } });
+}));
+
+/**
+ * DELETE /api/whatsapp/campaigns/:id
+ * Delete a campaign from the database
+ */
+whatsappRouter.delete('/campaigns/:id', asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const restaurantId = getTenantId(req);
+
+  if (supabaseAdmin) {
+    await supabaseAdmin
+      .from('campaigns')
+      .delete()
+      .eq('id', id)
+      .eq('restaurant_id', restaurantId);
+  }
+
+  res.json({ status: 'success', message: 'Campaign deleted' });
 }));
 
 /**
@@ -626,12 +668,21 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
     const targetTemplate = templateName || 'hello_world';
     const params = targetTemplate === 'hello_world' ? [] : [title || 'Special Offer', String(rewardValue || '20%'), expiryDate || 'this week'];
 
-    const sendRes = await client.sendTemplateMessage({
+    let sendRes = await client.sendTemplateMessage({
       recipientPhone: testPhone,
       templateName: targetTemplate,
-      language: 'en_US',
+      language: 'en',
       parameters: params
     });
+
+    if (!sendRes.success && (sendRes.errorCode === '132001' || sendRes.errorMessage?.includes('translation'))) {
+      sendRes = await client.sendTemplateMessage({
+        recipientPhone: testPhone,
+        templateName: targetTemplate,
+        language: 'en_US',
+        parameters: params
+      });
+    }
 
     return res.json({
       status: sendRes.success ? 'success' : 'error',
@@ -645,11 +696,19 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
   // 1. Resolve recipients based on segment ('atRisk', 'lost', 'firstTimers', 'loyal', 'all')
   let recipients = [];
   if (supabaseAdmin) {
-    const { data: members } = await supabaseAdmin
+    let { data: members } = await supabaseAdmin
       .from('loyalty_members')
       .select('id, name, phone_e164, visit_count, last_visit_at, tier')
       .eq('restaurant_id', restaurantId)
       .eq('whatsapp_opt_in', true);
+
+    if (!members || members.length === 0) {
+      const { data: fallbackMembers } = await supabaseAdmin
+        .from('loyalty_members')
+        .select('id, name, phone_e164, visit_count, last_visit_at, tier')
+        .eq('whatsapp_opt_in', true);
+      members = fallbackMembers || [];
+    }
 
     if (members && members.length > 0) {
       const now = Date.now();
@@ -660,7 +719,7 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
         if (segment === 'atRisk') return lastVisitDays >= 30 && lastVisitDays <= 90;
         if (segment === 'lost') return lastVisitDays > 90;
         if (segment === 'firstTimers') return visits <= 1;
-        if (segment === 'loyal') return visits >= 4 || m.tier === 'Gold' || m.tier === 'Platinum';
+        if (segment === 'loyal') return visits >= 4 || m.tier === 'Gold' || m.tier === 'Platinum' || m.tier === 'VIP';
         return true; // 'all'
       });
     }
@@ -687,12 +746,21 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
       if (!phone) continue;
 
       const params = targetTemplate === 'hello_world' ? [] : [recipient.name || 'Guest', String(rewardValue || '20%'), expiryDate || 'Sunday'];
-      const r = await client.sendTemplateMessage({
+      let r = await client.sendTemplateMessage({
         recipientPhone: phone,
         templateName: targetTemplate,
-        language: 'en_US',
+        language: 'en',
         parameters: params
       });
+
+      if (!r.success && (r.errorCode === '132001' || r.errorMessage?.includes('translation'))) {
+        r = await client.sendTemplateMessage({
+          recipientPhone: phone,
+          templateName: targetTemplate,
+          language: 'en_US',
+          parameters: params
+        });
+      }
 
       if (r.success) {
         sentCount++;
@@ -705,6 +773,34 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
     }
   }
 
+  // Persist campaign to database for real analytics
+  let savedCampaign = null;
+  if (supabaseAdmin) {
+    try {
+      const { data, error } = await supabaseAdmin.from('campaigns').insert({
+        restaurant_id: restaurantId,
+        name: title || 'Special Offer Broadcast',
+        status: sentCount > 0 ? 'completed' : 'active',
+        total_audience: recipients.length,
+        sent_at: new Date().toISOString(),
+        metadata: {
+          segment,
+          subtitle,
+          rewardValue,
+          expiryDate,
+          sentCount,
+          deliveredCount: sentCount,
+          failedCount,
+          template: targetTemplate,
+          revenueGenerated: 0
+        }
+      }).select().single();
+      savedCampaign = data;
+    } catch (dbErr) {
+      console.warn('[Dispatch-live DB insert warning]', dbErr.message);
+    }
+  }
+
   res.json({
     status: 'success',
     segment,
@@ -712,6 +808,7 @@ whatsappRouter.post('/campaigns/dispatch-live', asyncHandler(async (req, res) =>
     sentCount,
     failedCount,
     template: targetTemplate,
+    campaign: savedCampaign,
     sampleResults
   });
 }));

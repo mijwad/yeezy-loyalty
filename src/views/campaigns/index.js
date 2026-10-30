@@ -142,7 +142,7 @@ function renderCampaignsDashboard(state, uiState) {
           </div>
           <div class="mt-3">
             <div class="text-2xl font-extrabold text-gray-900">${totalSent.toLocaleString()}</div>
-            <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">99.2% WhatsApp delivery rate</div>
+            <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">${totalSent > 0 ? 'Verified WhatsApp Delivery' : 'No broadcasts sent yet'}</div>
           </div>
         </div>
 
@@ -168,7 +168,7 @@ function renderCampaignsDashboard(state, uiState) {
           </div>
           <div class="mt-3">
             <div class="text-2xl font-extrabold text-gray-900">₹${totalRevenue.toLocaleString()}</div>
-            <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">14.8x Campaign ROI</div>
+            <div class="text-[11px] text-emerald-600 font-semibold mt-0.5">${totalRevenue > 0 ? (totalRevenue / Math.max(1, totalSent * 0.78)).toFixed(1) + 'x Campaign ROI' : '₹0 attributed revenue'}</div>
           </div>
         </div>
       </div>
@@ -1073,40 +1073,40 @@ function renderStep5Content(form, state) {
   const segments = categorizeCustomerSegments(customers);
   const selectedSegment = form.targetSegment || 'atRisk';
 
-  // Real or baseline counts
+  // Real active database counts
   const segmentStats = {
     atRisk: {
       title: 'Lapsed Diners (30-90 Days Inactive)',
-      desc: 'Guests who visited before but haven\'t dined in 1-3 months. Proven 28% win-back recovery rate!',
-      count: segments.atRisk.count > 0 ? segments.atRisk.count : 184,
+      desc: 'Guests who visited before but haven\'t dined in 1-3 months. Re-engage to prevent permanent churn.',
+      count: segments.atRisk?.count || 0,
       badge: '🔥 Top Win-Back',
       badgeColor: 'bg-emerald-100 text-emerald-800'
     },
     lost: {
       title: 'Lost Diners (90+ Days Inactive)',
-      desc: 'High churn-risk diners away for over 3 months. Needs attractive 20%+ discount incentive to return.',
-      count: segments.lost.count > 0 ? segments.lost.count : 68,
+      desc: 'High churn-risk diners away for over 3 months. Needs attractive discount incentive to return.',
+      count: segments.lost?.count || 0,
       badge: '⚠️ Churn Risk',
       badgeColor: 'bg-red-100 text-red-800'
     },
     firstTimers: {
       title: 'First-Timers (1 Visit)',
       desc: 'New diners who dined once. Encourage 2nd visit to convert them into high-value regulars.',
-      count: segments.firstTimers.count > 0 ? segments.firstTimers.count : 245,
+      count: segments.firstTimers?.count || 0,
       badge: '🌱 Habit Builder',
       badgeColor: 'bg-blue-100 text-blue-800'
     },
     loyal: {
       title: 'VIP & Loyal Regulars',
       desc: 'Your top spenders and regulars with 4+ visits. Send exclusive VIP tasting invitations.',
-      count: segments.loyal.count > 0 ? segments.loyal.count : 156,
+      count: segments.loyal?.count || 0,
       badge: '👑 VIP Guests',
       badgeColor: 'bg-purple-100 text-purple-800'
     },
     all: {
       title: 'All Diners (Full Database)',
       desc: 'Broadcast promotional announcement to all verified diner contacts.',
-      count: segments.total > 0 ? segments.total : 745,
+      count: customers.length,
       badge: '📢 Full Blast',
       badgeColor: 'bg-gray-100 text-gray-800'
     }
@@ -1252,12 +1252,21 @@ export function attachCampaignsListeners() {
   });
 
   document.querySelectorAll('.btn-delete-campaign').forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const campId = btn.getAttribute('data-campaign-id');
       if (confirm('Are you sure you want to delete this campaign?')) {
         store.setState(s => ({
           campaigns: (s.campaigns || []).filter(c => c.id !== campId)
         }));
+        try {
+          await fetch(`/api/whatsapp/campaigns/${campId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || ''}`,
+              'x-tenant-id': store.getState().user?.tenantId || 'ten_yeezy_01'
+            }
+          });
+        } catch (_) {}
         window.showToast?.('Campaign deleted');
       }
     };
@@ -1658,13 +1667,14 @@ async function handleCampaignLaunch() {
   window.showToast?.('🚀 Launching campaign broadcast to segment...');
 
   let apiSent = 0;
+  let backendCampaign = null;
   try {
     const res = await fetch('/api/whatsapp/campaigns/dispatch-live', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-        'x-tenant-id': 'ten_yeezy_01'
+        'Authorization': `Bearer ${localStorage.getItem('yeezy_auth_token') || localStorage.getItem('token') || ''}`,
+        'x-tenant-id': store.getState().user?.tenantId || 'ten_yeezy_01'
       },
       body: JSON.stringify({
         segment: form.targetSegment || 'atRisk',
@@ -1676,12 +1686,13 @@ async function handleCampaignLaunch() {
     });
     const data = await res.json();
     apiSent = data.sentCount || 0;
+    backendCampaign = data.campaign || null;
   } catch (e) {
     console.warn('[Campaign Launch API fallback]', e);
   }
 
   const newCampaign = {
-    id: newCampId,
+    id: backendCampaign?.id || newCampId,
     title: form.title || 'Special Dining Voucher',
     subtitle: form.subtitle || 'Complimentary treat on your next visit',
     rewardType: form.rewardType || 'percentage',
@@ -1690,14 +1701,14 @@ async function handleCampaignLaunch() {
     themeColor: form.themeColor || '#2a7e72',
     textColor: form.textColor || '#ffffff',
     bannerUrl: form.bannerUrl || BANNER_PRESETS[0].url,
-    logoText: form.logoText || 'DURBAR',
+    logoText: form.logoText || 'YEEZY',
     expiryDate: form.expiryDate || '2026-11-06',
     channel: form.channel || 'whatsapp',
     targetSegment: form.targetSegment || 'atRisk',
     segmentName: segmentLabels[form.targetSegment] || 'Lapsed Diners',
-    status: 'active',
-    sentCount: apiSent > 0 ? apiSent : 184,
-    deliveredCount: apiSent > 0 ? apiSent : 184,
+    status: apiSent > 0 ? 'completed' : 'active',
+    sentCount: apiSent,
+    deliveredCount: apiSent,
     redeemedCount: 0,
     revenueGenerated: 0,
     createdAt: new Date().toISOString().split('T')[0]

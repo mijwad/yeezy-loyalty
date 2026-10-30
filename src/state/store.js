@@ -47,8 +47,15 @@ class Store {
     if (!this.state.yeezyBillSettings) {
       this.state.yeezyBillSettings = JSON.parse(JSON.stringify(initialData.yeezyBillSettings));
     }
-    if (!this.state.campaigns || this.state.campaigns.length === 0) {
-      this.state.campaigns = JSON.parse(JSON.stringify(initialData.campaigns || []));
+    if (Array.isArray(this.state.campaigns)) {
+      this.state.campaigns = this.state.campaigns.filter(c => 
+        c && c.id !== 'camp-1' && c.id !== 'camp-2' && c.id !== 'camp-3' &&
+        c.title !== "Weekend Chef's Truffle Special" &&
+        c.title !== "We Miss You - Flat 20% OFF" &&
+        c.title !== "Thursday Dinner Double Points"
+      );
+    } else {
+      this.state.campaigns = [];
     }
     if (!this.state.loyaltyProgram || !this.state.loyaltyProgram.rewardTiers || this.state.loyaltyProgram.rewardTiers.length < 5) {
       this.state.loyaltyProgram = JSON.parse(JSON.stringify(initialData.loyaltyProgram));
@@ -258,14 +265,16 @@ class Store {
   async syncWithBackend() {
     try {
       const headers = this.getAuthHeaders();
-      const [statsRes, custRes] = await Promise.all([
-        fetch(apiUrl('/api/v1/dashboard/stats'), { headers }).then(r => r.json()),
-        fetch(apiUrl('/api/v1/customers'), { headers }).then(r => r.json())
+      const [statsRes, custRes, campRes] = await Promise.all([
+        fetch(apiUrl('/api/v1/dashboard/stats'), { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(apiUrl('/api/v1/customers'), { headers }).then(r => r.json()).catch(() => ({})),
+        fetch(apiUrl('/api/whatsapp/campaigns'), { headers }).then(r => r.json()).catch(() => ({ campaigns: [] }))
       ]);
 
       if (statsRes?.status === 'success' && custRes?.status === 'success') {
         const backendCustomers = custRes.customers || [];
         const todayStats = statsRes.todayStats;
+        const backendCampaigns = campRes?.campaigns || [];
 
         const formattedCustomers = backendCustomers.map(bc => {
           const cleanPhone = String(bc.phone).slice(-10);
@@ -305,12 +314,13 @@ class Store {
         const hasStatsChanged = prevStatsStr !== nextStatsStr;
         const hasCustomersChanged = (this.state.customers || []).length !== formattedCustomers.length ||
           (this.state.customers || []).some((c, i) => c.id !== formattedCustomers[i]?.id || c.numericPoints !== formattedCustomers[i]?.numericPoints);
+        const hasCampaignsChanged = JSON.stringify(this.state.campaigns || []) !== JSON.stringify(backendCampaigns);
         const hasHighlightsChanged = Boolean(
           statsRes.businessHighlights && 
           JSON.stringify(statsRes.businessHighlights) !== JSON.stringify(this.state.businessHighlights || {})
         );
 
-        if (!hasStatsChanged && !hasCustomersChanged && !hasHighlightsChanged) {
+        if (!hasStatsChanged && !hasCustomersChanged && !hasHighlightsChanged && !hasCampaignsChanged) {
           // No backend state change, avoid disruptive UI refresh
           return;
         }
@@ -320,6 +330,7 @@ class Store {
           ...prev,
           activeOutlet: statsRes.activeOutlet || statsRes.restaurantName || prev.activeOutlet,
           customers: formattedCustomers,
+          campaigns: backendCampaigns,
           todayStats: {
             ...prev.todayStats,
             ...todayStats

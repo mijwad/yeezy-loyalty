@@ -2,6 +2,8 @@
 import { apiUrl } from '../../config/api.js';
 
 export function renderCampaignsView(state) {
+  const campaigns = state.campaigns || [];
+
   return `
     <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto animate-fade-in pb-16">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -11,74 +13,74 @@ export function renderCampaignsView(state) {
             Launch one-time promotional WhatsApp & SMS blasts to targeted diner segments.
           </p>
         </div>
-        <button 
-          type="button" 
-          class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 self-start sm:self-auto"
-          onclick="window.showToast('Campaign builder modal opened!')"
+        <a 
+          href="#campaigns" 
+          class="px-5 py-2.5 bg-[#2a7e72] hover:bg-[#23685e] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
-          <span class="material-symbols-outlined text-base">add</span>
-          New Campaign
-        </button>
+          <span class="material-symbols-outlined text-base">campaign</span>
+          Open Campaign Studio
+        </a>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">WhatsApp Blast</span>
-              <span class="text-xs font-bold text-emerald-600">Delivered</span>
-            </div>
-            <h3 class="text-base font-bold text-gray-900 mt-3">Weekend Chef's Truffle Special</h3>
-            <p class="text-xs text-gray-500 mt-1">Sent to 428 VIP Diners • 34% clicked reserve table</p>
+      ${campaigns.length === 0 ? `
+        <div class="bg-white rounded-3xl p-12 text-center border border-gray-200/80 shadow-xs flex flex-col items-center justify-center">
+          <div class="w-16 h-16 rounded-3xl bg-[#e8f4f3] text-[#2a7e72] flex items-center justify-center mb-4">
+            <span class="material-symbols-outlined text-3xl">outgoing_mail</span>
           </div>
-          <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
-            <span>Delivered: 428</span>
-            <span class="font-bold text-primary">₹18,400 Sales Generated</span>
-          </div>
+          <h3 class="text-base font-bold text-gray-900">No broadcast campaigns active yet</h3>
+          <p class="text-xs text-gray-500 max-w-sm mt-1">Create your first targeted WhatsApp win-back campaign using live diner segments from your database.</p>
+          <a 
+            href="#campaigns" 
+            class="mt-4 px-5 py-2.5 bg-[#2a7e72] hover:bg-[#23685e] text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-2 cursor-pointer"
+          >
+            <span class="material-symbols-outlined text-base">add</span>
+            Create First Campaign
+          </a>
         </div>
-
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full">SMS Flash Offer</span>
-              <span class="text-xs font-bold text-emerald-600">Delivered</span>
+      ` : `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          ${campaigns.map(c => `
+            <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-[#2a7e72] bg-teal-50 px-2.5 py-0.5 rounded-full uppercase">${c.channel || 'WhatsApp'}</span>
+                  <span class="text-xs font-bold text-emerald-600">${c.status || 'Active'}</span>
+                </div>
+                <h3 class="text-base font-bold text-gray-900 mt-3">${c.title}</h3>
+                <p class="text-xs text-gray-500 mt-1">${c.subtitle || c.segmentName || 'Diner promotional voucher'}</p>
+              </div>
+              <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                <span>Sent: ${(c.sentCount || 0).toLocaleString()}</span>
+                <span class="font-bold text-[#2a7e72]">₹${(c.revenueGenerated || 0).toLocaleString()} Attributed</span>
+              </div>
             </div>
-            <h3 class="text-base font-bold text-gray-900 mt-3">Thursday Dinner Double Points</h3>
-            <p class="text-xs text-gray-500 mt-1">Sent to 1,240 Regular Diners • 18 redemptions</p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
-            <span>Delivered: 1,234</span>
-            <span class="font-bold text-primary">₹24,900 Sales Generated</span>
-          </div>
+          `).join('')}
         </div>
-
-        <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-orange-700 bg-orange-100 px-2.5 py-0.5 rounded-full">Win-Back Blast</span>
-              <span class="text-xs font-bold text-amber-600">Scheduled</span>
-            </div>
-            <h3 class="text-base font-bold text-gray-900 mt-3">We Miss You - 15% OFF</h3>
-            <p class="text-xs text-gray-500 mt-1">Scheduled for Tomorrow 06:00 PM • 184 At Risk Diners</p>
-          </div>
-          <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
-            <span>Target: 184</span>
-            <span class="font-bold text-slate-800">Pending Send</span>
-          </div>
-        </div>
-      </div>
+      `}
     </div>
   `;
 }
 
 export function renderAutoCampaignsView(state) {
+  const customers = state.customers || [];
+  const firstTimersCount = customers.filter(c => (c.visits || 0) <= 1).length;
+  const vipCount = customers.filter(c => (c.visits || 0) >= 4 || c.tier === 'VIP').length;
+  const lapsedCount = customers.filter(c => c.tier === 'Lost' || c.tier === 'At Risk').length;
+  const totalAudience = customers.length;
+
   return `
     <div class="px-4 md:px-margin py-space-lg flex flex-col gap-space-lg max-w-7xl mx-auto animate-fade-in pb-16">
-      <div>
-        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Automated Trigger Campaigns</h1>
-        <p class="text-xs md:text-sm text-gray-500 mt-1 font-medium">
-          Set up evergreen triggers that automatically engage customers based on visits, birthdays, and inactivity.
-        </p>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Automated Trigger Campaigns</h1>
+          <p class="text-xs md:text-sm text-gray-500 mt-1 font-medium">
+            Evergreen loyalty triggers connected to your live POS bill webhooks and Meta WhatsApp account.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl self-start sm:self-auto">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[11px] font-bold text-emerald-800">Meta WABA Active (+91 62384 91224)</span>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -92,7 +94,7 @@ export function renderAutoCampaignsView(state) {
               Sends an automated WhatsApp greetings voucher (Free Dessert) 2 days before customer's birthday.
             </p>
             <div class="mt-3 flex items-center gap-3 text-xs text-emerald-700 font-bold">
-              <span>● 84 treats claimed this month</span>
+              <span>● ${totalAudience} verified diner profiles monitored</span>
             </div>
           </div>
           <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
@@ -102,13 +104,13 @@ export function renderAutoCampaignsView(state) {
           <div>
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-purple-600 text-2xl">waving_hand</span>
-              <h3 class="text-base font-bold text-gray-900">Welcome Sequence</h3>
+              <h3 class="text-base font-bold text-gray-900">First Purchase Welcome Trigger</h3>
             </div>
             <p class="text-xs text-gray-600 mt-2 leading-relaxed">
-              Triggers instant 100 bonus points SMS message when a new guest scans table QR code or pays first bill.
+              Triggers instant verified Meta template (bee_first_purchase) when a new diner pays their first bill.
             </p>
             <div class="mt-3 flex items-center gap-3 text-xs text-emerald-700 font-bold">
-              <span>● 988 new signups welcomed</span>
+              <span>● ${firstTimersCount} new diners eligible</span>
             </div>
           </div>
           <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
@@ -124,7 +126,7 @@ export function renderAutoCampaignsView(state) {
               Automated message sent after 30 days of no visits with reminder of unredeemed loyalty points.
             </p>
             <div class="mt-3 flex items-center gap-3 text-xs text-emerald-700 font-bold">
-              <span>● 28% win-back rate</span>
+              <span>● ${lapsedCount} lapsed diners in recovery queue</span>
             </div>
           </div>
           <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
@@ -137,10 +139,10 @@ export function renderAutoCampaignsView(state) {
               <h3 class="text-base font-bold text-gray-900">VIP Tier Upgrade Celebration</h3>
             </div>
             <p class="text-xs text-gray-600 mt-2 leading-relaxed">
-              Notifies diner with exclusive digital congratulations card when they cross ₹25,000 spend.
+              Notifies diner with exclusive digital congratulations card when they cross ₹25,000 spend or 4 visits.
             </p>
             <div class="mt-3 flex items-center gap-3 text-xs text-emerald-700 font-bold">
-              <span>● 428 VIPs enrolled</span>
+              <span>● ${vipCount} VIP regulars qualified</span>
             </div>
           </div>
           <span class="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
