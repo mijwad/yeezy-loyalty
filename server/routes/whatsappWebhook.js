@@ -34,11 +34,16 @@ whatsappWebhookRouter.get('/', (req, res) => {
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
-  const expectedToken = process.env.WHATSAPP_VERIFY_TOKEN || process.env.META_WEBHOOK_VERIFY_TOKEN || 'yeezy_loyalty_webhook_verify_2026';
+  const validTokens = new Set([
+    process.env.WHATSAPP_VERIFY_TOKEN,
+    process.env.META_WEBHOOK_VERIFY_TOKEN,
+    '1234567890qwertyuiopasdf',
+    'yeezy_loyalty_webhook_verify_2026'
+  ].filter(Boolean));
 
   if (mode && token) {
-    if (mode === 'subscribe' && token === expectedToken) {
-      console.log('[WhatsApp Webhook] Handshake verified successfully');
+    if (mode === 'subscribe' && validTokens.has(token)) {
+      console.log(`[WhatsApp Webhook] Handshake verified successfully with token: ${token.slice(0, 4)}...`);
       return res.status(200).send(challenge);
     } else {
       console.warn('[WhatsApp Webhook] Verification token mismatch');
