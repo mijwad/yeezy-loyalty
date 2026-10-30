@@ -31,7 +31,16 @@ CREATE TABLE IF NOT EXISTS public.customers (
     CONSTRAINT uq_customers_restaurant_phone UNIQUE (restaurant_id, phone)
 );
 
--- Ensure WhatsApp columns exist on customers if table already existed
+-- Ensure columns exist on customers if table already existed
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS restaurant_id TEXT;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'customers' AND column_name = 'tenant_id') THEN
+    UPDATE public.customers SET restaurant_id = tenant_id WHERE restaurant_id IS NULL;
+  END IF;
+END $$;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS email TEXT;
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS whatsapp_opt_in BOOLEAN NOT NULL DEFAULT true;
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS opt_in_at TIMESTAMPTZ DEFAULT NOW();
 ALTER TABLE public.customers ADD COLUMN IF NOT EXISTS opt_out_at TIMESTAMPTZ;
