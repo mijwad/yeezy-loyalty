@@ -171,41 +171,50 @@ whatsappRouter.get('/templates', asyncHandler(async (req, res) => {
 
   const starterTemplates = [
     {
-      id: 'tmpl_we_miss_you',
-      name: 'we_miss_you_offer',
-      language: 'en_US',
-      category: 'MARKETING',
-      body: 'Hi {{1}}, we haven\'t seen you at our restaurant lately! Enjoy {{2}} off your next dine-in bill valid until {{3}}. Show this message at checkout to redeem.',
+      id: 'tmpl_bee_first_purchase',
+      name: 'bee_first_purchase',
+      language: 'en',
+      category: 'UTILITY',
+      body: 'Dear {{1}}, Your purchase has earned you loyalty points!',
       variables: [
-        { index: 1, name: 'customer_name', sample: 'Rohan' },
-        { index: 2, name: 'offer', sample: '20%' },
-        { index: 3, name: 'expiry', sample: 'Sunday' }
+        { index: 1, name: 'customer_name', sample: 'Rohan' }
       ],
       meta_status: 'APPROVED'
     },
     {
-      id: 'tmpl_thank_you_reward',
-      name: 'thank_you_loyal_guest',
-      language: 'en_US',
-      category: 'MARKETING',
-      body: 'Hello {{1}}! As a special thank you for being a frequent guest, here is {{2}} bonus reward points added to your account. Valid until {{3}}.',
-      variables: [
-        { index: 1, name: 'customer_name', sample: 'Priya' },
-        { index: 2, name: 'bonus_points', sample: '50' },
-        { index: 3, name: 'expiry', sample: 'the end of this month' }
-      ],
+      id: 'tmpl_bee_subsequent_purc',
+      name: 'bee_subsequent_purc',
+      language: 'en',
+      category: 'UTILITY',
+      body: 'Dear Customer, Your purchase has earned you loyalty points.',
+      variables: [],
       meta_status: 'APPROVED'
     },
     {
-      id: 'tmpl_welcome_back',
-      name: 'welcome_back_treat',
+      id: 'tmpl_bee_points_reminder',
+      name: 'bee_points_reminder',
+      language: 'en',
+      category: 'UTILITY',
+      body: 'Dear Customer, This is a reminder of your loyalty points balance.',
+      variables: [],
+      meta_status: 'APPROVED'
+    },
+    {
+      id: 'tmpl_bee_points_expiry',
+      name: 'bee_points_expiry',
+      language: 'en',
+      category: 'UTILITY',
+      body: 'Dear Customer, This is a notice that your points are scheduled to expire.',
+      variables: [],
+      meta_status: 'APPROVED'
+    },
+    {
+      id: 'tmpl_hello_world',
+      name: 'hello_world',
       language: 'en_US',
-      category: 'MARKETING',
-      body: 'Hi {{1}}, craving your favorites? Visit us this week and get a complimentary dessert with any order above ₹500! Valid till {{2}}.',
-      variables: [
-        { index: 1, name: 'customer_name', sample: 'Guest' },
-        { index: 2, name: 'valid_date', sample: 'Friday' }
-      ],
+      category: 'UTILITY',
+      body: 'Welcome and congratulations! This message demonstrates your ability to send a WhatsApp notification.',
+      variables: [],
       meta_status: 'APPROVED'
     }
   ];

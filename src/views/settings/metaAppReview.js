@@ -120,9 +120,11 @@ function renderSendMessageConsole() {
               id="meta-send-template-select" 
               class="w-full px-4 py-3 rounded-2xl border border-gray-200 text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2a7e72]/30 focus:border-[#2a7e72] cursor-pointer"
             >
-              <option value="hello_world" selected>hello_world (Meta Standard Pre-Approved Template - Guaranteed to Deliver)</option>
-              <option value="purchase_points_earned">purchase_points_earned (Loyalty Purchase Notification)</option>
-              <option value="welcome_bonus_credit">welcome_bonus_credit (New Diner Welcome Voucher)</option>
+              <option value="bee_first_purchase" selected>bee_first_purchase (Active Utility - First Purchase Welcome)</option>
+              <option value="bee_subsequent_purc">bee_subsequent_purc (Active Utility - Subsequent Purchase Reward)</option>
+              <option value="bee_points_reminder">bee_points_reminder (Active Utility - Points Balance Reminder)</option>
+              <option value="bee_points_expiry">bee_points_expiry (Active Utility - Points Expiry Notice)</option>
+              <option value="hello_world">hello_world (Meta Pre-Approved Sandbox Template)</option>
             </select>
           </div>
 

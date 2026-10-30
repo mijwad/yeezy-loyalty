@@ -39,10 +39,10 @@ export const TEMPLATE_CATEGORY_BY_EVENT = {
  * System template names (lowercase with underscores for Meta compliance)
  */
 export const SYSTEM_TEMPLATE_NAMES = {
-  [LOYALTY_EVENT_TYPES.FIRST_PURCHASE]: 'loyalty_first_purchase',
-  [LOYALTY_EVENT_TYPES.REPEAT_PURCHASE]: 'loyalty_repeat_purchase',
-  [LOYALTY_EVENT_TYPES.POINTS_REMINDER]: 'loyalty_points_reminder',
-  [LOYALTY_EVENT_TYPES.POINTS_EXPIRING]: 'loyalty_points_expiry',
+  [LOYALTY_EVENT_TYPES.FIRST_PURCHASE]: 'bee_first_purchase',
+  [LOYALTY_EVENT_TYPES.REPEAT_PURCHASE]: 'bee_subsequent_purc',
+  [LOYALTY_EVENT_TYPES.POINTS_REMINDER]: 'bee_points_reminder',
+  [LOYALTY_EVENT_TYPES.POINTS_EXPIRING]: 'bee_points_expiry',
   [LOYALTY_EVENT_TYPES.REWARD_REDEEMED]: 'loyalty_reward_redeemed',
   [LOYALTY_EVENT_TYPES.CUSTOMER_WINBACK]: 'loyalty_winback_offer'
 };
@@ -53,17 +53,18 @@ export const SYSTEM_TEMPLATE_NAMES = {
 export const LOYALTY_TEMPLATES = {
   [LOYALTY_EVENT_TYPES.FIRST_PURCHASE]: {
     name: SYSTEM_TEMPLATE_NAMES[LOYALTY_EVENT_TYPES.FIRST_PURCHASE],
+    alternateName: 'loyalty_first_purchase',
     eventType: LOYALTY_EVENT_TYPES.FIRST_PURCHASE,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.FIRST_PURCHASE],
-    language: 'en_US',
+    language: 'en',
     headerText: 'Welcome to Loyalty Program! 🎉',
-    bodyText: 'Hi {{1}}, thank you for your purchase at {{2}}! You earned {{3}} loyalty points. Your current balance is {{4}} points.',
+    bodyText: 'Dear {{1}}, Your purchase has earned you points!',
     footerText: 'Visit again to earn more rewards!',
     variables: [
       { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: true, description: 'Customer full name' },
-      { index: 2, name: 'restaurant_name', sample: 'Smoke House Deli', type: 'restaurant.name', required: true, description: 'Restaurant/outlet name' },
-      { index: 3, name: 'points_earned', sample: '100', type: 'loyalty.points_earned', required: true, description: 'Points earned in this transaction' },
-      { index: 4, name: 'points_balance', sample: '350', type: 'loyalty.points_balance', required: true, description: 'Current points balance after earning' }
+      { index: 2, name: 'restaurant_name', sample: 'Our Restaurant', type: 'restaurant.name', required: false, description: 'Restaurant name' },
+      { index: 3, name: 'points_earned', sample: '100', type: 'loyalty.points_earned', required: false, description: 'Points earned' },
+      { index: 4, name: 'points_balance', sample: '350', type: 'loyalty.points_balance', required: false, description: 'Points balance' }
     ],
     buttons: [],
     description: 'Sent when a customer makes their first purchase and joins the loyalty program',
@@ -72,17 +73,17 @@ export const LOYALTY_TEMPLATES = {
 
   [LOYALTY_EVENT_TYPES.REPEAT_PURCHASE]: {
     name: SYSTEM_TEMPLATE_NAMES[LOYALTY_EVENT_TYPES.REPEAT_PURCHASE],
+    alternateName: 'bee_subsequent_purchase',
     eventType: LOYALTY_EVENT_TYPES.REPEAT_PURCHASE,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.REPEAT_PURCHASE],
-    language: 'en_US',
+    language: 'en',
     headerText: 'Thanks for Returning! 🙏',
-    bodyText: 'Hi {{1}}, thanks for visiting {{2}} again! You earned {{3}} loyalty points on your latest purchase. Your current balance is {{4}} points.',
+    bodyText: 'Dear Customer, Your purchase has earned you loyalty points.',
     footerText: 'Every visit brings you closer to rewards!',
     variables: [
-      { index: 1, name: 'customer_name', sample: 'Priya', type: 'customer.name', required: true, description: 'Customer full name' },
-      { index: 2, name: 'restaurant_name', sample: 'Smoke House Deli', type: 'restaurant.name', required: true, description: 'Restaurant/outlet name' },
-      { index: 3, name: 'points_earned', sample: '85', type: 'loyalty.points_earned', required: true, description: 'Points earned in this transaction' },
-      { index: 4, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: true, description: 'Current points balance after earning' }
+      { index: 1, name: 'customer_name', sample: 'Priya', type: 'customer.name', required: false, description: 'Customer full name' },
+      { index: 2, name: 'points_earned', sample: '85', type: 'loyalty.points_earned', required: false, description: 'Points earned' },
+      { index: 3, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: false, description: 'Points balance' }
     ],
     buttons: [],
     description: 'Sent when a returning customer makes a purchase and earns points',
@@ -91,38 +92,35 @@ export const LOYALTY_TEMPLATES = {
 
   [LOYALTY_EVENT_TYPES.POINTS_REMINDER]: {
     name: SYSTEM_TEMPLATE_NAMES[LOYALTY_EVENT_TYPES.POINTS_REMINDER],
+    alternateName: 'loyalty_points_reminder',
     eventType: LOYALTY_EVENT_TYPES.POINTS_REMINDER,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.POINTS_REMINDER],
-    language: 'en_US',
+    language: 'en',
     headerText: 'Your Loyalty Points Balance 💎',
-    bodyText: 'Hi {{1}}, you currently have {{2}} loyalty points at {{3}}. Check your available rewards and redemption options.',
+    bodyText: 'Dear Customer, This is a reminder of your loyalty points balance.',
     footerText: 'Points expire after 12 months. Redeem before they\'re gone!',
     variables: [
-      { index: 1, name: 'customer_name', sample: 'Ananya', type: 'customer.name', required: true, description: 'Customer full name' },
-      { index: 2, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: true, description: 'Current points balance' },
-      { index: 3, name: 'restaurant_name', sample: 'Smoke House Deli', type: 'restaurant.name', required: true, description: 'Restaurant/outlet name' }
+      { index: 1, name: 'customer_name', sample: 'Ananya', type: 'customer.name', required: false, description: 'Customer full name' },
+      { index: 2, name: 'points_balance', sample: '435', type: 'loyalty.points_balance', required: false, description: 'Current points balance' }
     ],
-    buttons: [
-      { type: 'QUICK_REPLY', text: 'View Rewards' },
-      { type: 'QUICK_REPLY', text: 'Check Balance' }
-    ],
-    description: 'Periodic reminder of points balance (sent monthly or on schedule)',
+    buttons: [],
+    description: 'Periodic reminder of points balance',
     isSystemTemplate: true
   },
 
   [LOYALTY_EVENT_TYPES.POINTS_EXPIRING]: {
     name: SYSTEM_TEMPLATE_NAMES[LOYALTY_EVENT_TYPES.POINTS_EXPIRING],
+    alternateName: 'loyalty_points_expiry',
     eventType: LOYALTY_EVENT_TYPES.POINTS_EXPIRING,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.POINTS_EXPIRING],
-    language: 'en_US',
+    language: 'en',
     headerText: '⚠️ Points Expiring Soon!',
-    bodyText: 'Hi {{1}}, {{2}} loyalty points at {{3}} are scheduled to expire on {{4}}. Please check your loyalty account for details.',
+    bodyText: 'Dear Customer, This is a notice that your points are scheduled to expire.',
     footerText: 'Redeem now to keep your rewards!',
     variables: [
-      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: true, description: 'Customer full name' },
-      { index: 2, name: 'points_expiring', sample: '150', type: 'loyalty.points_expiring', required: true, description: 'Points scheduled to expire' },
-      { index: 3, name: 'restaurant_name', sample: 'Smoke House Deli', type: 'restaurant.name', required: true, description: 'Restaurant/outlet name' },
-      { index: 4, name: 'expiry_date', sample: 'December 31, 2025', type: 'loyalty.expiry_date', required: true, description: 'Expiry date (formatted)' }
+      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: false, description: 'Customer full name' },
+      { index: 2, name: 'points_expiring', sample: '150', type: 'loyalty.points_expiring', required: false, description: 'Points scheduled to expire' },
+      { index: 3, name: 'expiry_date', sample: 'December 31, 2026', type: 'loyalty.expiry_date', required: false, description: 'Expiry date' }
     ],
     buttons: [
       { type: 'QUICK_REPLY', text: 'Redeem Now' },
@@ -457,12 +455,45 @@ export class LoyaltyTemplateService {
     const client = await this.initClient();
     const parameters = resolveTemplateVariables(eventType, context);
 
-    const result = await client.sendTemplateMessage({
+    let result = await client.sendTemplateMessage({
       recipientPhone: customerPhone,
       templateName: templateDef.name,
-      language: templateDef.language,
+      language: templateDef.language || 'en',
       parameters
     });
+
+    // If failed, try language 'en_US'
+    if (!result.success && templateDef.language === 'en') {
+      const retryResult = await client.sendTemplateMessage({
+        recipientPhone: customerPhone,
+        templateName: templateDef.name,
+        language: 'en_US',
+        parameters
+      });
+      if (retryResult.success) result = retryResult;
+    }
+
+    // If still failed and alternate name exists (e.g. bee_subsequent_purchase)
+    if (!result.success && templateDef.alternateName) {
+      const altResult = await client.sendTemplateMessage({
+        recipientPhone: customerPhone,
+        templateName: templateDef.alternateName,
+        language: templateDef.language || 'en',
+        parameters
+      });
+      if (altResult.success) {
+        result = altResult;
+      } else {
+        // Try alternate with en_US
+        const altResultUs = await client.sendTemplateMessage({
+          recipientPhone: customerPhone,
+          templateName: templateDef.alternateName,
+          language: 'en_US',
+          parameters
+        });
+        if (altResultUs.success) result = altResultUs;
+      }
+    }
 
     // Log message
     if (supabaseAdmin && result.success) {
