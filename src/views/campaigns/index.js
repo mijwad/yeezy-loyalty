@@ -98,14 +98,24 @@ function renderCampaignsDashboard(state, uiState) {
             Design beautiful voucher creatives, configure expiry rules, customize SMS/WhatsApp templates, and send targeted blasts to bring back lapsed diners.
           </p>
         </div>
-        <button 
-          id="btn-open-campaign-wizard" 
-          type="button" 
-          class="px-6 py-3 bg-[#2a7e72] hover:bg-[#23685e] text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center gap-2 self-start sm:self-auto cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
-        >
-          <span class="material-symbols-outlined text-xl">add</span>
-          Create Campaign
-        </button>
+        <div class="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <a 
+            href="#meta-review" 
+            class="px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-bold text-xs rounded-2xl transition flex items-center gap-1.5 shadow-2xs"
+            title="Open Meta App Review & Video Recording Console"
+          >
+            <span class="material-symbols-outlined text-base">videocam</span>
+            <span>Meta Review Studio</span>
+          </a>
+          <button 
+            id="btn-open-campaign-wizard" 
+            type="button" 
+            class="px-6 py-3 bg-[#2a7e72] hover:bg-[#23685e] text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
+          >
+            <span class="material-symbols-outlined text-xl">add</span>
+            Create Campaign
+          </button>
+        </div>
       </div>
 
       <!-- KPI Metrics Strip -->

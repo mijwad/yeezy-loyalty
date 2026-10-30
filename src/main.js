@@ -25,6 +25,7 @@ import { renderAppsIntegrationsView, attachAppsIntegrationsListeners } from './v
 import { renderBillingScreen, attachBillingScreenListeners } from './views/billing/index.js';
 import { renderCustomerPortal, attachCustomerPortalListeners } from './views/customer/portal.js';
 import { renderLoyaltySettingsView, attachLoyaltySettingsListeners } from './views/settings/loyaltySettings.js';
+import { renderMetaAppReviewView, attachMetaAppReviewListeners } from './views/settings/metaAppReview.js';
 
 class YeezyLoyaltyApp {
   constructor() {
@@ -228,6 +229,10 @@ class YeezyLoyaltyApp {
       case 'my-rewards':
         mainContentHtml = renderCustomerPortal(state);
         break;
+      case 'meta-review':
+      case 'meta-app-review':
+        mainContentHtml = renderMetaAppReviewView(state);
+        break;
       case 'billing-terminal':
       case 'cashier-billing':
       case 'integrations':
@@ -384,6 +389,10 @@ class YeezyLoyaltyApp {
       case 'customer-portal':
       case 'my-rewards':
         attachCustomerPortalListeners();
+        break;
+      case 'meta-review':
+      case 'meta-app-review':
+        attachMetaAppReviewListeners();
         break;
       case 'integrations':
       case 'apps-integrations':

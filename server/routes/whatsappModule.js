@@ -676,3 +676,190 @@ whatsappRouter.get('/campaigns/:id/analytics', asyncHandler(async (req, res) => 
     }
   });
 }));
+
+// ============================================================================
+// 5. META APP REVIEW & RECORDING TEST ENDPOINTS
+// Dedicated endpoints to record Video 1 (Messaging) & Video 2 (Management)
+// ============================================================================
+
+/**
+ * GET /api/whatsapp/meta-review/status
+ * Check Meta token validity, WABA ID, Phone ID, and permissions
+ */
+whatsappRouter.get('/meta-review/status', asyncHandler(async (req, res) => {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN || process.env.META_ACCESS_TOKEN;
+  const phoneNumberId = process.env.META_PHONE_NUMBER_ID || '';
+  const wabaId = process.env.META_WABA_ID || '';
+  const appId = process.env.META_APP_ID || '1449921280434310';
+
+  if (!token) {
+    return res.json({
+      status: 'error',
+      connected: false,
+      tokenValid: false,
+      message: 'No Meta access token configured',
+      appId,
+      phoneNumberId,
+      wabaId
+    });
+  }
+
+  try {
+    const debugRes = await fetch(`https://graph.facebook.com/v21.0/debug_token?input_token=${token}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const debugData = await debugRes.json();
+
+    if (debugData.error) {
+      return res.json({
+        status: 'error',
+        connected: false,
+        tokenValid: false,
+        error: debugData.error.message,
+        errorCode: debugData.error.code,
+        appId,
+        phoneNumberId,
+        wabaId
+      });
+    }
+
+    const info = debugData.data || {};
+    res.json({
+      status: 'success',
+      connected: true,
+      tokenValid: info.is_valid,
+      appId: info.app_id || appId,
+      scopes: info.scopes || [],
+      expiresAt: info.expires_at ? new Date(info.expires_at * 1000).toLocaleString() : 'Permanent',
+      phoneNumberId,
+      wabaId
+    });
+  } catch (err) {
+    res.json({
+      status: 'error',
+      connected: false,
+      tokenValid: false,
+      error: err.message,
+      appId,
+      phoneNumberId,
+      wabaId
+    });
+  }
+}));
+
+/**
+ * POST /api/whatsapp/meta-review/save-credentials
+ * Save or update Meta token, Phone Number ID, and WABA ID
+ */
+whatsappRouter.post('/meta-review/save-credentials', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { accessToken, phoneNumberId, wabaId, displayPhone, verifiedName } = req.body;
+
+  if (accessToken) {
+    process.env.META_ACCESS_TOKEN = accessToken.trim();
+    process.env.WHATSAPP_ACCESS_TOKEN = accessToken.trim();
+  }
+  if (phoneNumberId) process.env.META_PHONE_NUMBER_ID = phoneNumberId.trim();
+  if (wabaId) process.env.META_WABA_ID = wabaId.trim();
+
+  if (supabaseAdmin) {
+    await supabaseAdmin.from('wa_accounts').upsert({
+      restaurant_id: restaurantId,
+      access_token: process.env.META_ACCESS_TOKEN,
+      phone_number_id: process.env.META_PHONE_NUMBER_ID,
+      waba_id: process.env.META_WABA_ID,
+      display_phone_number: displayPhone || '+91 97456 30606',
+      verified_name: verifiedName || 'Durbar',
+      status: 'CONNECTED',
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'restaurant_id' }).catch(() => {});
+  }
+
+  res.json({
+    status: 'success',
+    message: 'Meta API credentials updated successfully'
+  });
+}));
+
+/**
+ * POST /api/whatsapp/meta-review/send-message
+ * Send a live test message via Meta Graph API (for Video 1: whatsapp_business_messaging)
+ */
+whatsappRouter.post('/meta-review/send-message', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { recipientPhone, templateName = 'hello_world', language = 'en_US', parameters = [] } = req.body;
+
+  if (!recipientPhone) {
+    return res.status(400).json({ error: 'recipientPhone is required' });
+  }
+
+  const client = await MetaWhatsAppClient.forRestaurant(restaurantId);
+  const result = await client.sendTemplateMessage({
+    recipientPhone,
+    templateName,
+    language,
+    parameters
+  });
+
+  res.json({
+    status: 'success',
+    message: 'Message dispatched successfully to Meta Graph API',
+    recipientPhone,
+    templateName,
+    result
+  });
+}));
+
+/**
+ * POST /api/whatsapp/meta-review/create-template
+ * Create a message template via Meta Graph API (for Video 2: whatsapp_business_management)
+ */
+whatsappRouter.post('/meta-review/create-template', asyncHandler(async (req, res) => {
+  const restaurantId = getTenantId(req);
+  const { name, category = 'MARKETING', language = 'en_US', body, headerText, footerText, buttons, exampleValues } = req.body;
+
+  if (!name || !body) {
+    return res.status(400).json({ error: 'Template name and body are required' });
+  }
+
+  const cleanName = name.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const client = await MetaWhatsAppClient.forRestaurant(restaurantId);
+
+  const result = await client.submitTemplate({
+    name: cleanName,
+    category,
+    language,
+    body,
+    headerText,
+    footerText,
+    buttons,
+    exampleValues: exampleValues || ['Alex']
+  });
+
+  if (supabaseAdmin) {
+    await supabaseAdmin.from('wa_templates').upsert({
+      restaurant_id: restaurantId,
+      name: cleanName,
+      category,
+      language,
+      body,
+      header_text: headerText || null,
+      footer_text: footerText || null,
+      buttons: buttons || [],
+      variables: (exampleValues || []).map((v, i) => ({ index: i + 1, name: `var_${i+1}`, sample: v })),
+      meta_status: result.status,
+      meta_template_id: result.metaTemplateId
+    }, { onConflict: 'restaurant_id,name' }).catch(() => {});
+  }
+
+  res.status(201).json({
+    status: 'success',
+    message: 'Template submitted to Meta Graph API',
+    result: {
+      templateName: cleanName,
+      metaTemplateId: result.metaTemplateId,
+      status: result.status
+    }
+  });
+}));
+

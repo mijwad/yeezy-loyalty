@@ -101,7 +101,15 @@ function renderLoyaltyDashboard(state, uiState) {
           </p>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <a 
+            href="#meta-review" 
+            class="px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-bold text-xs rounded-2xl transition flex items-center gap-1.5 shadow-2xs"
+            title="Open Meta App Review & Video Recording Console"
+          >
+            <span class="material-symbols-outlined text-base">videocam</span>
+            <span>Meta Review Studio</span>
+          </a>
           <button 
             id="btn-open-loyalty-wizard" 
             type="button" 
