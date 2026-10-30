@@ -57,11 +57,13 @@ export const LOYALTY_TEMPLATES = {
     eventType: LOYALTY_EVENT_TYPES.FIRST_PURCHASE,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.FIRST_PURCHASE],
     language: 'en',
-    headerText: 'Welcome to Loyalty Program! 🎉',
-    bodyText: 'Dear {{1}}, Your purchase has earned you loyalty points!',
-    footerText: 'Visit again to earn more rewards!',
+    headerText: '',
+    bodyText: 'Dear Customer,\n\nYour first purchase at {{1}} has been completed successfully.\n\nYou have earned {{2}} points on this purchase.\n\nYour updated loyalty points balance is {{3}} points.\n\nThis message has been sent to inform you about an account update related to your recent purchase.\n\nClick below to view your account details.',
+    footerText: '',
     variables: [
-      { index: 1, name: 'customer_name', sample: 'Rohan', type: 'customer.name', required: true, description: 'Customer full name' }
+      { index: 1, name: 'restaurant_name', sample: 'Durbar', type: 'restaurant.name', required: true, description: 'Restaurant name' },
+      { index: 2, name: 'points_earned', sample: '100', type: 'loyalty.points_earned', required: true, description: 'Points earned' },
+      { index: 3, name: 'points_balance', sample: '100', type: 'loyalty.points_balance', required: true, description: 'Total points balance' }
     ],
     buttons: [],
     description: 'Sent when a customer makes their first purchase and joins the loyalty program',
@@ -74,10 +76,14 @@ export const LOYALTY_TEMPLATES = {
     eventType: LOYALTY_EVENT_TYPES.REPEAT_PURCHASE,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.REPEAT_PURCHASE],
     language: 'en',
-    headerText: 'Thanks for Returning! 🙏',
-    bodyText: 'Dear Customer, Your purchase has earned you loyalty points.',
-    footerText: 'Every visit brings you closer to rewards!',
-    variables: [],
+    headerText: '',
+    bodyText: 'Dear Customer,\n\nYour purchase at {{1}} has been completed successfully.\n\nYou have earned {{2}} points on this purchase.\n\nYour updated loyalty points balance is {{3}} points.\n\nThis message has been sent to inform you about an account update related to your recent purchase.\n\nClick below to view your account details.',
+    footerText: '',
+    variables: [
+      { index: 1, name: 'restaurant_name', sample: 'Durbar', type: 'restaurant.name', required: true, description: 'Restaurant name' },
+      { index: 2, name: 'points_earned', sample: '50', type: 'loyalty.points_earned', required: true, description: 'Points earned' },
+      { index: 3, name: 'points_balance', sample: '150', type: 'loyalty.points_balance', required: true, description: 'Total points balance' }
+    ],
     buttons: [],
     description: 'Sent when a returning customer makes a purchase and earns points',
     isSystemTemplate: true
@@ -89,10 +95,13 @@ export const LOYALTY_TEMPLATES = {
     eventType: LOYALTY_EVENT_TYPES.POINTS_REMINDER,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.POINTS_REMINDER],
     language: 'en',
-    headerText: 'Your Loyalty Points Balance 💎',
-    bodyText: 'Dear Customer, This is a reminder of your loyalty points balance.',
-    footerText: 'Points expire after 12 months. Redeem before they\'re gone!',
-    variables: [],
+    headerText: '',
+    bodyText: 'Dear Customer,\n\nThis is to inform you that your current loyalty points balance at {{1}} is {{2}} points.\n\nThese points are available in your loyalty account as per the restaurant\'s rewards programme.\n\nThis message has been sent to provide you with an update regarding your loyalty account balance.\n\nClick below to view your account details.',
+    footerText: '',
+    variables: [
+      { index: 1, name: 'restaurant_name', sample: 'Durbar', type: 'restaurant.name', required: true, description: 'Restaurant name' },
+      { index: 2, name: 'points_balance', sample: '150', type: 'loyalty.points_balance', required: true, description: 'Available points balance' }
+    ],
     buttons: [],
     description: 'Periodic reminder of points balance',
     isSystemTemplate: true
@@ -104,12 +113,16 @@ export const LOYALTY_TEMPLATES = {
     eventType: LOYALTY_EVENT_TYPES.POINTS_EXPIRING,
     category: TEMPLATE_CATEGORY_BY_EVENT[LOYALTY_EVENT_TYPES.POINTS_EXPIRING],
     language: 'en',
-    headerText: '⚠️ Points Expiring Soon!',
-    bodyText: 'Dear Customer, This is a notice that your points are scheduled to expire.',
-    footerText: 'Redeem now to keep your rewards!',
-    variables: [],
+    headerText: '',
+    bodyText: 'Dear Customer,\n\nThis is to inform you that {{1}} points in your loyalty account at {{2}} are scheduled to expire on {{3}}.\n\nThis message has been sent to notify you about an upcoming expiry related to your loyalty account.\n\nClick below to view your account details.',
+    footerText: '',
+    variables: [
+      { index: 1, name: 'points_expiring', sample: '50', type: 'loyalty.points_expiring', required: true, description: 'Points expiring' },
+      { index: 2, name: 'restaurant_name', sample: 'Durbar', type: 'restaurant.name', required: true, description: 'Restaurant name' },
+      { index: 3, name: 'expiry_date', sample: '2026-12-31', type: 'loyalty.expiry_date', required: true, description: 'Expiry date' }
+    ],
     buttons: [],
-    description: 'Sent when points are genuinely scheduled to expire (based on restaurant\'s expiry rules)',
+    description: 'Sent when points are close to expiration',
     isSystemTemplate: true
   },
 
