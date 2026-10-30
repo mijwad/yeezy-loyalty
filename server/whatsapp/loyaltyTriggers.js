@@ -22,6 +22,7 @@
  */
 
 import { LoyaltyTemplateService, LOYALTY_EVENT_TYPES, sendFirstPurchaseMessage, sendRepeatPurchaseMessage, sendPointsReminderMessage, sendPointsExpiringMessage, sendRewardRedeemedMessage, sendWinbackMessage } from './loyaltyTemplates.js';
+import { supabaseAdmin } from '../db/supabase.js';
 
 export class LoyaltyEventTriggers {
   constructor(restaurantId) {
@@ -95,7 +96,6 @@ export class LoyaltyEventTriggers {
    * Trigger: Send points balance reminder (monthly scheduled job)
    */
   async sendPointsReminders(minPoints = 1) {
-    const { supabaseAdmin } from '../db/supabase.js';
     if (!supabaseAdmin) {
       throw new Error('Supabase not configured');
     }
@@ -147,7 +147,6 @@ export class LoyaltyEventTriggers {
    * Trigger: Send points expiring reminders (run daily via cron)
    */
   async sendExpiryReminders() {
-    const { supabaseAdmin } from '../db/supabase.js';
     if (!supabaseAdmin) {
       throw new Error('Supabase not configured');
     }
@@ -230,7 +229,6 @@ export class LoyaltyEventTriggers {
    * Run weekly via cron for customers who haven't visited in X days
    */
   async sendWinBackCampaigns(inactiveDays = 90, offerDetails = '20% off your next dine-in bill', offerValidDays = 7) {
-    const { supabaseAdmin } from '../db/supabase.js';
     if (!supabaseAdmin) {
       throw new Error('Supabase not configured');
     }
@@ -311,7 +309,6 @@ export class LoyaltyEventTriggers {
    * Run daily via cron
    */
   async sendBirthdayMessages() {
-    const { supabaseAdmin } from '../db/supabase.js';
     if (!supabaseAdmin) {
       throw new Error('Supabase not configured');
     }
