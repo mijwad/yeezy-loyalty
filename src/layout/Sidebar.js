@@ -6,6 +6,7 @@ export function renderSidebar(currentPath = 'dashboard') {
   const navItems = [
     ...(userRole === 'SUPER_ADMIN' ? [{ path: 'super-admin', label: 'Super Admin', icon: 'shield_person', badge: 'Admin' }] : []),
     { path: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
+    { path: 'campaigns', label: 'Campaigns', icon: 'campaign' },
     { path: 'customer-insights', label: 'Customer Insights', icon: 'group' },
     { path: 'settings', label: 'Settings', icon: 'settings' }
   ];
@@ -34,8 +35,12 @@ export function renderSidebar(currentPath = 'dashboard') {
           ${navItems.map(item => {
             const isActive = currentPath === item.path;
             
-            const activeClasses = 'bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
+            const isCampaign = item.path === 'campaigns';
+            const activeClasses = isCampaign 
+              ? 'bg-[#e8f4f3] text-[#167a70] font-label-lg font-bold shadow-xs' 
+              : 'bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
             const inactiveClasses = 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-medium';
+            const activeIconColor = isCampaign ? 'text-[#167a70]' : 'text-primary';
             
             return `
               <a 
@@ -44,7 +49,7 @@ export function renderSidebar(currentPath = 'dashboard') {
                 class="flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all ${isActive ? activeClasses : inactiveClasses}"
               >
                 <div class="flex items-center gap-space-sm">
-                  <span class="material-symbols-outlined text-[20px] ${isActive ? 'text-primary' : 'text-on-surface-variant'}">${item.icon}</span>
+                  <span class="material-symbols-outlined text-[20px] ${isActive ? activeIconColor : 'text-on-surface-variant'}">${item.icon}</span>
                   <span class="text-sm tracking-tight">${item.label}</span>
                 </div>
                 ${item.badge ? `

@@ -10,7 +10,6 @@ import { renderCustomerInsights, attachCustomerInsightsListeners } from './views
 import { renderActivateLoyalty, attachActivateLoyaltyListeners } from './views/loyalty/index.js';
 import { renderConfigurator, attachConfiguratorListeners } from './views/configurator/index.js';
 import { 
-  renderCampaignsView, 
   renderAutoCampaignsView, 
   renderQRCodesView, 
   renderFeedbackView, 
@@ -18,6 +17,7 @@ import {
   renderSettingsView,
   attachSettingsListeners
 } from './views/other/index.js';
+import { renderCampaignsView, attachCampaignsListeners } from './views/campaigns/index.js';
 import { renderSmartInsightsView } from './views/other/smartInsights.js';
 import { renderLoginView, attachLoginListeners } from './views/auth/login.js';
 import { renderSuperAdminView, attachSuperAdminListeners } from './views/admin/superAdmin.js';
@@ -259,14 +259,26 @@ class YeezyLoyaltyApp {
         this.attachViewListeners(route);
 
         // Update active class on sidebar links
-        document.querySelectorAll('#main-sidebar a, #mobile-sidebar-drawer a').forEach(a => {
+        document.querySelectorAll('#app-shell aside a, #mobile-sidebar-drawer a').forEach(a => {
           const href = a.getAttribute('href');
-          if (href === `#${route}`) {
-            a.classList.add('bg-primary', 'text-white', 'shadow-sm');
-            a.classList.remove('text-on-surface-variant', 'hover:bg-surface-container-high');
+          const isCurrent = href === `#${route}`;
+          const isCamp = href === '#campaigns';
+          if (isCurrent) {
+            if (isCamp) {
+              a.className = 'flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all bg-[#e8f4f3] text-[#167a70] font-label-lg font-bold shadow-xs';
+            } else {
+              a.className = 'flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all bg-primary-container text-on-primary-container font-label-lg font-bold shadow-sm';
+            }
           } else {
-            a.classList.remove('bg-primary', 'text-white', 'shadow-sm');
-            a.classList.add('text-on-surface-variant', 'hover:bg-surface-container-high');
+            a.className = 'flex items-center justify-between px-space-md py-2.5 rounded-xl transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-medium';
+          }
+          const icon = a.querySelector('.material-symbols-outlined');
+          if (icon) {
+            if (isCurrent) {
+              icon.className = `material-symbols-outlined text-[20px] ${isCamp ? 'text-[#167a70]' : 'text-primary'}`;
+            } else {
+              icon.className = 'material-symbols-outlined text-[20px] text-on-surface-variant';
+            }
           }
         });
       }
@@ -350,6 +362,9 @@ class YeezyLoyaltyApp {
         break;
       case 'customer-insights':
         attachCustomerInsightsListeners();
+        break;
+      case 'campaigns':
+        attachCampaignsListeners();
         break;
       case 'loyalty':
       case 'activate-loyalty':

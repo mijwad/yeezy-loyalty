@@ -47,6 +47,9 @@ class Store {
     if (!this.state.yeezyBillSettings) {
       this.state.yeezyBillSettings = JSON.parse(JSON.stringify(initialData.yeezyBillSettings));
     }
+    if (!this.state.campaigns || this.state.campaigns.length === 0) {
+      this.state.campaigns = JSON.parse(JSON.stringify(initialData.campaigns || []));
+    }
     
     // Non-persisted UI State
     this.uiState = {
@@ -56,6 +59,35 @@ class Store {
       amountSpentSlide: 0,
       configuratorStep: 1,
       configuratorPanel: 'theme',
+      campaignWizardOpen: false,
+      campaignStep: 1, // 1: Type/Reward, 2: Expiry & Rules, 3: Creative & Branding, 4: Message Template, 5: Audience & Send
+      campaignFilter: 'all',
+      campaignForm: {
+        rewardType: 'percentage',
+        discountValue: '20',
+        discountScope: 'entire',
+        hasMaxRedeemLimit: false,
+        maxRedeemAmount: '200',
+        title: 'Write campaign title',
+        subtitle: 'Write campaign subtitle',
+        expiryDate: '2026-11-06',
+        validityPreset: '7',
+        termsAndConditions: '2 offers cannot be clubbed. Reward cannot be exchanged for cash.',
+        singleRedemptionOnly: true,
+        supportPhone: '9745630606',
+        logoUrl: '',
+        logoText: 'DURBAR',
+        themeColor: '#2a7e72',
+        textColor: '#ffffff',
+        bannerUrl: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80',
+        zoomLevel: 100,
+        channel: 'sms',
+        smsText: 'Dear Customer,\n\n-Reelo',
+        linkType: 'reelo',
+        shortLinkCode: 'mSvFr',
+        targetSegment: 'atRisk',
+        testPhone: ''
+      },
       customerFilters: {
         activeTab: 'customerlist',
         searchTerm: '',
