@@ -69,11 +69,12 @@ export function renderHighlightsRow(stats) {
         <div class="relative overflow-visible rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE]/60 p-space-md shadow-sm flex items-center justify-between min-h-[115px] transition-all hover:shadow-md hover:-translate-y-0.5">
           <div class="flex flex-col justify-between h-full z-10">
             <div class="flex items-center gap-1.5">
-              <span class="text-sm font-bold text-[#1D4ED8] tracking-tight">Active Guests</span>
+              <span class="text-xs font-bold text-[#1D4ED8] uppercase tracking-wider">Active Guests</span>
               ${renderInfoTooltip("Total unique diners and loyalty guests recorded today.", "left")}
             </div>
             <div class="text-3xl font-black text-[#1B1B1E] tracking-tight mt-1">${stats.customers ?? 0}</div>
-            <span class="text-[11px] text-[#1D4ED8] font-bold mt-1">
+            <span class="text-[11px] text-[#1D4ED8] font-bold mt-1 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">group</span>
               ${stats.customers > 0 ? `${stats.customers} registered diners` : 'No diners seated yet'}
             </span>
           </div>
@@ -88,24 +89,32 @@ export function renderHighlightsRow(stats) {
           </div>
         </div>
 
-        <!-- Card 4: Rewards Redeemed -->
-        <div class="relative overflow-visible rounded-2xl bg-[#F5F3FF] border border-[#DDD6FE]/60 p-space-md shadow-sm flex items-center justify-between min-h-[115px] transition-all hover:shadow-md hover:-translate-y-0.5">
+        <!-- Card 4: Rewards Redeemed (Distinct Emerald Theme) -->
+        <div class="relative overflow-visible rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0]/70 p-space-md shadow-sm flex items-center justify-between min-h-[115px] transition-all hover:shadow-md hover:-translate-y-0.5">
           <div class="flex flex-col justify-between h-full z-10">
             <div class="flex items-center gap-1.5">
-              <span class="text-xs font-bold text-[#7C3AED] uppercase tracking-wider">Rewards Redeemed</span>
+              <span class="text-xs font-bold text-[#059669] uppercase tracking-wider">Rewards Redeemed</span>
               ${renderInfoTooltip("Total number of loyalty perks, points redemptions, and voucher discounts claimed today.", "left")}
             </div>
             <div class="text-3xl font-black text-[#1B1B1E] tracking-tight mt-1">${stats.rewardsRedeemed}</div>
-            <span class="text-[11px] text-[#7C3AED] font-bold mt-1">
+            <span class="text-[11px] text-[#059669] font-bold mt-1 flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-xs">redeem</span>
               ${stats.rewardsRedeemed > 0 ? `${stats.rewardsRedeemed} discounts used` : '0 redeemed so far'}
             </span>
           </div>
           <div class="absolute inset-0 rounded-2xl overflow-hidden pointer-events-none">
-            <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-24 h-24 flex items-center justify-center">
-              <div class="relative w-18 h-18 bg-gradient-to-br from-[#DC2626] to-[#991B1B] rounded-xl shadow-lg border border-red-300/40 transform -rotate-12 flex items-center justify-center overflow-hidden">
-                <div class="absolute inset-y-0 w-3 bg-[#1D4ED8] shadow-sm"></div>
-                <div class="absolute inset-x-0 h-3 bg-[#1D4ED8] shadow-sm"></div>
-                <div class="absolute -top-1 w-6 h-6 border-2 border-blue-400 rounded-full"></div>
+            <div class="absolute -right-1 top-1/2 -translate-y-1/2 w-24 h-24 flex items-center justify-center">
+              <div class="relative w-16 h-16 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 rounded-2xl shadow-lg border-2 border-emerald-200/60 transform -rotate-12 flex items-center justify-center">
+                <!-- Golden Ribbon Cross -->
+                <div class="absolute inset-y-0 w-3 bg-gradient-to-b from-amber-200 via-amber-300 to-amber-400 shadow-xs"></div>
+                <div class="absolute inset-x-0 h-3 bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 shadow-xs"></div>
+                <!-- Golden Bow Ties -->
+                <div class="absolute -top-2 flex gap-0.5">
+                  <div class="w-4 h-4 rounded-full border-2 border-amber-300 bg-amber-400/90 -rotate-45 shadow-xs"></div>
+                  <div class="w-4 h-4 rounded-full border-2 border-amber-300 bg-amber-400/90 rotate-45 shadow-xs"></div>
+                </div>
+                <!-- Redeem Sparkle Icon -->
+                <span class="material-symbols-outlined text-white text-lg drop-shadow-md z-10">redeem</span>
               </div>
             </div>
           </div>
