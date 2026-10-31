@@ -97,7 +97,7 @@ function renderLoyaltyDashboard(state, uiState) {
             ${p.name || 'durbar'} Loyalty Program & Digital Pass
           </h1>
           <p class="text-xs md:text-sm text-gray-500 mt-1 max-w-2xl font-medium">
-            Customize your customer's digital loyalty card and automated purchase WhatsApp messages with digital pass link.
+            Configure your customer's digital loyalty pass, earning rules, and reward redemption tiers.
           </p>
         </div>
 
@@ -200,63 +200,68 @@ function renderLoyaltyDashboard(state, uiState) {
           </div>
         </div>
 
-        <!-- Right: Purchase Notification & Sharing Setup (Exact Image 2) -->
+        <!-- Right: Loyalty Program Rules, Milestones & Digital Pass Access -->
         <div class="lg:col-span-7 flex flex-col gap-6">
           
-          <!-- Automated WhatsApp Notification Card (Reference Image 2) -->
-          <div class="bg-white rounded-3xl p-6 md:p-7 border border-gray-200/80 shadow-xs flex flex-col gap-4">
+          <!-- Loyalty Program Rules & Reward Milestones Card -->
+          <div class="bg-white rounded-3xl p-6 md:p-7 border border-gray-200/80 shadow-xs flex flex-col gap-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2.5">
-                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <span class="material-symbols-outlined text-xl">chat</span>
+                <div class="w-10 h-10 rounded-2xl bg-teal-50 text-[#2a7e72] flex items-center justify-center">
+                  <span class="material-symbols-outlined text-xl">military_tech</span>
                 </div>
                 <div>
-                  <h3 class="text-base font-extrabold text-gray-900">Automated Purchase WhatsApp Notification</h3>
-                  <p class="text-xs text-gray-500 font-medium">Sent automatically when cashier settles bill in POS</p>
+                  <h3 class="text-base font-extrabold text-gray-900">Earning Rules & Reward Milestones</h3>
+                  <p class="text-xs text-gray-500 font-medium">Points accrual and active diner redemption tiers</p>
                 </div>
               </div>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                ACTIVE
-              </span>
+              <button 
+                id="btn-edit-tiers-quick" 
+                type="button" 
+                class="px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#2a7e72] text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+              >
+                <span class="material-symbols-outlined text-sm">tune</span>
+                <span>Configure Tiers</span>
+              </button>
             </div>
 
-            <!-- Sample WhatsApp Message Box (Styled like WhatsApp Dark Bubble) -->
-            <div class="p-4 bg-[#111b21] rounded-2xl text-white text-xs leading-relaxed border border-[#202c33] shadow-inner font-sans whitespace-pre-line relative">
-              <div class="text-[11px] text-emerald-400 font-bold mb-2 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>WhatsApp Message Template</span>
-              </div>
-              ${escapeHtml(p.whatsappPurchaseNotification?.template || getDefaultWhatsAppTemplate(p.name))}
-              <div class="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between">
-                <span class="px-3 py-1 rounded-xl bg-[#202c33] text-emerald-400 font-bold text-[11px] flex items-center gap-1">
-                  <span class="material-symbols-outlined text-xs">open_in_new</span>
-                  <span>Share Feedback & View Digital Pass</span>
+            <!-- Earning Formula Highlight -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-lg">monetization_on</span>
                 </span>
-                <span class="text-[10px] text-gray-400">7:41 PM • ✓✓</span>
+                <div>
+                  <div class="text-[10px] uppercase font-bold text-gray-400">Earning Ratio</div>
+                  <div class="text-xs font-extrabold text-gray-900">₹${p.spendRate || 100} Spent = ${p.pointsRate || 10} Points</div>
+                </div>
+              </div>
+              <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-3">
+                <span class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-lg">bolt</span>
+                </span>
+                <div class="min-w-0">
+                  <div class="text-[10px] uppercase font-bold text-gray-400">Unlock Goal Banner</div>
+                  <div class="text-xs font-extrabold text-gray-900 truncate">${escapeHtml(p.topUnlockBanner || 'Spend ₹10000 to unlock')}</div>
+                </div>
               </div>
             </div>
 
-            <!-- Test Send Action Bar -->
-            <div class="p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex-1">
-                <span class="text-xs font-bold text-gray-800 block">Test on Your Mobile</span>
-                <span class="text-[11px] text-gray-500 block">Send a sample purchase notification to your WhatsApp</span>
-              </div>
-              <div class="flex items-center gap-2">
-                <input 
-                  id="dash-test-phone" 
-                  type="tel" 
-                  value="9745630606" 
-                  placeholder="Mobile number" 
-                  class="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold w-36"
-                />
-                <button 
-                  id="btn-dash-send-test" 
-                  type="button" 
-                  class="px-4 py-1.5 bg-[#2a7e72] hover:bg-[#23685e] text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                >
-                  Send Test
-                </button>
+            <!-- Active Tiers List -->
+            <div class="flex flex-col gap-2 pt-1">
+              <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Configured Milestones (${(p.rewardTiers || getDefaultRewardTiers()).length})</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                ${(p.rewardTiers || getDefaultRewardTiers()).slice(0, 4).map(tier => `
+                  <div class="p-3 rounded-xl border border-gray-100 bg-gray-50/60 flex items-center justify-between">
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold text-gray-900 truncate">${escapeHtml(tier.title)}</div>
+                      <div class="text-[10px] text-gray-400 truncate">${tier.condition || 'Valid on all bills'}</div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-lg bg-teal-100 text-[#167a70] text-[11px] font-extrabold shrink-0 ml-2">
+                      ${tier.points} PTS
+                    </span>
+                  </div>
+                `).join('')}
               </div>
             </div>
           </div>
@@ -1135,11 +1140,10 @@ export function attachLoyaltyListeners() {
     };
   }
 
-  const btnDashSendTest = document.getElementById('btn-dash-send-test');
-  if (btnDashSendTest) {
-    btnDashSendTest.onclick = () => {
-      const phone = document.getElementById('dash-test-phone')?.value || '9745630606';
-      window.showToast?.(`WhatsApp purchase notification sent to ${phone}!`);
+  const btnEditTiersQuick = document.getElementById('btn-edit-tiers-quick');
+  if (btnEditTiersQuick) {
+    btnEditTiersQuick.onclick = () => {
+      store.setUIState({ loyaltyWizardOpen: true, loyaltyStep: 2 });
     };
   }
 
