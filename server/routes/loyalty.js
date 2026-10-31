@@ -8,6 +8,8 @@ import { validateLoyaltyConfig, DEFAULT_LOYALTY_CONFIG } from '../../lib/loyalty
 import { validateRequest } from '../middleware/validateRequest.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
+import { cleanRestaurantName } from '../whatsapp/loyaltyTemplates.js';
+import { posStore } from '../db/store.js';
 
 export const loyaltyRouter = Router();
 
@@ -175,7 +177,7 @@ loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (
         currentTier: { tierName: parsedEarn.tier || 'Silver' },
         pointsBalance: parsedEarn.new_balance
       },
-      { name: 'Our Restaurant' },
+      { name: cleanRestaurantName(posStore?.data?.tenants?.find(t => t.id === tenantId)?.name || 'Durbar Cafe') },
       { orderId: order_id, subtotal: (subtotal_paise || 0) / 100 },
       parsedEarn.points_earned,
       parsedEarn.new_balance,

@@ -4,6 +4,7 @@ import { rateLimiter, idempotency } from '../middleware/rateLimitAndIdempotency.
 import { supabaseAdmin } from '../db/supabase.js';
 import { normalizePhone } from '../../lib/loyalty/engine.js';
 import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
+import { cleanRestaurantName } from '../whatsapp/loyaltyTemplates.js';
 
 export const v1PublicRouter = Router();
 
@@ -23,7 +24,7 @@ v1PublicRouter.get('/ping', async (req, res) => {
 
     return res.json({
       restaurant_id: req.restaurantId,
-      restaurant_name: req.apiKey.name,
+      restaurant_name: cleanRestaurantName(req.apiKey.name),
       is_active: program?.is_active ?? false,
       point_value_paise: program?.config?.point_value_paise || 100,
       earn_base_rate_bps: program?.config?.earn?.base_rate_bps || 500
@@ -416,7 +417,7 @@ v1PublicRouter.post('/orders', requireScope('points:earn'), async (req, res) => 
           currentTier: { tierName: parsedEarn.tier || 'Silver' },
           pointsBalance: parsedEarn.new_balance
         },
-        { name: req.apiKey?.name || 'Our Restaurant' },
+        { name: cleanRestaurantName(req.apiKey?.name) },
         { orderId: order_id, subtotal: subtotal_paise / 100 },
         parsedEarn.points_earned,
         parsedEarn.new_balance,

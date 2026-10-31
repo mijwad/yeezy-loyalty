@@ -7,6 +7,8 @@ import { posAdapterFactory } from '../pos/POSAdapterFactory.js';
 import { supabaseAdmin } from '../db/supabase.js';
 import { calculateEarn, previewRedeem, commitRedeem, normalizePhone } from '../../lib/loyalty/engine.js';
 import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
+import { cleanRestaurantName } from '../whatsapp/loyaltyTemplates.js';
+import { posStore } from '../db/store.js';
 
 export const posUnifiedRouter = Router();
 
@@ -524,7 +526,7 @@ posUnifiedRouter.post('/:posSystem/orders/save', posAdapterMiddleware, async (re
           currentTier: { tierName: parsedEarn.tier || 'Silver' },
           pointsBalance: newBalance || pointsEarned
         },
-        { name: 'Our Restaurant' },
+        { name: cleanRestaurantName(posStore?.data?.tenants?.find(t => t.id === tenantId)?.name || 'Durbar Cafe') },
         savedOrder,
         pointsEarned,
         newBalance || pointsEarned,

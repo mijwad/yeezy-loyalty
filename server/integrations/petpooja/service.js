@@ -11,6 +11,7 @@ import crypto from 'node:crypto';
 import { supabaseAdmin, isSupabaseConfigured, toUuid } from '../../db/supabase.js';
 import { normalizePhone } from '../../../lib/loyalty/engine.js';
 import { createLoyaltyTriggers } from '../../whatsapp/loyaltyTriggers.js';
+import { cleanRestaurantName } from '../../whatsapp/loyaltyTemplates.js';
 
 // Petpooja Partner Token (from environment)
 const PARTNER_TOKEN = process.env.PETPOOJA_PARTNER_TOKEN;
@@ -422,7 +423,7 @@ export async function handleSaveOrder(req, res) {
             is_whatsapp_opt_in: true, // Default to true for transactional messages
             total_visits_count: customer.visit_count || 1
           },
-          { name: outlet.name || Restaurant?.name || 'Restaurant' },
+          { name: cleanRestaurantName(outlet?.name || Restaurant?.name || 'Durbar Cafe') },
           {
             orderId: orderId,
             invoiceNo: invoiceNo,

@@ -21,7 +21,7 @@
  * await LoyaltyEventTriggers.sendWinBackCampaigns(restaurantId);
  */
 
-import { LoyaltyTemplateService, LOYALTY_EVENT_TYPES, sendFirstPurchaseMessage, sendRepeatPurchaseMessage, sendPointsReminderMessage, sendPointsExpiringMessage, sendRewardRedeemedMessage, sendWinbackMessage } from './loyaltyTemplates.js';
+import { LoyaltyTemplateService, LOYALTY_EVENT_TYPES, cleanRestaurantName, sendFirstPurchaseMessage, sendRepeatPurchaseMessage, sendPointsReminderMessage, sendPointsExpiringMessage, sendRewardRedeemedMessage, sendWinbackMessage } from './loyaltyTemplates.js';
 import { supabaseAdmin } from '../db/supabase.js';
 
 export class LoyaltyEventTriggers {
@@ -80,6 +80,11 @@ export class LoyaltyEventTriggers {
       pointsBalance = arg5 || 0;
       isFirstPurchase = Boolean(arg6);
     }
+
+    restaurant = {
+      ...restaurant,
+      name: cleanRestaurantName(restaurant?.name)
+    };
 
     if (!customer) return { skipped: true, reason: 'no_customer' };
     customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile || customer.customer_phone;
@@ -144,6 +149,11 @@ export class LoyaltyEventTriggers {
       pointsUsed = arg4 || 0;
       pointsBalance = arg5 || 0;
     }
+
+    restaurant = {
+      ...restaurant,
+      name: cleanRestaurantName(restaurant?.name)
+    };
 
     if (!customer) return { skipped: true, reason: 'no_customer' };
     customer.phoneNumber = customer.phoneNumber || customer.phone || customer.phone_e164 || customer.mobile || customer.customer_phone;

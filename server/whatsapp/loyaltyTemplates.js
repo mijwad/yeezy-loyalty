@@ -174,6 +174,34 @@ export const LOYALTY_TEMPLATES = {
 // ============================================================================
 
 /**
+ * Clean restaurant / cafe name for customer-facing communications (WhatsApp/SMS).
+ * Strips out internal developer labels like (Live POS Key), (Live POS), (Live), (Test/Sandbox), etc.
+ */
+export function cleanRestaurantName(rawName) {
+  if (!rawName || typeof rawName !== 'string') return 'Durbar Cafe';
+  let cleaned = rawName
+    // Strip parenthetical key descriptors like (Live POS Key), (Live POS), (Live), (Test/Sandbox), etc.
+    .replace(/\s*\([^)]*(?:pos|key|live|test|sandbox)[^)]*\)/gi, '')
+    // Also strip standalone key labels
+    .replace(/\b(?:live|test)\s+pos(?:\s+key)?\b/gi, '')
+    .trim();
+
+  // If lower-case 'durbar', standardize to 'Durbar Cafe'
+  if (cleaned.toLowerCase() === 'durbar') {
+    return 'Durbar Cafe';
+  }
+  // If 'Our Restaurant' or empty, fallback to 'Durbar Cafe'
+  if (!cleaned || cleaned.toLowerCase() === 'our restaurant' || cleaned.toLowerCase() === 'restaurant') {
+    return 'Durbar Cafe';
+  }
+  // Title-case single lowercase words
+  if (/^[a-z]/.test(cleaned) && !cleaned.includes(' ')) {
+    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return cleaned;
+}
+
+/**
  * Variable type resolvers - map variable types to actual data sources
  * These are used to resolve template variables at send time
  */
@@ -182,7 +210,7 @@ export const VARIABLE_RESOLVERS = {
   'customer.phone': (context) => context.customer?.phoneNumber || context.customer?.phone || context.customer?.phone_e164 || '',
   'customer.visits': (context) => String(context.customer?.totalVisitsCount || context.customer?.visits || context.customer?.visit_count || 1),
   'customer.tier': (context) => context.customer?.currentTier?.tierName || context.customer?.tier || 'Silver',
-  'restaurant.name': (context) => context.restaurant?.name || context.outlet?.name || 'Our Restaurant',
+  'restaurant.name': (context) => cleanRestaurantName(context.restaurant?.name || context.outlet?.name || context.restaurantName || context.restaurant_name),
   'loyalty.points_earned': (context) => String(context.pointsEarned || 0),
   'loyalty.points_balance': (context) => String(context.pointsBalance ?? context.customer?.pointsBalance ?? 0),
   'loyalty.points_expiring': (context) => String(context.pointsExpiring || 0),

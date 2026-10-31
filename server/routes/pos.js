@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto';
 import { posStore } from '../db/store.js';
 import { syncCustomerToSupabase, syncOrderToSupabase } from '../db/supabase.js';
 import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
+import { cleanRestaurantName } from '../whatsapp/loyaltyTemplates.js';
 
 export const posRouter = Router();
 
@@ -538,7 +539,7 @@ posRouter.post(['/orders/save', '/petpooja/orders/save'], (req, res) => {
         currentTier: { tierName: customer.tier || 'Silver' },
         pointsBalance: customer.pointsBalance
       },
-      { name: outlet.name || 'Our Restaurant' },
+      { name: cleanRestaurantName(outlet?.name || posStore?.data?.tenants?.find(t => t.id === tenantId)?.name || 'Durbar Cafe') },
       savedOrder,
       pointsEarned,
       customer.pointsBalance,
