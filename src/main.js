@@ -266,8 +266,8 @@ class YeezyLoyaltyApp {
         this.lastRenderedRoute = route;
         this.attachViewListeners(route);
 
-        // Update active class on sidebar links
-        document.querySelectorAll('#app-shell aside a, #mobile-sidebar-drawer a').forEach(a => {
+        // Update active class strictly on sidebar navigation links (avoiding the brand logo or footer help links)
+        document.querySelectorAll('#app-shell aside nav a[data-path], #mobile-sidebar-drawer nav a[data-path]').forEach(a => {
           const href = a.getAttribute('href');
           const isCurrent = href === `#${route}`;
           const isHighlight = href === '#campaigns' || href === '#loyalty' || href === '#activate-loyalty';

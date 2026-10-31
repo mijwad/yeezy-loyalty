@@ -17,7 +17,7 @@ export function renderSidebar(currentPath = 'dashboard') {
       <div class="flex flex-col">
         <!-- Brand Header -->
         <div class="h-16 px-space-lg flex items-center justify-between border-b border-outline-variant/20">
-          <a href="#dashboard" class="flex items-center gap-space-sm hover:opacity-90 transition">
+          <a id="sidebar-brand-logo" href="#dashboard" class="sidebar-brand-logo flex items-center gap-space-sm hover:opacity-90 transition">
             <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-black text-base shadow-sm">
               Y
             </div>
