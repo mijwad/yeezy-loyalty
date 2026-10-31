@@ -117,8 +117,8 @@ app.use((req, res, next) => {
 // Structured request logging
 app.use(requestLogger);
 
-// Health check (no auth required)
-app.get('/health', (req, res) => {
+// Health check (no auth required) - supports both /health and /api/health
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     status: 'healthy',
     platform: 'Yeezy Loyalty Engine',
@@ -129,8 +129,9 @@ app.get('/health', (req, res) => {
 
 // Petpooja Loyalty Integration (exact API spec)
 app.use('/integrations/petpooja', petpoojaRouter);
+app.use('/api/integrations/petpooja', petpoojaRouter);
 
-app.get('/ready', async (req, res) => {
+app.get(['/ready', '/api/ready'], async (req, res) => {
   // Deep health check - verify DB connectivity
   try {
     if (supabaseAdmin) {
@@ -174,7 +175,7 @@ app.use('/api/loyalty', loyaltyRouter); // Legacy path
 app.use('/api/marketplace', marketplaceRouter);
 
 // Metrics endpoint (Prometheus format)
-app.get('/metrics', async (req, res) => {
+app.get(['/metrics', '/api/metrics'], async (req, res) => {
   try {
     if (!supabaseAdmin) {
       return res.status(503).json({ error: 'Database not configured' });

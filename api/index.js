@@ -1,7 +1,8 @@
 // Vercel Serverless Function Entrypoint
-// Routes all /api/* requests to the Express application
+// Handles API (/api/*, /v1/*, /pos/*, /integrations/*, /health, /ready, /metrics) requests
 import { app } from '../server/app.js';
 
 export default function handler(req, res) {
   return app(req, res);
 }
+

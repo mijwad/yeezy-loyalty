@@ -3,11 +3,39 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/health",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/ready",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/metrics",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/integrations/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/v1",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/v1/(.*)",
       "destination": "/api/index.js"
     },
     {
+      "source": "/api",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/pos",
       "destination": "/api/index.js"
     },
     {
