@@ -321,7 +321,7 @@ export const initialData = {
       senderName: 'Reelo',
       template: 'Dear Customer,\n\nYour purchase at {restaurant_name} has been completed.\n\nYou have earned {points} points on this purchase.\n\nThis message has been sent to inform you about an account update related to your recent purchase.\n\nClick below to share feedback and view account details.',
       buttonLabel: 'Share Feedback & View Pass',
-      passShortLink: 'https://beebill.online/#my-rewards'
+      passShortLink: 'https://beebill.online/rewards'
     },
     reminders: {
       inactivityReminderDays: 30,

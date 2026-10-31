@@ -75,6 +75,7 @@ class YeezyLoyaltyApp {
     };
 
     window.addEventListener('hashchange', handleRoute);
+    window.addEventListener('popstate', handleRoute);
     const initialRoute = this.store.getRouteFromHash();
     if (initialRoute === 'petpooja-setup' || initialRoute === 'petpooja-integration') {
       this.store.setUIState({
@@ -140,7 +141,7 @@ class YeezyLoyaltyApp {
     const uiState = this.store.getUIState();
     const route = uiState.currentRoute;
 
-    const isPublicCustomerRoute = route === 'customer-portal' || route === 'my-rewards';
+    const isPublicCustomerRoute = route === 'customer-portal' || route === 'my-rewards' || route === 'rewards' || route === 'pass' || route === 'card';
 
     // Require staff authentication for backend dashboard, except login & public customer portal
     const token = localStorage.getItem('yeezy_auth_token');

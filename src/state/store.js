@@ -126,7 +126,25 @@ class Store {
   }
 
   getRouteFromHash() {
-    return window.location.hash.replace('#', '') || 'dashboard';
+    try {
+      const pathname = (typeof window !== 'undefined' && window.location?.pathname)
+        ? window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase()
+        : '';
+      const rawHash = (typeof window !== 'undefined' && window.location?.hash)
+        ? window.location.hash.replace(/^#/, '').toLowerCase().split('?')[0]
+        : '';
+
+      const publicCustomerRoutes = ['rewards', 'pass', 'card', 'my-rewards', 'customer-portal', 'l'];
+      if (publicCustomerRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))) {
+        return 'my-rewards';
+      }
+      if (publicCustomerRoutes.includes(rawHash)) {
+        return 'my-rewards';
+      }
+      return rawHash || 'dashboard';
+    } catch {
+      return 'dashboard';
+    }
   }
 
   getState() {

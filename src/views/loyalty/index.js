@@ -261,37 +261,102 @@ function renderLoyaltyDashboard(state, uiState) {
             </div>
           </div>
 
-          <!-- Digital Pass Link & QR Code Card -->
-          <div class="bg-white rounded-3xl p-6 md:p-7 border border-gray-200/80 shadow-xs flex flex-col gap-4">
-            <h3 class="text-base font-extrabold text-gray-900">Customer Digital Pass Access</h3>
-            <p class="text-xs text-gray-500 font-medium -mt-2">
-              Attach this link in SMS, WhatsApp, or table QR codes. Diners can check their balance anytime.
-            </p>
+          <!-- Meta WhatsApp Template Setup (Call To Action Button with Static URL) -->
+          <div class="bg-white rounded-3xl p-6 md:p-7 border border-emerald-200/90 shadow-sm flex flex-col gap-5 relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-50 rounded-full blur-2xl pointer-events-none"></div>
 
-            <div class="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2 text-xs font-mono font-bold text-[#2a7e72] truncate">
-                <span class="material-symbols-outlined text-base">link</span>
-                <span id="loyalty-pass-public-url">${p.whatsappPurchaseNotification?.passShortLink || 'https://beebill.online/#my-rewards'}</span>
+            <div class="flex items-start justify-between gap-3 relative z-10">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl bg-[#e8f5e9] text-[#1b5e20] flex items-center justify-center font-black shadow-2xs">
+                  <span class="material-symbols-outlined text-2xl">link</span>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-base font-extrabold text-gray-900">Meta WhatsApp Template Button (Static URL)</h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Static URL
+                    </span>
+                  </div>
+                  <p class="text-xs text-gray-500 font-medium mt-0.5">
+                    Use this static URL in Meta Business Manager to attach a "View Rewards" button to your WhatsApp template.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Static URL Copy Field -->
+            <div class="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+              <div class="flex flex-col min-w-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Static Website URL for Meta Template</span>
+                <span id="static-meta-url-text" class="text-sm font-mono font-black text-emerald-400 truncate mt-0.5 select-all">
+                  https://beebill.online/rewards
+                </span>
               </div>
               <div class="flex items-center gap-2 shrink-0">
                 <button 
-                  id="btn-copy-pass-link" 
+                  id="btn-copy-meta-static-url" 
                   type="button" 
-                  class="px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-100 transition flex items-center gap-1 cursor-pointer"
+                  class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
                 >
                   <span class="material-symbols-outlined text-sm">content_copy</span>
-                  <span>Copy</span>
+                  <span>Copy Static URL</span>
                 </button>
                 <a 
-                  href="#my-rewards" 
-                  target="_blank"
-                  class="px-3 py-1.5 rounded-xl bg-teal-50 border border-teal-200 text-xs font-bold text-[#2a7e72] hover:bg-teal-100 transition flex items-center gap-1"
+                  href="/rewards" 
+                  target="_blank" 
+                  class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-1"
+                  title="Test pass in new tab"
                 >
-                  <span class="material-symbols-outlined text-sm">visibility</span>
+                  <span class="material-symbols-outlined text-sm">open_in_new</span>
                   <span>Open Pass</span>
                 </a>
               </div>
             </div>
+
+            <!-- Visual Meta Template Builder Field Guide (Matching Reference Screenshot 2) -->
+            <div class="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-base text-blue-600">tune</span>
+                  Meta WhatsApp Template Manager Configuration
+                </span>
+                <span class="text-[11px] text-gray-500 font-semibold">Exact values to fill in Meta:</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                  <div class="text-[10px] text-gray-400 font-bold uppercase">Type of Action</div>
+                  <div class="font-extrabold text-gray-900 mt-0.5">Visit website</div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                  <div class="text-[10px] text-gray-400 font-bold uppercase">Button Text</div>
+                  <div class="font-extrabold text-gray-900 mt-0.5">View Rewards</div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                  <div class="text-[10px] text-gray-400 font-bold uppercase">URL Type</div>
+                  <div class="font-extrabold text-emerald-700 mt-0.5 flex items-center gap-1">
+                    <span>Static</span>
+                    <span class="material-symbols-outlined text-xs">check_circle</span>
+                  </div>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
+                  <div class="text-[10px] text-gray-400 font-bold uppercase">Website URL</div>
+                  <div class="font-mono font-bold text-gray-900 text-[11px] mt-0.5 truncate">https://beebill.online/rewards</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- What Customer Sees Summary -->
+            <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
+              <span class="material-symbols-outlined text-amber-700 text-lg shrink-0 mt-0.5">verified</span>
+              <div class="leading-relaxed">
+                <strong>What your customer sees when tapping the WhatsApp button:</strong>
+                <p class="text-[11px] text-amber-800 mt-0.5">
+                  The link immediately opens their branded <strong>Durbar Cafe Rewards Pass</strong> (Reelo style), highlighting their <strong>1,000 points balance</strong>, <strong>₹125 OFF offer</strong>, <strong>expiry date (Nov 24, 2026)</strong>, and a warm win-back message welcoming them back to the restaurant.
+                </p>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -383,25 +448,55 @@ export function renderLoyaltyCardPreview(prog) {
             </div>
           </div>
 
+          <!-- Win-Back Offer & Rupee Discount Box (Reference Reelo & Win-Back Template) -->
+          <div class="rounded-2xl p-4 bg-gradient-to-br from-amber-500/25 via-emerald-600/20 to-black/40 border border-amber-300/40 text-center shadow-lg relative overflow-hidden">
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400 text-stone-950 font-black text-[10px] uppercase tracking-wider mb-2">
+              <span>⭐</span> Available Offer
+            </div>
+
+            <div class="text-3xl font-black text-white tracking-tight">
+              ₹125 OFF
+            </div>
+            <div class="text-xs text-amber-200 font-bold mt-0.5">
+              Ready to redeem with 1,000 points
+            </div>
+
+            <!-- Encouraging Win-Back Message to return to restaurant -->
+            <div class="mt-3 text-xs text-stone-100 font-medium leading-relaxed bg-black/40 p-3 rounded-xl border border-white/10 text-left">
+              <span class="text-amber-300 font-black">We miss you at Durbar Cafe!</span> Visit us this week to enjoy delicious food and redeem <strong>₹125 OFF</strong> on your bill. We can't wait to serve you again! 🍽️✨
+            </div>
+
+            <div class="mt-2.5 flex items-center justify-between text-[10px] text-stone-300 font-medium px-1">
+              <span>Expires on: <strong class="text-amber-300">Nov 24, 2026</strong></span>
+              <span class="text-emerald-300 font-bold">● Active in POS</span>
+            </div>
+          </div>
+
           <!-- Progressive Milestone Tiers Ladder (Exact 500, 1000, 2000, 3000, 5000 PTS) -->
           <div id="loyalty-preview-tiers" class="flex flex-col">
-            ${tiers.map((tier, idx) => `
-              <div class="flex items-start justify-between py-2.5 border-b border-dashed border-stone-700/60 text-xs">
-                <div class="w-22 shrink-0 font-black text-sm text-white flex items-baseline gap-1">
-                  <span>${tier.points}</span>
-                  <span class="text-[10px] font-bold text-stone-400">PTS</span>
+            ${tiers.map((tier) => {
+              const isUnlocked = tier.points <= 1000;
+              return `
+                <div class="flex items-start justify-between py-2.5 border-b border-dashed border-stone-700/60 text-xs">
+                  <div class="w-22 shrink-0 font-black text-sm ${isUnlocked ? 'text-amber-300' : 'text-stone-300'} flex items-baseline gap-1">
+                    <span>${tier.points}</span>
+                    <span class="text-[10px] font-bold text-stone-400">PTS</span>
+                  </div>
+                  <div class="flex-1 pr-2">
+                    <div class="font-extrabold ${isUnlocked ? 'text-white' : 'text-stone-300'} text-xs flex items-center gap-1.5">
+                      <span>${escapeHtml(tier.title)}</span>
+                      ${isUnlocked ? '<span class="text-[9px] text-emerald-400 font-black bg-emerald-950/70 border border-emerald-500/30 px-1.5 py-0.2 rounded-full">UNLOCKED</span>' : ''}
+                    </div>
+                    ${tier.condition ? `<div class="text-[10px] text-stone-400 mt-0.5 leading-snug">${escapeHtml(tier.condition)}</div>` : ''}
+                  </div>
+                  <div class="shrink-0 pt-0.5 ${isUnlocked ? 'text-emerald-400' : 'text-stone-500'}">
+                    <span class="material-symbols-outlined text-sm">
+                      ${isUnlocked ? 'check_circle' : 'lock'}
+                    </span>
+                  </div>
                 </div>
-                <div class="flex-1 pr-2">
-                  <div class="font-extrabold text-white text-xs">${escapeHtml(tier.title)}</div>
-                  ${tier.condition ? `<div class="text-[10px] text-stone-400 mt-0.5 leading-snug">${escapeHtml(tier.condition)}</div>` : ''}
-                </div>
-                <div class="text-stone-400 shrink-0 pt-0.5">
-                  <span class="material-symbols-outlined text-sm">
-                    ${idx === 0 ? 'lock_open' : 'lock'}
-                  </span>
-                </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
 
           <!-- Terms & Conditions Box (Exact Screenshot 1) -->
@@ -888,7 +983,7 @@ function renderLoyaltyStep3(p) {
 // ----------------------------------------------------------------------------
 function renderLoyaltyStep4(p) {
   const template = p.whatsappPurchaseNotification?.template || getDefaultWhatsAppTemplate(p.name);
-  const passUrl = p.whatsappPurchaseNotification?.passShortLink || 'https://beebill.online/#my-rewards';
+  const passUrl = p.whatsappPurchaseNotification?.passShortLink || 'https://beebill.online/rewards';
 
   return `
     <div class="flex flex-col gap-5 animate-fade-in">
@@ -1024,10 +1119,18 @@ export function attachLoyaltyListeners() {
     };
   }
 
+  const btnCopyMetaStaticUrl = document.getElementById('btn-copy-meta-static-url');
+  if (btnCopyMetaStaticUrl) {
+    btnCopyMetaStaticUrl.onclick = () => {
+      navigator.clipboard?.writeText('https://beebill.online/rewards');
+      window.showToast?.('Static URL copied! Paste this into Meta Template Builder -> Call to Action -> Website URL');
+    };
+  }
+
   const btnCopyPassLink = document.getElementById('btn-copy-pass-link');
   if (btnCopyPassLink) {
     btnCopyPassLink.onclick = () => {
-      navigator.clipboard?.writeText('https://beebill.online/#my-rewards');
+      navigator.clipboard?.writeText('https://beebill.online/rewards');
       window.showToast?.('Loyalty pass link copied to clipboard!');
     };
   }
@@ -1293,7 +1396,7 @@ export function attachLoyaltyListeners() {
   const btnCopyStep4 = document.getElementById('btn-copy-link-step4');
   if (btnCopyStep4) {
     btnCopyStep4.onclick = () => {
-      navigator.clipboard?.writeText('https://beebill.online/#my-rewards');
+      navigator.clipboard?.writeText('https://beebill.online/rewards');
       window.showToast?.('Pass link copied to clipboard!');
     };
   }
