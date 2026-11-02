@@ -37,7 +37,7 @@ export function renderHeader(state) {
             </div>
             ${((user.role === 'SUPER_ADMIN' || !outlets || outlets.length <= 1) ? [
               { id: 'ten_yeezy_01', name: 'Downtown Bistro', address: '124 Market St, Suite 100' },
-              { id: 'ten_durbar_mvnrq6po', name: 'Durbar Cafe', address: 'Durbar Flagship' },
+              { id: 'ten_durbar_mvsfe21f', name: 'Durbar Cafe', address: 'Durbar Flagship' },
               { id: 'ten_farzi_mvnvc99o', name: 'Farzi Cafe', address: 'Farzi Central' },
               { id: 'ten_smokehouse_02', name: 'Smoke House Deli', address: 'Pali Hill, Bandra West' }
             ] : outlets).map(o => {
@@ -198,6 +198,10 @@ export function renderHeader(state) {
                 <span class="material-symbols-outlined text-base">settings</span>
                 <span>Platform Settings</span>
               </a>
+              <button id="btn-header-change-password" type="button" class="w-full flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low text-on-surface transition text-left">
+                <span class="material-symbols-outlined text-base text-primary">lock_reset</span>
+                <span class="font-bold">Change Password</span>
+              </button>
               <button id="btn-export-all-data" type="button" class="w-full flex items-center gap-2 px-4 py-2 hover:bg-surface-container-low text-on-surface transition text-left">
                 <span class="material-symbols-outlined text-base">file_download</span>
                 <span>Export Guest Data (CSV)</span>
@@ -289,6 +293,14 @@ export function attachHeaderListeners() {
     profileBtn.onclick = (e) => {
       e.stopPropagation();
       profileMenu.classList.toggle('hidden');
+    };
+  }
+
+  const changePwdBtn = document.getElementById('btn-header-change-password');
+  if (changePwdBtn) {
+    changePwdBtn.onclick = () => {
+      if (profileMenu) profileMenu.classList.add('hidden');
+      store.setUIState({ activeModal: 'changePassword' });
     };
   }
 

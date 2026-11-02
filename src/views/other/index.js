@@ -443,6 +443,46 @@ export function renderSettingsView(state = {}) {
         </div>
       </div>
 
+      <!-- Account Security & Password Management -->
+      <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-primary flex items-center justify-center">
+              <span class="material-symbols-outlined text-2xl">lock_reset</span>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-gray-900">Account Security & Password</h3>
+              <p class="text-xs text-gray-500">Update your restaurant owner password. Automatically synchronized with Supabase database.</p>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            id="btn-settings-change-password"
+            class="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0 self-start sm:self-auto"
+          >
+            <span class="material-symbols-outlined text-sm">key</span>
+            <span>Change Password</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Owner Login Email</span>
+            <span class="text-xs font-bold text-slate-900 font-mono mt-0.5 block truncate">${state.user?.email || 'owner@restaurant.com'}</span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Database Synchronization</span>
+            <span class="text-xs font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Live Supabase Cloud Sync
+            </span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Security Standard</span>
+            <span class="text-xs font-bold text-slate-700 font-mono mt-0.5 block">10-Round Salted Bcrypt</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Restaurant Outlets -->
       <div class="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
         <div class="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -738,6 +778,13 @@ export function attachSettingsListeners() {
   if (openPetpoojaSetupBtn) {
     openPetpoojaSetupBtn.onclick = () => {
       store.setUIState({ activeModal: 'petpoojaIntegration' });
+    };
+  }
+
+  const changePasswordBtn = document.getElementById('btn-settings-change-password');
+  if (changePasswordBtn) {
+    changePasswordBtn.onclick = () => {
+      store.setUIState({ activeModal: 'changePassword' });
     };
   }
 

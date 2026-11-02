@@ -10,6 +10,7 @@ import { renderPetpoojaIntegrationModal, attachPetpoojaIntegrationModalListeners
 import { renderYeezyBillModal, attachYeezyBillModalListeners } from './YeezyBillModal.js';
 import { renderAddPosModal, attachAddPosModalListeners } from './AddPosModal.js';
 import { renderWebhookDocsModal, attachWebhookDocsModalListeners } from './WebhookDocsModal.js';
+import { renderChangePasswordModal, attachChangePasswordModalListeners } from './ChangePasswordModal.js';
 
 export function renderActiveModal(state, uiState) {
   const { activeModal, amountSpentSlide, selectedCustomer } = uiState;
@@ -36,6 +37,8 @@ export function renderActiveModal(state, uiState) {
       return renderCustomerDrawer(selectedCustomer);
     case 'activationSuccess':
       return renderActivationSuccessModal(state.loyaltyProgram.title);
+    case 'changePassword':
+      return renderChangePasswordModal(state.user);
     default:
       return '';
   }
@@ -75,6 +78,9 @@ export function attachActiveModalListeners(uiState) {
       break;
     case 'activationSuccess':
       attachActivationSuccessModalListeners();
+      break;
+    case 'changePassword':
+      attachChangePasswordModalListeners();
       break;
   }
 }

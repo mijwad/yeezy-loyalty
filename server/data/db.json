@@ -62,23 +62,6 @@
       "status": "ACTIVE"
     },
     {
-      "id": "ten_durbar_mvnrq6po",
-      "name": "Durbar Cafe",
-      "brandName": "Durbar Cafe",
-      "ownerId": "usr_ten_durbar_mvnrq6po",
-      "ownerName": "Durbar Admin",
-      "ownerEmail": "durbar@restaurant.com",
-      "plan": "ENTERPRISE",
-      "active": true,
-      "createdAt": "2026-10-25T15:15:58.336691+00:00",
-      "primaryRestID": "ten_durbar_mvnrq6po",
-      "outletsCount": 1,
-      "totalDiners": 0,
-      "lifetimeSales": 0,
-      "supabaseId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-      "code": "ten_durbar_mvnrq6po"
-    },
-    {
       "id": "ten_farzi_mvnvc99o",
       "name": "Farzi Cafe",
       "brandName": "Farzi Cafe",
@@ -117,8 +100,8 @@
       "id": "ten_durbar_mvsfe21f",
       "code": "ten_durbar_mvsfe21f",
       "supabaseId": "62a54a2f-9c2a-4c71-a9cc-3a8a133bd1fa",
-      "name": "durbar",
-      "brandName": "durbar",
+      "name": "Durbar Cafe",
+      "brandName": "Durbar Cafe",
       "ownerId": "usr_ten_durbar_mvsfe21f",
       "ownerName": "samad",
       "ownerEmail": "durbar@gmail.com",
@@ -171,15 +154,6 @@
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=My%20Restaurant%20Group"
     },
     {
-      "id": "c7b49eac-40d5-40ec-ace6-e5bb855aa919",
-      "name": "Durbar Admin",
-      "email": "durbar@restaurant.com",
-      "passwordHash": "$2b$10$/gKMdyMmpvqZduH9dRuHb.R.rpHObY8301Uv.Pp/zOyocEirYHJ9a",
-      "role": "RESTAURANT_OWNER",
-      "tenantId": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-      "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=Durbar%20Admin"
-    },
-    {
       "id": "ffdea753-aa48-4904-997e-33800e1b30e7",
       "name": "Farzi Cafe Owner",
       "email": "farzi@restaurant.com",
@@ -201,7 +175,7 @@
       "id": "a20ba119-de31-4be4-bda3-362eb77f63a4",
       "name": "samad",
       "email": "durbar@gmail.com",
-      "passwordHash": "$2b$10$K22ba.n76BojAgxb0lnq/OhtLQnj6Udzrew1rhWvFX5aOYyHGzt9a",
+      "passwordHash": "$2b$10$UCUib1DhHQsTdvkVMDBWbeuiYXUwnWxN4VaJk8HmGY1zJV07vIozK",
       "role": "RESTAURANT_OWNER",
       "tenantId": "ten_durbar_mvsfe21f",
       "avatar": "https://api.dicebear.com/7.x/initials/svg?seed=samad"
