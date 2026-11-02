@@ -9,29 +9,26 @@ import { validateRequest } from '../middleware/validateRequest.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 import { LoyaltyEventTriggers } from '../whatsapp/loyaltyTriggers.js';
 import { cleanRestaurantName } from '../whatsapp/loyaltyTemplates.js';
-import { posStore } from '../db/store.js';
+import { checkRateLimit } from '../db/store.js';
 
 export const loyaltyRouter = Router();
 
-// In-memory rate limiter for member lookups (30 requests per minute per IP)
-const lookupRateLimits = new Map();
-function rateLimitLookup(req, res, next) {
+// Redis-backed rate limiter for member lookups (30 requests per minute per IP)
+async function rateLimitLookup(req, res, next) {
   const clientIp = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
-  const now = Date.now();
-  const windowMs = 60 * 1000;
-  const maxRequests = 30;
-
-  const timestamps = (lookupRateLimits.get(clientIp) || []).filter(ts => now - ts < windowMs);
-  if (timestamps.length >= maxRequests) {
+  const result = await checkRateLimit('lookup', clientIp, 30, 60 * 1000);
+  if (!result.allowed) {
     return res.status(429).json({
       status: 'error',
       code: 'RATE_LIMIT_EXCEEDED',
-      message: 'Too many phone lookups. Please wait a minute before trying again.'
+      message: 'Too many phone lookups. Please wait a minute before trying again.',
+      retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000)
     });
   }
-
-  timestamps.push(now);
-  lookupRateLimits.set(clientIp, timestamps);
+  // Add rate limit headers
+  res.set('X-RateLimit-Limit', '30');
+  res.set('X-RateLimit-Remaining', String(result.remaining));
+  res.set('X-RateLimit-Reset', String(Math.ceil(result.resetTime / 1000)));
   next();
 }
 
@@ -149,8 +146,8 @@ loyaltyRouter.get(['/rewards/:identifier', '/pass/:identifier'], asyncHandler(as
   const phoneE164 = isPhone ? normalizePhone(identifier) : null;
 
   // 1. Get restaurant info
-  let tenant = posStore.data.tenants?.find(t => t.id === tenantId || t.code === tenantId);
-  if (!tenant && supabaseAdmin) {
+  let tenant = null;
+  if (supabaseAdmin) {
     try {
       const { data: sbTenant } = await supabaseAdmin.from('tenants').select('*').or(`id.eq.${tenantId},code.eq.${tenantId}`).maybeSingle();
       if (sbTenant) tenant = sbTenant;
@@ -194,17 +191,6 @@ loyaltyRouter.get(['/rewards/:identifier', '/pass/:identifier'], asyncHandler(as
       }
     } catch (e) {
       console.warn('[Rewards Public Lookup Notice]', e.message);
-    }
-  }
-
-  // Fallback to in-memory posStore
-  if (!member) {
-    const localMember = (posStore.data.loyaltyMembers || []).find(m => 
-      (phoneE164 && m.phone_e164 === phoneE164) || m.id === identifier
-    );
-    if (localMember) {
-      member = localMember;
-      balance = localMember.points_balance || 1000;
     }
   }
 
@@ -363,6 +349,20 @@ loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (
   try {
     const isFirstVisit = (parsedEarn.visit_count || 1) <= 1;
     const triggers = new LoyaltyEventTriggers(tenantId);
+
+    // Get restaurant name for WhatsApp trigger
+    let restaurantName = 'Durbar Cafe';
+    if (supabaseAdmin) {
+      try {
+        const { data: tenant } = await supabaseAdmin
+          .from('tenants')
+          .select('name')
+          .or(`id.eq.${tenantId},code.eq.${tenantId}`)
+          .maybeSingle();
+        if (tenant?.name) restaurantName = tenant.name;
+      } catch (_) {}
+    }
+
     triggers.onBillSettled(
       {
         phoneNumber: cleanPhone,
@@ -375,7 +375,7 @@ loyaltyRouter.post('/earn', validateRequest('loyaltyEarn'), asyncHandler(async (
         currentTier: { tierName: parsedEarn.tier || 'Silver' },
         pointsBalance: parsedEarn.new_balance
       },
-      { name: cleanRestaurantName(posStore?.data?.tenants?.find(t => t.id === tenantId)?.name || 'Durbar Cafe') },
+      { name: cleanRestaurantName(restaurantName) },
       { orderId: order_id, subtotal: (subtotal_paise || 0) / 100 },
       parsedEarn.points_earned,
       parsedEarn.new_balance,

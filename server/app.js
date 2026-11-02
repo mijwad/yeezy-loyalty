@@ -23,19 +23,15 @@ import { petpoojaRouter } from './integrations/petpooja/routes.js';
 import { authMiddleware } from './middleware/auth.js';
 import { errorHandler, notFoundHandler, requestLogger } from './middleware/errorHandler.js';
 import { validateRequest } from './middleware/validateRequest.js';
-import { supabaseAdmin } from './db/supabase.js';
-import { posStore } from './db/store.js';
+import { supabaseAdmin, checkSupabaseHealth } from './db/supabase.js';
+import { initStore, checkRateLimit } from './db/store.js';
+import { initGracefulShutdown, getShutdownStatus } from './utils/gracefulShutdown.js';
+import { circuitBreakerRegistry } from './utils/circuitBreaker.js';
+import { isRedisAvailable, getRedisClient } from './db/redis.js';
 
 dotenv.config();
 
 const app = express();
-
-// Sync cloud database at startup
-if (posStore.syncWithSupabase) {
-  posStore.syncWithSupabase().catch(err => {
-    console.warn('[Startup] Supabase initial sync notice:', err.message);
-  });
-}
 
 // Trust proxy for correct IP behind load balancers
 app.set('trust proxy', 1);
@@ -71,7 +67,7 @@ function isAllowedOrigin(origin) {
   // Allow all onrender subdomains
   if (/^https:\/\/([a-zA-Z0-9_-]+\.)*onrender\.com$/.test(origin)) return true;
   // Allow localhost on any port
-  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return false;
   return false;
 }
 
@@ -97,7 +93,7 @@ const corsOptions = {
     'X-Request-ID',
     'Accept'
   ],
-  exposedHeaders: ['X-Request-ID'],
+  exposedHeaders: ['X-Request-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
   maxAge: 86400 // 24 hours
 };
 app.use(cors(corsOptions));
@@ -127,22 +123,93 @@ app.get(['/health', '/api/health'], (req, res) => {
   });
 });
 
+// Readiness check - deep health check with dependency verification
+app.get(['/ready', '/api/ready'], async (req, res) => {
+  const checks = {
+    database: { status: 'unknown', latency: null },
+    redis: { status: 'unknown', latency: null },
+    circuitBreakers: { status: 'unknown' }
+  };
+
+  let allHealthy = true;
+
+  // Check Supabase
+  if (supabaseAdmin) {
+    try {
+      const start = Date.now();
+      const health = await checkSupabaseHealth();
+      checks.database = {
+        status: health.healthy ? 'healthy' : 'unhealthy',
+        latency: health.latency,
+        error: health.error
+      };
+      if (!health.healthy) allHealthy = false;
+    } catch (err) {
+      checks.database = { status: 'unhealthy', error: err.message };
+      allHealthy = false;
+    }
+  } else {
+    checks.database = { status: 'not_configured' };
+  }
+
+  // Check Redis
+  try {
+    const redisClient = await getRedisClient();
+    if (redisClient) {
+      const start = Date.now();
+      await redisClient.ping();
+      checks.redis = {
+        status: 'healthy',
+        latency: Date.now() - start
+      };
+    } else {
+      checks.redis = { status: 'not_configured' };
+    }
+  } catch (err) {
+    checks.redis = { status: 'unhealthy', error: err.message };
+    allHealthy = false;
+  }
+
+  // Check circuit breakers
+  const breakerStats = circuitBreakerRegistry.getAllStats();
+  const openBreakers = Object.entries(breakerStats).filter(([_, stats]) => stats.state === 'open');
+  checks.circuitBreakers = {
+    status: openBreakers.length === 0 ? 'healthy' : 'degraded',
+    open: openBreakers.map(([name]) => name),
+    stats: breakerStats
+  };
+  if (openBreakers.length > 0) allHealthy = false;
+
+  // Check shutdown status
+  const shutdownStatus = getShutdownStatus();
+  if (shutdownStatus.isShuttingDown) {
+    return res.status(503).json({
+      status: 'shutting_down',
+      checks,
+      shutdown: shutdownStatus
+    });
+  }
+
+  const statusCode = allHealthy ? 200 : 503;
+  res.status(statusCode).json({
+    status: allHealthy ? 'ready' : 'not ready',
+    checks,
+    shutdown: shutdownStatus
+  });
+});
+
+// Liveness check - for Kubernetes liveness probe
+app.get(['/live', '/api/live'], (req, res) => {
+  const shutdownStatus = getShutdownStatus();
+  if (shutdownStatus.isShuttingDown) {
+    return res.status(503).json({ status: 'shutting_down' });
+  }
+  res.json({ status: 'alive' });
+});
+
 // Petpooja Loyalty Integration (exact API spec)
 app.use('/integrations/petpooja', petpoojaRouter);
 app.use('/api/integrations/petpooja', petpoojaRouter);
-
-app.get(['/ready', '/api/ready'], async (req, res) => {
-  // Deep health check - verify DB connectivity
-  try {
-    if (supabaseAdmin) {
-      const { error } = await supabaseAdmin.from('loyalty_programs').select('id').limit(1);
-      if (error) throw error;
-    }
-    res.json({ status: 'ready', database: 'connected' });
-  } catch (err) {
-    res.status(503).json({ status: 'not ready', database: 'disconnected', error: err.message });
-  }
-});
 
 // Canonical Public API v1 for POS Integrations (OpenAPI 3.1 & SDK)
 app.use('/v1', v1PublicRouter);
@@ -260,7 +327,7 @@ if (fs.existsSync(DIST_PATH)) {
 
   // Express SPA Fallback for client-side routing
   app.use((req, res, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/v1') && !req.path.startsWith('/pos') && !req.path.startsWith('/health') && !req.path.startsWith('/ready') && !req.path.startsWith('/metrics')) {
+    if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/v1') && !req.path.startsWith('/pos') && !req.path.startsWith('/health') && !req.path.startsWith('/ready') && !req.path.startsWith('/live') && !req.path.startsWith('/metrics')) {
       return res.sendFile(path.join(DIST_PATH, 'index.html'));
     }
     next();
@@ -275,6 +342,7 @@ if (fs.existsSync(DIST_PATH)) {
       endpoints: {
         health: 'GET /health',
         ready: 'GET /ready',
+        live: 'GET /live',
         metrics: 'GET /metrics',
         posInquire: 'POST /pos/:posSystem/loyalty/inquire',
         posLock: 'POST /pos/:posSystem/loyalty/lock',
@@ -294,7 +362,7 @@ if (fs.existsSync(DIST_PATH)) {
         },
         docs: 'See OpenAPI spec at /openapi.yaml'
       },
-      supportedPOSSystems: posAdapterFactory.getRegisteredSystems()
+      supportedPOSSystems: ['petpooja', 'rms', 'toast', 'square']
     });
   });
 }
@@ -304,6 +372,52 @@ app.use(notFoundHandler);
 
 // Global error handler (must be last)
 app.use(errorHandler);
+
+// Initialize store (Redis + Supabase)
+let server = null;
+let storeInitialized = false;
+
+export async function startServer(httpServer) {
+  server = httpServer;
+
+  // Initialize graceful shutdown
+  initGracefulShutdown(server, {
+    timeout: parseInt(process.env.SHUTDOWN_TIMEOUT || '30000', 10),
+    onShutdown: async () => {
+      console.log('[App] Running shutdown cleanup...');
+      // Close Redis connection
+      const redisClient = await getRedisClient();
+      if (redisClient) {
+        await redisClient.quit();
+        console.log('[App] Redis connection closed');
+      }
+      console.log('[App] Shutdown cleanup complete');
+    }
+  });
+
+  // Initialize store (Redis + Supabase)
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
+
+  // Sync cloud database at startup
+  if (supabaseAdmin) {
+    try {
+      console.log('[Startup] Checking Supabase connection...');
+      const health = await checkSupabaseHealth();
+      if (health.healthy) {
+        console.log('[Startup] Supabase connected (latency:', health.latency, 'ms)');
+      } else {
+        console.warn('[Startup] Supabase connection issue:', health.error);
+      }
+    } catch (err) {
+      console.warn('[Startup] Supabase initial check notice:', err.message);
+    }
+  }
+
+  return app;
+}
 
 export { app };
 export default app;

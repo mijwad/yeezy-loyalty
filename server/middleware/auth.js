@@ -1,9 +1,14 @@
-// Production Multi-Tenant Authentication & Session Middleware with JWT Support
+// Production Multi-Tenant Authentication & Session Middleware with JWT + Redis
 // Phase 0.5 Hardened: Eliminates unauthenticated x-tenant-id impersonation
 import jwt from 'jsonwebtoken';
-import { posStore } from '../db/store.js';
+import { getSession, destroySession, refreshSession } from '../db/store.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'yeezy-loyalty-jwt-secret-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h';
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required. Generate a secure secret with: openssl rand -base64 32');
+}
 
 export function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -31,17 +36,19 @@ export function authMiddleware(req, res, next) {
 
       // Check if it's an access token (not refresh token)
       if (!decoded.type || decoded.type === 'access') {
-        // Find user in store or build from decoded JWT
-        const user = posStore.data.users?.find(u => u.id === decoded.userId) || (decoded.tenantId ? {
-          id: decoded.userId,
-          name: decoded.name || decoded.email?.split('@')[0] || 'Restaurant Owner',
-          email: decoded.email,
-          role: decoded.role || 'RESTAURANT_OWNER',
-          tenantId: decoded.tenantId,
-          tenantName: decoded.tenantName || 'Restaurant'
-        } : null);
+        // Build user from decoded JWT (stateless)
+        if (decoded.tenantId || decoded.userId) {
+          const user = {
+            id: decoded.userId,
+            name: decoded.name || decoded.email?.split('@')[0] || 'Restaurant Owner',
+            email: decoded.email,
+            role: decoded.role || 'RESTAURANT_OWNER',
+            tenantId: decoded.tenantId,
+            tenantName: decoded.tenantName || 'Restaurant',
+            primaryRestID: decoded.primaryRestID,
+            assignedOutlets: decoded.assignedOutlets || []
+          };
 
-        if (user) {
           // Create session-like object for compatibility
           const sessionUser = {
             id: user.id,
@@ -80,29 +87,42 @@ export function authMiddleware(req, res, next) {
       // JWT verification failed, fall through to session check
     }
 
-    // Fallback to session token authentication (legacy)
-    const session = posStore.getSession(token);
-    if (session && session.user) {
-      req.user = session.user;
-      req.session = session;
-      req.authType = 'session';
+    // Fallback to Redis session token authentication
+    (async () => {
+      try {
+        const session = await getSession(token);
+        if (session && session.user) {
+          req.user = session.user;
+          req.session = session;
+          req.authType = 'session';
 
-      // Super Admin can inspect any restaurant with verified session
-      if (session.user.role === 'SUPER_ADMIN') {
-        req.tenantId = tenantHeader || session.user.tenantId || null;
-      } else {
-        // Restaurant owner is strictly locked to their own tenantId.
-        // Incoming x-tenant-id header attempting to access other tenants is ignored!
-        req.tenantId = session.user.tenantId;
+          // Refresh session TTL on activity
+          await refreshSession(token);
+
+          // Super Admin can inspect any restaurant with verified session
+          if (session.user.role === 'SUPER_ADMIN') {
+            req.tenantId = tenantHeader || session.user.tenantId || null;
+          } else {
+            // Restaurant owner is strictly locked to their own tenantId.
+            // Incoming x-tenant-id header attempting to access other tenants is ignored!
+            req.tenantId = session.user.tenantId;
+          }
+
+          return next();
+        }
+      } catch (err) {
+        console.warn('[Auth] Session lookup error:', err.message);
       }
 
-      return next();
-    }
+      // If token is missing or session expired (e.g. server restart), preserve tenantHeader
+      req.tenantId = tenantHeader || null;
+      next();
+    })();
+    return;
   }
 
-  // If token is missing or session expired (e.g. server restart), preserve tenantHeader
+  // No token provided
   req.tenantId = tenantHeader || null;
-
   next();
 }
 
@@ -127,3 +147,63 @@ export function requireSuperAdmin(req, res, next) {
   }
   next();
 }
+
+export function generateTokens(user) {
+  const accessToken = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantId,
+      tenantName: user.tenantName,
+      primaryRestID: user.primaryRestID,
+      assignedOutlets: user.assignedOutlets
+    },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRY }
+  );
+
+  const refreshToken = jwt.sign(
+    { userId: user.id, type: 'refresh' },
+    JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+
+  return { accessToken, refreshToken };
+}
+
+export async function verifyRefreshToken(token) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
+
+export async function logout(req, res) {
+  const token = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7).trim()
+    : req.cookies?.refreshToken;
+
+  if (token) {
+    await destroySession(token);
+  }
+
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  });
+
+  return res.json({ status: 'success', message: 'Logged out successfully' });
+}
+
+export default {
+  authMiddleware,
+  requireAuth,
+  requireSuperAdmin,
+  generateTokens,
+  verifyRefreshToken,
+  logout,
+  JWT_SECRET
+};

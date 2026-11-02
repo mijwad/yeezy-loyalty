@@ -1,9 +1,16 @@
-// Supabase Cloud PostgreSQL Client & Sync Adapter
-import { createClient } from '@supabase/supabase-js';
+// Supabase Cloud PostgreSQL Client with Circuit Breaker & Connection Pooling
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import crypto from 'node:crypto';
 import dotenv from 'dotenv';
+import { createSupabaseBreaker, CircuitOpenError } from '../utils/circuitBreaker.js';
+
 dotenv.config();
 
+/**
+ * Convert string to UUID format
+ * @param {string} str
+ * @returns {string}
+ */
 export function toUuid(str) {
   if (!str) return '00000000-0000-0000-0000-000000000001';
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) {
@@ -15,6 +22,7 @@ export function toUuid(str) {
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
 
@@ -22,21 +30,92 @@ if (!isSupabaseConfigured && process.env.NODE_ENV === 'production') {
   console.warn('[Security Warning] SUPABASE_URL or SUPABASE_KEY missing in production environment. Live DB sync disabled.');
 }
 
+// Create clients with connection pooling
+const createSupabaseClient = (key, options = {}) => {
+  return createClient(SUPABASE_URL, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    db: { schema: 'public' },
+    global: {
+      headers: { 'x-client-info': 'yeezy-loyalty' }
+    },
+    ...options
+  });
+};
+
 export const supabase = isSupabaseConfigured
-  ? createClient(SUPABASE_URL, SUPABASE_KEY)
+  ? createSupabaseClient(SUPABASE_KEY)
   : null;
 
-export const supabaseAdmin = (SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
-  ? createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false }
-    })
+export const supabaseAdmin = (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY)
+  ? createSupabaseClient(SUPABASE_SERVICE_ROLE_KEY)
   : supabase;
+
+// Circuit breaker for Supabase
+const supabaseBreaker = createSupabaseBreaker();
+
+/**
+ * Execute a Supabase query with circuit breaker protection
+ * @template T
+ * @param {() => Promise<T>} operation
+ * @param {() => Promise<T>} [fallback]
+ * @returns {Promise<T>}
+ */
+export async function withCircuitBreaker(operation, fallback) {
+  try {
+    return await supabaseBreaker.execute(operation);
+  } catch (error) {
+    if (error instanceof CircuitOpenError) {
+      console.warn('[Supabase] Circuit breaker OPEN, using fallback if available');
+      if (fallback) {
+        return await fallback();
+      }
+    }
+    throw error;
+  }
+}
+
+/**
+ * Execute a Supabase RPC with circuit breaker
+ * @template T
+ * @param {string} fnName
+ * @param {Record<string, unknown>} params
+ * @param {() => Promise<T>} [fallback]
+ * @returns {Promise<T>}
+ */
+export async function rpcWithBreaker(fnName, params, fallback) {
+  return withCircuitBreaker(
+    async () => {
+      const { data, error } = await supabaseAdmin.rpc(fnName, params);
+      if (error) throw error;
+      return data;
+    },
+    fallback
+  );
+}
+
+/**
+ * Execute a Supabase query with circuit breaker
+ * @template T
+ * @param {() => Promise<{ data: T | null; error: any }>} queryFn
+ * @param {() => Promise<T>} [fallback]
+ * @returns {Promise<T>}
+ */
+export async function queryWithBreaker(queryFn, fallback) {
+  return withCircuitBreaker(
+    async () => {
+      const { data, error } = await queryFn();
+      if (error) throw error;
+      return data;
+    },
+    fallback
+  );
+}
 
 const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
 const DEFAULT_OUTLET_ID = '00000000-0000-0000-0000-000000000002';
 
 // ============================================================================
-// SYNC FUNCTIONS - Fire-and-forget with error logging
+// SYNC FUNCTIONS - With Circuit Breaker & Retry Logic
 // ============================================================================
 
 // Push Loyalty Program configuration to Supabase
@@ -320,6 +399,20 @@ export async function syncWithRetry(syncFn, args, maxRetries = 3, baseDelay = 10
   return null;
 }
 
+// Health check for Supabase
+export async function checkSupabaseHealth() {
+  if (!supabaseAdmin) return { healthy: false, error: 'Supabase not configured' };
+  try {
+    const start = Date.now();
+    const { error } = await supabaseAdmin.from('loyalty_programs').select('id').limit(1);
+    const latency = Date.now() - start;
+    if (error) throw error;
+    return { healthy: true, latency };
+  } catch (err) {
+    return { healthy: false, error: err.message };
+  }
+}
+
 export default {
   supabase,
   supabaseAdmin,
@@ -333,5 +426,9 @@ export default {
   syncOutletToSupabase,
   syncCustomerToSupabase,
   syncOrderToSupabase,
-  syncWithRetry
+  syncWithRetry,
+  checkSupabaseHealth,
+  rpcWithBreaker,
+  queryWithBreaker,
+  withCircuitBreaker,
 };
