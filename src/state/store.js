@@ -138,7 +138,7 @@ class Store {
       if (publicCustomerRoutes.some(r => pathname === r || pathname.startsWith(r + '/'))) {
         return 'my-rewards';
       }
-      if (publicCustomerRoutes.includes(rawHash)) {
+      if (publicCustomerRoutes.some(r => rawHash === r || rawHash.startsWith(r + '/') || rawHash.startsWith('/' + r))) {
         return 'my-rewards';
       }
       return rawHash || 'dashboard';

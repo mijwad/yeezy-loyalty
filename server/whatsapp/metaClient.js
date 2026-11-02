@@ -184,7 +184,7 @@ export class MetaWhatsAppClient {
    * Send a Template Message to a single customer
    * POST /{phone_number_id}/messages
    */
-  async sendTemplateMessage({ recipientPhone, templateName, language = 'en_US', parameters = [] }) {
+  async sendTemplateMessage({ recipientPhone, templateName, language = 'en_US', parameters = [], buttonParameters = [] }) {
     const cleanPhone = MetaWhatsAppClient.normalizePhoneE164(recipientPhone);
     const url = `${GRAPH_API_BASE}/${this.phoneNumberId}/messages`;
 
@@ -198,6 +198,18 @@ export class MetaWhatsAppClient {
       components.push({
         type: 'body',
         parameters: bodyParameters
+      });
+    }
+
+    if (Array.isArray(buttonParameters) && buttonParameters.length > 0) {
+      components.push({
+        type: 'button',
+        sub_type: 'url',
+        index: '0',
+        parameters: buttonParameters.map(p => ({
+          type: 'text',
+          text: String(p)
+        }))
       });
     }
 

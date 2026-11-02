@@ -170,6 +170,13 @@ app.use('/api/v1/customers', customersRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/loyalty', loyaltyRouter);
 app.use('/api/loyalty', loyaltyRouter); // Legacy path
+app.use(['/api/v1/rewards', '/api/rewards'], (req, res, next) => {
+  // If the path does not already include /rewards, prepend it so loyaltyRouter matches /rewards/:identifier
+  if (!req.url.startsWith('/rewards')) {
+    req.url = '/rewards' + req.url;
+  }
+  loyaltyRouter(req, res, next);
+});
 
 // Marketplace & POS Onboarding Routes (requires authentication)
 app.use('/api/marketplace', marketplaceRouter);

@@ -478,13 +478,28 @@ export class LoyaltyTemplateService {
 
     const client = await this.initClient();
     const parameters = resolveTemplateVariables(eventType, context);
+    const cleanLast10 = customerPhone ? String(customerPhone).replace(/[^0-9]/g, '').slice(-10) : '';
+    const buttonParameters = cleanLast10 ? [cleanLast10] : [];
 
+    // Attempt 1: Send with dynamic button URL parameter (for templates with https://yourdomain.com/rewards/{{1}})
     let result = await client.sendTemplateMessage({
       recipientPhone: customerPhone,
       templateName: templateDef.name,
       language: templateDef.language || 'en',
-      parameters
+      parameters,
+      buttonParameters
     });
+
+    // If button parameter caused mismatch or failed, retry without button parameters
+    if (!result.success) {
+      const retryNoBtn = await client.sendTemplateMessage({
+        recipientPhone: customerPhone,
+        templateName: templateDef.name,
+        language: templateDef.language || 'en',
+        parameters
+      });
+      if (retryNoBtn.success) result = retryNoBtn;
+    }
 
     // If failed, try language 'en_US'
     if (!result.success && templateDef.language === 'en') {
@@ -492,9 +507,20 @@ export class LoyaltyTemplateService {
         recipientPhone: customerPhone,
         templateName: templateDef.name,
         language: 'en_US',
-        parameters
+        parameters,
+        buttonParameters
       });
-      if (retryResult.success) result = retryResult;
+      if (retryResult.success) {
+        result = retryResult;
+      } else {
+        const retryResultNoBtn = await client.sendTemplateMessage({
+          recipientPhone: customerPhone,
+          templateName: templateDef.name,
+          language: 'en_US',
+          parameters
+        });
+        if (retryResultNoBtn.success) result = retryResultNoBtn;
+      }
     }
 
     // If still failed and alternate name exists (e.g. bee_subsequent_purchase)
@@ -503,7 +529,8 @@ export class LoyaltyTemplateService {
         recipientPhone: customerPhone,
         templateName: templateDef.alternateName,
         language: templateDef.language || 'en',
-        parameters
+        parameters,
+        buttonParameters
       });
       if (altResult.success) {
         result = altResult;
