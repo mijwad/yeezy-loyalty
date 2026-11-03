@@ -4,28 +4,56 @@ import { renderSidebar, attachSidebarListeners } from './layout/Sidebar.js';
 import { renderHeader, attachHeaderListeners } from './layout/Header.js';
 import { renderActiveModal, attachActiveModalListeners } from './modals/index.js';
 
-// Feature Views
-import { renderDashboard, attachDashboardListeners } from './views/dashboard/index.js';
-import { renderCustomerInsights, attachCustomerInsightsListeners } from './views/customers/index.js';
-import { renderActivateLoyalty, attachActivateLoyaltyListeners } from './views/loyalty/index.js';
-import { renderConfigurator, attachConfiguratorListeners } from './views/configurator/index.js';
-import { 
-  renderAutoCampaignsView, 
-  renderQRCodesView, 
-  renderFeedbackView, 
-  renderReferralsView, 
-  renderSettingsView,
-  attachSettingsListeners
-} from './views/other/index.js';
-import { renderCampaignsView, attachCampaignsListeners } from './views/campaigns/index.js';
-import { renderSmartInsightsView } from './views/other/smartInsights.js';
-import { renderLoginView, attachLoginListeners } from './views/auth/login.js';
-import { renderSuperAdminView, attachSuperAdminListeners } from './views/admin/superAdmin.js';
-import { renderAppsIntegrationsView, attachAppsIntegrationsListeners } from './views/integrations/index.js';
-import { renderBillingScreen, attachBillingScreenListeners } from './views/billing/index.js';
-import { renderCustomerPortal, attachCustomerPortalListeners } from './views/customer/portal.js';
-import { renderLoyaltySettingsView, attachLoyaltySettingsListeners } from './views/settings/loyaltySettings.js';
-import { renderMetaAppReviewView, attachMetaAppReviewListeners } from './views/settings/metaAppReview.js';
+// Lazy-loaded view modules - enables code-splitting
+const viewLoaders = {
+  dashboard: () => import('./views/dashboard/index.js'),
+  'customer-insights': () => import('./views/customers/index.js'),
+  customers: () => import('./views/customers/index.js'),
+  customer: () => import('./views/customers/index.js'),
+  insights: () => import('./views/customers/index.js'),
+  loyalty: () => import('./views/loyalty/index.js'),
+  'activate-loyalty': () => import('./views/loyalty/index.js'),
+  campaigns: () => import('./views/campaigns/index.js'),
+  'auto-campaigns': () => import('./views/other/index.js'),
+  'qr-codes': () => import('./views/other/index.js'),
+  feedback: () => import('./views/other/index.js'),
+  referrals: () => import('./views/other/index.js'),
+  settings: () => import('./views/other/index.js'),
+  'loyalty-settings': () => import('./views/settings/loyaltySettings.js'),
+  'roi-simulator': () => import('./views/settings/loyaltySettings.js'),
+  'customer-portal': () => import('./views/customer/portal.js'),
+  'my-rewards': () => import('./views/customer/portal.js'),
+  'meta-review': () => import('./views/settings/metaAppReview.js'),
+  'meta-app-review': () => import('./views/settings/metaAppReview.js'),
+  'billing-terminal': () => import('./views/billing/index.js'),
+  'cashier-billing': () => import('./views/billing/index.js'),
+  integrations: () => import('./views/integrations/index.js'),
+  'apps-integrations': () => import('./views/integrations/index.js'),
+  'pos-integration': () => import('./views/integrations/index.js'),
+  configurator: () => import('./views/configurator/index.js'),
+  login: () => import('./views/auth/login.js'),
+  'super-admin': () => import('./views/admin/superAdmin.js'),
+  'smart-insights': () => import('./views/other/smartInsights.js')
+};
+
+// Cache for loaded view modules
+const viewModuleCache = new Map();
+
+async function loadViewModule(route) {
+  if (viewModuleCache.has(route)) {
+    return viewModuleCache.get(route);
+  }
+  const loader = viewLoaders[route];
+  if (!loader) {
+    // Default to dashboard
+    const mod = await import('./views/dashboard/index.js');
+    viewModuleCache.set(route, mod);
+    return mod;
+  }
+  const mod = await loader();
+  viewModuleCache.set(route, mod);
+  return mod;
+}
 
 class YeezyLoyaltyApp {
   constructor() {
@@ -115,10 +143,10 @@ class YeezyLoyaltyApp {
       }
     });
 
-    this.render();
+    this.render().catch(err => console.error('[Render Error]', err));
   }
 
-  render() {
+  async render() {
     const appEl = document.getElementById('app');
     if (!appEl) return;
 
@@ -153,6 +181,7 @@ class YeezyLoyaltyApp {
     // Public Customer Portal View
     if (isPublicCustomerRoute) {
       this.currentLayout = 'customer-portal';
+      const { renderCustomerPortal, attachCustomerPortalListeners } = await loadViewModule('customer-portal');
       appEl.innerHTML = renderCustomerPortal(state);
       attachCustomerPortalListeners();
       return;
@@ -161,6 +190,7 @@ class YeezyLoyaltyApp {
     // Full screen login view
     if (route === 'login') {
       this.currentLayout = 'login';
+      const { renderLoginView, attachLoginListeners } = await loadViewModule('login');
       appEl.innerHTML = renderLoginView();
       attachLoginListeners();
       return;
@@ -170,6 +200,7 @@ class YeezyLoyaltyApp {
 
     if (isConfiguratorMode) {
       this.currentLayout = 'configurator';
+      const { renderConfigurator } = await loadViewModule('configurator');
       appEl.innerHTML = `
         <div class="min-h-screen bg-[#f5f8f9]">
           ${renderConfigurator(state, uiState.configuratorStep, uiState.configuratorPanel)}
@@ -182,6 +213,7 @@ class YeezyLoyaltyApp {
 
     // Generate main view content
     let mainContentHtml = '';
+    const viewModule = await loadViewModule(route);
     switch (route) {
       case 'super-admin':
         if (state.user?.role !== 'SUPER_ADMIN') {
@@ -189,63 +221,63 @@ class YeezyLoyaltyApp {
           window.location.hash = '#dashboard';
           return;
         }
-        mainContentHtml = renderSuperAdminView(state);
+        mainContentHtml = viewModule.renderSuperAdminView(state);
         break;
       case 'dashboard':
-        mainContentHtml = renderDashboard(state);
+        mainContentHtml = viewModule.renderDashboard(state);
         break;
       case 'smart-insights':
-        mainContentHtml = renderSmartInsightsView(state);
+        mainContentHtml = viewModule.renderSmartInsightsView(state);
         break;
       case 'customer-insights':
       case 'customers':
       case 'customer':
       case 'insights':
-        mainContentHtml = renderCustomerInsights(state, uiState.customerFilters);
+        mainContentHtml = viewModule.renderCustomerInsights(state, uiState.customerFilters);
         break;
       case 'loyalty':
       case 'activate-loyalty':
-        mainContentHtml = renderActivateLoyalty(state);
+        mainContentHtml = viewModule.renderActivateLoyalty(state);
         break;
       case 'campaigns':
-        mainContentHtml = renderCampaignsView(state);
+        mainContentHtml = viewModule.renderCampaignsView(state);
         break;
       case 'auto-campaigns':
-        mainContentHtml = renderAutoCampaignsView(state);
+        mainContentHtml = viewModule.renderAutoCampaignsView(state);
         break;
       case 'qr-codes':
-        mainContentHtml = renderQRCodesView(state);
+        mainContentHtml = viewModule.renderQRCodesView(state);
         break;
       case 'feedback':
-        mainContentHtml = renderFeedbackView();
+        mainContentHtml = viewModule.renderFeedbackView();
         break;
       case 'referrals':
-        mainContentHtml = renderReferralsView();
+        mainContentHtml = viewModule.renderReferralsView();
         break;
       case 'settings':
-        mainContentHtml = renderSettingsView(state);
+        mainContentHtml = viewModule.renderSettingsView(state);
         break;
       case 'loyalty-settings':
       case 'roi-simulator':
-        mainContentHtml = renderLoyaltySettingsView(state);
+        mainContentHtml = viewModule.renderLoyaltySettingsView(state);
         break;
       case 'customer-portal':
       case 'my-rewards':
-        mainContentHtml = renderCustomerPortal(state);
+        mainContentHtml = viewModule.renderCustomerPortal(state);
         break;
       case 'meta-review':
       case 'meta-app-review':
-        mainContentHtml = renderMetaAppReviewView(state);
+        mainContentHtml = viewModule.renderMetaAppReviewView(state);
         break;
       case 'billing-terminal':
       case 'cashier-billing':
       case 'integrations':
       case 'apps-integrations':
       case 'pos-integration':
-        mainContentHtml = renderAppsIntegrationsView(state);
+        mainContentHtml = viewModule.renderAppsIntegrationsView(state);
         break;
       default:
-        mainContentHtml = renderDashboard(state);
+        mainContentHtml = viewModule.renderDashboard(state);
     }
 
     const modalHtml = renderActiveModal(state, uiState);
