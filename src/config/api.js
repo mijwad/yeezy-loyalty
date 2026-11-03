@@ -2,7 +2,7 @@
 // Automatically resolves to live Render backend or same-origin
 const envBase = import.meta.env?.VITE_API_BASE_URL;
 
-export const PROD_BACKEND_URL = 'https://yeezy-loyalty.onrender.com';
+export const PROD_BACKEND_URL = import.meta.env?.VITE_API_BASE_URL || 'https://yeezy-loyalty.onrender.com';
 
 function resolveApiBaseUrl() {
   if (envBase !== undefined && envBase !== '' && !envBase.includes('example.com')) {

@@ -425,3 +425,19 @@ class YeezyLoyaltyApp {
 document.addEventListener('DOMContentLoaded', () => {
   window.yeezyApp = new YeezyLoyaltyApp();
 });
+
+// Global error handler - catches uncaught errors to prevent app crash
+window.addEventListener('error', (e) => {
+  console.error('[Yeezy App Error]', e.error || e.message);
+  if (window.showToast) {
+    window.showToast('Something went wrong. Please refresh the page.', 'error');
+  }
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('[Yeezy Unhandled Rejection]', e.reason);
+  e.preventDefault(); // Prevent default browser error dialog
+  if (window.showToast) {
+    window.showToast('Network error. Please check connection.', 'error');
+  }
+});

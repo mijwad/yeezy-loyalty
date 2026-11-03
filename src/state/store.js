@@ -15,6 +15,9 @@ class Store {
       localStorage.setItem(DATA_VERSION_KEY, CURRENT_VERSION);
     }
 
+    this._syncAbortController = null;
+    this._syncInProgress = false;
+
     const savedAuthUser = this.getSavedAuthUser();
     const saved = localStorage.getItem(this.getTenantStorageKey(savedAuthUser?.tenantId));
     
@@ -281,12 +284,24 @@ class Store {
 
   // Live 2-way sync bridge with Petpooja POS & backend database (strictly scoped by tenant)
   async syncWithBackend() {
+    // Prevent duplicate concurrent syncs
+    if (this._syncInProgress) {
+      return;
+    }
+
+    // Cancel any previous in-flight request
+    if (this._syncAbortController) {
+      this._syncAbortController.abort();
+    }
+    this._syncAbortController = new AbortController();
+    this._syncInProgress = true;
+
     try {
       const headers = this.getAuthHeaders();
       const [statsRes, custRes, campRes] = await Promise.all([
-        fetch(apiUrl('/api/v1/dashboard/stats'), { headers }).then(r => r.json()).catch(() => ({})),
-        fetch(apiUrl('/api/v1/customers'), { headers }).then(r => r.json()).catch(() => ({})),
-        fetch(apiUrl('/api/whatsapp/campaigns'), { headers }).then(r => r.json()).catch(() => ({ campaigns: [] }))
+        fetch(apiUrl('/api/v1/dashboard/stats'), { headers, signal: this._syncAbortController.signal }).then(r => r.json()).catch(() => ({})),
+        fetch(apiUrl('/api/v1/customers'), { headers, signal: this._syncAbortController.signal }).then(r => r.json()).catch(() => ({})),
+        fetch(apiUrl('/api/whatsapp/campaigns'), { headers, signal: this._syncAbortController.signal }).then(r => r.json()).catch(() => ({ campaigns: [] }))
       ]);
 
       if (statsRes?.status === 'success' && custRes?.status === 'success') {
@@ -367,7 +382,12 @@ class Store {
         }), { silent: false });
       }
     } catch (err) {
-      console.warn('Backend sync failed:', err);
+      if (err.name !== 'AbortError') {
+        console.warn('Backend sync failed:', err);
+      }
+    } finally {
+      this._syncInProgress = false;
+      this._syncAbortController = null;
     }
   }
 

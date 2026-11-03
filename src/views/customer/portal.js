@@ -58,6 +58,7 @@ export function getRewardsIdentifier() {
 async function loadPortalData(identifier) {
   if (isLoading) return;
   isLoading = true;
+  store.notify(); // Trigger re-render to show skeleton
   try {
     const cleanId = encodeURIComponent(identifier || '9745630606');
     const res = await apiFetch(`/api/v1/loyalty/rewards/${cleanId}`);
@@ -74,7 +75,51 @@ async function loadPortalData(identifier) {
     console.warn('[Rewards Portal API Fetch Notice]', err.message);
   } finally {
     isLoading = false;
+    store.notify();
   }
+}
+
+function renderSkeleton() {
+  return `
+    <div class="min-h-screen bg-[#faf8f5] flex flex-col items-center font-sans antialiased text-stone-900 pb-20 selection:bg-amber-200">
+      <header class="w-full bg-[#181312] text-white py-3 px-4 shadow-md sticky top-0 z-40 border-b border-amber-950/40">
+        <div class="max-w-[440px] mx-auto flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full border border-amber-400/40 bg-white flex items-center justify-center p-0.5 shadow-xs animate-pulse">
+              <div class="w-4 h-4 rounded-full bg-stone-300"></div>
+            </div>
+            <div class="h-4 w-24 bg-stone-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </header>
+      <main class="w-full max-w-[440px] flex-1 px-4 py-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden animate-pulse">
+          <div class="h-48 bg-stone-200"></div>
+          <div class="p-6 space-y-4">
+            <div class="h-8 w-3/4 bg-stone-200 rounded"></div>
+            <div class="h-6 w-1/2 bg-stone-200 rounded"></div>
+            <div class="flex gap-4 mt-6">
+              <div class="flex-1 h-24 bg-stone-200 rounded-xl"></div>
+              <div class="flex-1 h-24 bg-stone-200 rounded-xl"></div>
+            </div>
+            <div class="h-10 w-1/3 bg-stone-200 rounded-xl mt-6"></div>
+            <div class="space-y-3 mt-6">
+              <div class="h-12 bg-stone-200 rounded-lg"></div>
+              <div class="h-12 bg-stone-200 rounded-lg"></div>
+              <div class="h-12 bg-stone-200 rounded-lg"></div>
+              <div class="h-12 bg-stone-200 rounded-lg"></div>
+              <div class="h-12 bg-stone-200 rounded-lg"></div>
+            </div>
+            <div class="h-20 bg-stone-200 rounded-xl mt-6"></div>
+            <div class="space-y-3 mt-6">
+              <div class="h-14 bg-stone-200 rounded-lg"></div>
+              <div class="h-14 bg-stone-200 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  `;
 }
 
 export function renderCustomerPortal(state = {}) {
@@ -85,6 +130,11 @@ export function renderCustomerPortal(state = {}) {
     if (!isLoading) {
       setTimeout(() => loadPortalData(identifier), 10);
     }
+  }
+
+  // Show skeleton while loading and no cached data
+  if (isLoading && !hasLoadedOnce) {
+    return renderSkeleton();
   }
 
   const p = state.loyaltyProgram || {};
