@@ -304,7 +304,7 @@ class Store {
         fetch(apiUrl('/api/whatsapp/campaigns'), { headers, signal: this._syncAbortController.signal }).then(r => r.json()).catch(() => ({ campaigns: [] }))
       ]);
 
-      if (statsRes?.status === 'success' && custRes?.status === 'success') {
+      if (custRes?.status === 'success') {
         const backendCustomers = custRes.customers || [];
         const todayStats = statsRes.todayStats;
         const backendCampaigns = campRes?.campaigns || [];
@@ -349,8 +349,8 @@ class Store {
           (this.state.customers || []).some((c, i) => c.id !== formattedCustomers[i]?.id || c.numericPoints !== formattedCustomers[i]?.numericPoints);
         const hasCampaignsChanged = JSON.stringify(this.state.campaigns || []) !== JSON.stringify(backendCampaigns);
         const hasHighlightsChanged = Boolean(
-          statsRes.businessHighlights && 
-          JSON.stringify(statsRes.businessHighlights) !== JSON.stringify(this.state.businessHighlights || {})
+          businessHighlights &&
+          JSON.stringify(businessHighlights) !== JSON.stringify(this.state.businessHighlights || {})
         );
 
         if (!hasStatsChanged && !hasCustomersChanged && !hasHighlightsChanged && !hasCampaignsChanged) {
@@ -371,14 +371,14 @@ class Store {
         // Set state replacing customers with clean tenant array
         this.setState(prev => ({
           ...prev,
-          activeOutlet: statsRes.activeOutlet || statsRes.restaurantName || prev.activeOutlet,
+          activeOutlet: todayStats?.activeOutlet || todayStats?.restaurantName || prev.activeOutlet,
           customers: formattedCustomers,
           campaigns: resolvedCampaigns,
           todayStats: {
             ...prev.todayStats,
             ...todayStats
           },
-          ...(statsRes.businessHighlights ? { businessHighlights: statsRes.businessHighlights } : {})
+          ...(businessHighlights ? { businessHighlights: businessHighlights } : {})
         }), { silent: false });
       }
     } catch (err) {
