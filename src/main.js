@@ -297,6 +297,7 @@ class YeezyLoyaltyApp {
         mainViewEl.innerHTML = mainContentHtml;
         this.lastContentHtml = mainContentHtml;
         this.lastRenderedRoute = route;
+        this.currentViewModule = viewModule;
         this.attachViewListeners(route);
 
         // Update active class strictly on sidebar navigation links (avoiding the brand logo or footer help links)
@@ -341,6 +342,7 @@ class YeezyLoyaltyApp {
     this.lastRenderedRoute = route;
     this.lastRenderedModal = uiState.activeModal || 'none';
     this.lastContentHtml = mainContentHtml;
+    this.currentViewModule = viewModule;
 
     appEl.innerHTML = `
       <div id="app-shell" class="min-h-screen bg-background font-body-md text-on-surface antialiased flex flex-col">
@@ -394,48 +396,52 @@ class YeezyLoyaltyApp {
   }
 
   attachViewListeners(route) {
+    const vm = this.currentViewModule;
+    if (!vm) return;
+
     switch (route) {
       case 'super-admin':
-        attachSuperAdminListeners();
+        vm.attachSuperAdminListeners?.();
         break;
       case 'dashboard':
-        attachDashboardListeners();
+        vm.attachDashboardListeners?.();
         break;
       case 'customer-insights':
       case 'customers':
       case 'customer':
       case 'insights':
-        attachCustomerInsightsListeners();
+        vm.attachCustomerInsightsListeners?.();
         break;
       case 'campaigns':
-        attachCampaignsListeners();
+        vm.attachCampaignsListeners?.();
         break;
       case 'loyalty':
       case 'activate-loyalty':
-        attachActivateLoyaltyListeners();
+        vm.attachActivateLoyaltyListeners?.();
         break;
       case 'settings':
-        attachSettingsListeners();
+        vm.attachSettingsListeners?.();
         break;
       case 'billing-terminal':
       case 'cashier-billing':
-        attachBillingScreenListeners();
+        vm.attachBillingScreenListeners?.();
         break;
       case 'loyalty-settings':
       case 'roi-simulator':
-        attachLoyaltySettingsListeners();
+        vm.attachLoyaltySettingsListeners?.();
         break;
       case 'customer-portal':
       case 'my-rewards':
-        attachCustomerPortalListeners();
+        vm.attachCustomerPortalListeners?.();
         break;
       case 'meta-review':
       case 'meta-app-review':
-        attachMetaAppReviewListeners();
+        vm.attachMetaAppReviewListeners?.();
         break;
       case 'integrations':
       case 'apps-integrations':
-        attachAppsIntegrationsListeners();
+      case 'pos-integration':
+        vm.attachAppsIntegrationsListeners?.();
         break;
     }
   }
