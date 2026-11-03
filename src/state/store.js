@@ -307,6 +307,7 @@ class Store {
       if (custRes?.status === 'success') {
         const backendCustomers = custRes.customers || [];
         const todayStats = statsRes.todayStats;
+        const businessHighlights = statsRes.businessHighlights;
         const backendCampaigns = campRes?.campaigns || [];
 
         const formattedCustomers = backendCustomers.map(bc => {
