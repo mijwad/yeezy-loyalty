@@ -45,12 +45,12 @@ dashboardRouter.get('/stats', authMiddleware, async (req, res) => {
   }
 
   // Filter records strictly by authenticated tenant
-  const customers = posStore.data.customers.filter(c => c.tenantId === tenantId);
+  const customers = (posStore.data.customers || []).filter(c => c.tenantId === tenantId);
   const effectiveCustomerCount = dbMemberCount > 0 ? dbMemberCount : customers.length;
-  const localOrders = posStore.data.orders.filter(o => o.tenantId === tenantId);
-  const localLedger = posStore.data.loyaltyLedger.filter(l => l.tenantId === tenantId || l.restaurant_id === tenantId);
-  const outlets = posStore.data.outlets.filter(o => o.tenantId === tenantId);
-  const tenant = posStore.data.tenants.find(t => t.id === tenantId || t.code === tenantId);
+  const localOrders = (posStore.data.orders || []).filter(o => o.tenantId === tenantId);
+  const localLedger = (posStore.data.loyaltyLedger || []).filter(l => l.tenantId === tenantId || l.restaurant_id === tenantId);
+  const outlets = (posStore.data.outlets || []).filter(o => o.tenantId === tenantId);
+  const tenant = (posStore.data.tenants || []).find(t => t.id === tenantId || t.code === tenantId);
 
   // Supabase ledger & members aggregation
   const dbLedgerEarns = dbLedger.filter(l => l.type === 'earn_base' || l.points > 0);
