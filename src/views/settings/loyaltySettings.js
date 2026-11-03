@@ -98,13 +98,13 @@ export function renderLoyaltySettingsView(state) {
           <span>Earn & Redeem Rules</span>
         </button>
 
-        <button 
-          data-tab="multipliers" 
-          type="button" 
+        <button
+          data-tab="multipliers"
+          type="button"
           class="tab-btn px-4 py-2 rounded-xl transition flex items-center gap-1.5 ${activeTab === 'multipliers' ? 'bg-primary text-white shadow-sm font-black' : 'bg-white text-gray-600 hover:bg-slate-100'}"
         >
           <span class="material-symbols-outlined text-sm">bolt</span>
-          <span>Kerala Festival Multipliers</span>
+          <span>Seasonal & Time-Based Multipliers</span>
         </button>
 
         <button 
@@ -343,58 +343,75 @@ export function renderLoyaltySettingsView(state) {
         </div>
       ` : ''}
 
-      <!-- TAB 3: KERALA FESTIVAL MULTIPLIERS -->
+      <!-- TAB 3: SEASONAL & TIME-BASED MULTIPLIERS -->
       ${activeTab === 'multipliers' ? `
         <div class="bg-white rounded-3xl p-6 md:p-8 border border-outline-variant/30 shadow-xs space-y-6 animate-fade-in">
           <div>
-            <h3 class="text-base font-extrabold text-gray-900">Slow-Slot & Kerala Festival Surge Multipliers</h3>
-            <p class="text-xs text-gray-500 mt-1">Boost diner traffic during traditionally slow dining hours and festive holidays in Kerala.</p>
+            <h3 class="text-base font-extrabold text-gray-900">Seasonal & Time-Based Point Multipliers</h3>
+            <p class="text-xs text-gray-500 mt-1">Boost diner traffic during slow hours, holidays, and special events with configurable point multipliers.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+            <span class="material-symbols-outlined text-amber-600 text-xl shrink-0 mt-0.5">lightbulb</span>
+            <div class="text-xs text-amber-900 leading-relaxed">
+              <strong>Pro Tip:</strong> Configure multipliers for your slowest periods (e.g., weekday afternoons) and peak festivals to maximize footfall without eroding margins. The system automatically applies the highest active multiplier.
+            </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-5 rounded-3xl border border-amber-200 bg-amber-50/50 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">🍛</span>
-                  <h4 class="font-black text-sm text-gray-900">${t('festival_onam', currentLang)}</h4>
+                  <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-sm">🎉</span>
+                  <h4 class="font-black text-sm text-gray-900">Festival & Holiday Surge</h4>
                 </div>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
               </div>
-              <p class="text-xs text-gray-600">Double points (2.0x) during Onam lunch hours (11:00 AM - 04:00 PM).</p>
+              <p class="text-xs text-gray-600">Configure 1.5x–2.5x points for major holidays (Diwali, Christmas, Eid, New Year, local festivals).</p>
             </div>
 
-            <div class="p-5 rounded-3xl border border-yellow-200 bg-yellow-50/50 space-y-3">
+            <div class="p-5 rounded-3xl border border-purple-200 bg-purple-50/50 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">🌾</span>
-                  <h4 class="font-black text-sm text-gray-900">${t('festival_vishu', currentLang)}</h4>
+                  <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-sm">⏰</span>
+                  <h4 class="font-black text-sm text-gray-900">Happy Hour / Slow Slot Boost</h4>
                 </div>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
               </div>
-              <p class="text-xs text-gray-600">1.5x points for Vishu Kaineettam all-day celebration.</p>
+              <p class="text-xs text-gray-600">1.5x points during traditionally slow periods (e.g., Mon-Thu 2–6 PM, Sunday brunch).</p>
             </div>
 
             <div class="p-5 rounded-3xl border border-emerald-200 bg-emerald-50/50 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">🌙</span>
-                  <h4 class="font-black text-sm text-gray-900">${t('festival_eid', currentLang)}</h4>
+                  <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-sm">🌙</span>
+                  <h4 class="font-black text-sm text-gray-900">Evening & Weekend Boost</h4>
                 </div>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
               </div>
-              <p class="text-xs text-gray-600">1.75x bonus points on evening feast dinners (06:00 PM - 11:30 PM).</p>
+              <p class="text-xs text-gray-600">1.25x points for dinner service (6–10 PM) and weekend family dining.</p>
             </div>
 
             <div class="p-5 rounded-3xl border border-blue-200 bg-blue-50/50 space-y-3">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="text-2xl">☕</span>
-                  <h4 class="font-black text-sm text-gray-900">${t('slow_slot_happy_hours', currentLang)}</h4>
+                  <span class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-sm">🎂</span>
+                  <h4 class="font-black text-sm text-gray-900">Birthday & Anniversary</h4>
                 </div>
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ACTIVE</span>
               </div>
-              <p class="text-xs text-gray-600">1.5x points on Mon-Thu afternoon lull (02:00 PM - 06:00 PM).</p>
+              <p class="text-xs text-gray-600">2x points during the customer's birthday month and loyalty anniversary.</p>
             </div>
+          </div>
+
+          <div class="pt-4 border-t flex items-center justify-end gap-3">
+            <button
+              id="btn-configure-multipliers"
+              type="button"
+              class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs transition shadow-md"
+            >
+              Configure Custom Multipliers
+            </button>
           </div>
         </div>
       ` : ''}

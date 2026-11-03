@@ -102,17 +102,9 @@ function renderLoyaltyDashboard(state, uiState) {
         </div>
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          <a 
-            href="#meta-review" 
-            class="px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 font-bold text-xs rounded-2xl transition flex items-center gap-1.5 shadow-2xs"
-            title="Open Meta App Review & Video Recording Console"
-          >
-            <span class="material-symbols-outlined text-base">videocam</span>
-            <span>Meta Review Studio</span>
-          </a>
-          <button 
-            id="btn-open-loyalty-wizard" 
-            type="button" 
+          <button
+            id="btn-open-loyalty-wizard"
+            type="button"
             class="px-6 py-3 bg-[#2a7e72] hover:bg-[#23685e] text-white font-bold text-sm rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
           >
             <span class="material-symbols-outlined text-xl">tune</span>
@@ -266,31 +258,12 @@ function renderLoyaltyDashboard(state, uiState) {
             </div>
           </div>
 
-          <!-- Meta WhatsApp Template Setup (Call To Action Button with Static URL) -->
+          <!-- Meta WhatsApp Dynamic URL Section -->
           <div class="bg-white rounded-3xl p-6 md:p-7 border border-emerald-200/90 shadow-sm flex flex-col gap-5 relative overflow-hidden">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-50 rounded-full blur-2xl pointer-events-none"></div>
 
-            <div class="flex items-start justify-between gap-3 relative z-10">
-              <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-2xl bg-[#e8f5e9] text-[#1b5e20] flex items-center justify-center font-black shadow-2xs">
-                  <span class="material-symbols-outlined text-2xl">link</span>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-base font-extrabold text-gray-900">Meta WhatsApp Template Button (Static URL)</h3>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Static URL
-                    </span>
-                  </div>
-                  <p class="text-xs text-gray-500 font-medium mt-0.5">
-                    Use this static URL in Meta Business Manager to attach a "View Rewards" button to your WhatsApp template.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <!-- Meta Approved Dynamic URL Model Field -->
-            <div class="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+            <div class="p-4 rounded-2xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner relative z-10">
               <div class="flex flex-col min-w-0">
                 <div class="flex items-center gap-1.5">
                   <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Meta Approved Template Dynamic Button URL</span>
@@ -304,67 +277,23 @@ function renderLoyaltyDashboard(state, uiState) {
                 </span>
               </div>
               <div class="flex items-center gap-2 shrink-0">
-                <button 
-                  id="btn-copy-meta-dynamic-url" 
-                  type="button" 
+                <button
+                  id="btn-copy-meta-dynamic-url"
+                  type="button"
                   class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black transition flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
                 >
                   <span class="material-symbols-outlined text-sm">content_copy</span>
                   <span>Copy Meta URL</span>
                 </button>
-                <a 
-                  href="/rewards/9745630606" 
-                  target="_blank" 
+                <a
+                  href="/rewards/9745630606"
+                  target="_blank"
                   class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-1"
                   title="Test pass in new tab"
                 >
                   <span class="material-symbols-outlined text-sm">open_in_new</span>
                   <span>Test Pass</span>
                 </a>
-              </div>
-            </div>
-
-            <!-- Visual Meta Template Builder Field Guide -->
-            <div class="rounded-2xl border border-gray-200 bg-gray-50/70 p-4 space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <span class="material-symbols-outlined text-base text-blue-600">tune</span>
-                  Meta WhatsApp Template Manager Configuration
-                </span>
-                <span class="text-[11px] text-gray-500 font-semibold">Configured in Meta Business Suite:</span>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
-                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                  <div class="text-[10px] text-gray-400 font-bold uppercase">Type of Action</div>
-                  <div class="font-extrabold text-gray-900 mt-0.5">Visit website</div>
-                </div>
-                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                  <div class="text-[10px] text-gray-400 font-bold uppercase">Button Text</div>
-                  <div class="font-extrabold text-gray-900 mt-0.5">View Rewards</div>
-                </div>
-                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                  <div class="text-[10px] text-gray-400 font-bold uppercase">URL Type</div>
-                  <div class="font-extrabold text-emerald-700 mt-0.5 flex items-center gap-1">
-                    <span>Dynamic ({{1}})</span>
-                    <span class="material-symbols-outlined text-xs">check_circle</span>
-                  </div>
-                </div>
-                <div class="bg-white p-2.5 rounded-xl border border-gray-200">
-                  <div class="text-[10px] text-gray-400 font-bold uppercase">Website URL</div>
-                  <div class="font-mono font-bold text-gray-900 text-[11px] mt-0.5 truncate">https://beebill.online/rewards/{{1}}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- What Customer Sees Summary -->
-            <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-amber-900">
-              <span class="material-symbols-outlined text-amber-700 text-lg shrink-0 mt-0.5">verified</span>
-              <div class="leading-relaxed">
-                <strong>What your customer sees when tapping the WhatsApp button:</strong>
-                <p class="text-[11px] text-amber-800 mt-0.5">
-                  The link immediately opens their branded <strong>Durbar Cafe Rewards Pass</strong> (Reelo style), highlighting their <strong>1,000 points balance</strong>, <strong>₹125 OFF offer</strong>, <strong>expiry date (Nov 24, 2026)</strong>, and a warm win-back message welcoming them back to the restaurant.
-                </p>
               </div>
             </div>
 
@@ -1135,22 +1064,6 @@ export function attachLoyaltyListeners() {
     btnCopyMetaDynamicUrl.onclick = () => {
       navigator.clipboard?.writeText('https://beebill.online/rewards/{{1}}');
       window.showToast?.('Dynamic URL copied! Paste this into Meta Template Builder -> Call to Action -> Website URL');
-    };
-  }
-
-  const btnCopyMetaStaticUrl = document.getElementById('btn-copy-meta-static-url');
-  if (btnCopyMetaStaticUrl) {
-    btnCopyMetaStaticUrl.onclick = () => {
-      navigator.clipboard?.writeText('https://beebill.online/rewards');
-      window.showToast?.('Static URL copied! Paste this into Meta Template Builder -> Call to Action -> Website URL');
-    };
-  }
-
-  const btnCopyPassLink = document.getElementById('btn-copy-pass-link');
-  if (btnCopyPassLink) {
-    btnCopyPassLink.onclick = () => {
-      navigator.clipboard?.writeText('https://beebill.online/rewards');
-      window.showToast?.('Loyalty pass link copied to clipboard!');
     };
   }
 

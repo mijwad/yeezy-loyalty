@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yeezy Loyalty — Design Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      /* NEW DESIGN TOKENS - Professional Hospitality Palette */
+      --surface: #FAFAFA;
+      --surface-elevated: #FFFFFF;
+      --ink: #1A1A2E;
+      --ink-muted: #6B6B7A;
+      --brand: #2D5A4E;
+      --brand-light: #E8F2EF;
+      --accent: #C8A66A;
+      --accent-light: #FDF6EC;
+      --danger: #B83B3B;
+      --success: #2D7D4E;
+      --border-subtle: #E8E8ED;
+      --shadow-elevation: 0 1px 3px rgba(26,26,46,0.06), 0 1px 2px rgba(26,26,46,0.04);
+      --shadow-elevation-hover: 0 4px 12px rgba(26,26,46,0.08), 0 2px 4px rgba(26,26,46,0.05);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --space-xs: 0.5rem;
+      --space-sm: 0.75rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2rem;
+      --space-2xl: 3rem;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--surface);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .app-shell {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--surface-elevated);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .main-content {
+      flex: 1;
+      padding: var(--space-xl) var(--space-2xl);
+      overflow-y: auto;
+    }
+
+    /* Sidebar */
+    .sidebar-brand {
+      height: 64px;
+      padding: 0 var(--space-lg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      text-decoration: none;
+      color: inherit;
+    }
+    .sidebar-logo-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    .sidebar-logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .sidebar-logo-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--brand);
+      letter-spacing: -0.02em;
+    }
+    .sidebar-logo-tagline {
+      font-size: 0.625rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+      text-transform: none;
+      letter-spacing: 0.02em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: var(--space-md) var(--space-sm);
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      color: var(--ink-muted);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .nav-item:hover {
+      background: var(--brand-light);
+      color: var(--brand);
+    }
+    .nav-item.active {
+      background: transparent;
+      color: var(--brand);
+      font-weight: 600;
+    }
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 24px;
+      background: var(--brand);
+      border-radius: 0 3px 3px 0;
+    }
+    .nav-item .icon {
+      font-size: 1.25rem;
+      width: 24px;
+      text-align: center;
+    }
+
+    .sidebar-footer {
+      padding: var(--space-md) var(--space-lg);
+      border-top: 1px solid var(--border-subtle);
+    }
+    .sidebar-footer-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      color: var(--ink-muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+    .sidebar-footer-item:hover {
+      color: var(--brand);
+    }
+
+    /* Header Bar */
+    .header-bar {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+    }
+    .header-greeting h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+    }
+    .header-greeting p {
+      font-size: 0.875rem;
+      color: var(--ink-muted);
+      margin-top: 0.25rem;
+    }
+    .header-greeting strong {
+      color: var(--brand);
+      font-weight: 600;
+    }
+    .header-actions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    /* Buttons - 3 Variants Only */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn .icon { font-size: 1rem; }
+    .btn-primary {
+      background: var(--brand);
+      color: white;
+    }
+    .btn-primary:hover { background: #244a3f; }
+    .btn-secondary {
+      background: var(--surface-elevated);
+      color: var(--ink);
+      border: 1px solid var(--border-subtle);
+    }
+    .btn-secondary:hover { background: var(--surface); border-color: var(--ink-muted); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--ink-muted);
+    }
+    .btn-ghost:hover { background: var(--surface); color: var(--ink); }
+
+    /* Time Filter Pills */
+    .pill-group {
+      display: inline-flex;
+      padding: 3px;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+    .pill-btn {
+      padding: 0.375rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .pill-btn.active {
+      background: var(--brand);
+      color: white;
+    }
+    .pill-btn:not(.active):hover { color: var(--ink); }
+
+    /* Hero KPI Section */
+    .hero-kpi {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-xl);
+      align-items: center;
+      box-shadow: var(--shadow-elevation);
+    }
+    .hero-kpi-main {
+      min-width: 0;
+    }
+    .hero-kpi-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+      margin-bottom: 0.25rem;
+    }
+    .hero-kpi-value {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .hero-kpi-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--success);
+      margin-top: 0.5rem;
+    }
+    .hero-kpi-supporting {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-md);
+    }
+    .supporting-kpi {
+      padding: var(--space-md);
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .supporting-kpi-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+      margin-bottom: 0.25rem;
+    }
+    .supporting-kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .supporting-kpi-value .unit {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--ink-muted);
+    }
+
+    /* Content Sections */
+    .section {
+      margin-bottom: var(--space-xl);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .section-action { font-size: 0.8125rem; }
+
+    /* Cards - Subtle, Purposeful */
+    .card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-elevation);
+    }
+    .card-header {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .card-body { padding: var(--space-lg); }
+
+    /* Chart Card */
+    .chart-placeholder {
+      height: 200px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding: var(--space-md) var(--space-lg);
+    }
+    .chart-bar {
+      flex: 1;
+      background: var(--brand-light);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+    }
+    .chart-bar:hover { background: var(--brand); }
+    .chart-bar.accent { background: var(--accent-light); }
+    .chart-bar.accent:hover { background: var(--accent); }
+
+    /* Credits Card */
+    .credits-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-md);
+    }
+    .credits-balance {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .credits-balance .unit { font-size: 0.875rem; font-weight: 500; color: var(--ink-muted); }
+    .progress-track {
+      height: 8px;
+      background: var(--surface);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .credits-meta {
+      display: flex;
+      gap: var(--space-lg);
+      margin-top: var(--space-md);
+      font-size: 0.8125rem;
+      color: var(--ink-muted);
+    }
+    .credits-meta strong { color: var(--ink); }
+
+    /* Table - Clean, Breathing Room */
+    .table-wrapper { overflow-x: auto; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    .data-table th {
+      text-align: left;
+      padding: var(--space-md) var(--space-lg);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      text-transform: none;
+      letter-spacing: 0.02em;
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--surface);
+    }
+    .data-table td {
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--ink);
+      vertical-align: middle;
+    }
+    .data-table tbody tr:hover td { background: var(--surface); }
+    .data-table tbody tr:last-child td { border-bottom: none; }
+    .customer-name {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-weight: 600;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      color: var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8125rem;
+    }
+    .tier-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.1875rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+    }
+    .tier-vip { background: var(--accent-light); color: #8B7330; }
+    .tier-gold { background: #FEF3C7; color: #92400E; }
+    .tier-silver { background: #E5E7EB; color: #374151; }
+    .tier-bronze { background: #FDECDA; color: #9A3412; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8125rem; color: var(--ink-muted); }
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: var(--brand);
+      font-weight: 600;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    .action-btn:hover { text-decoration: underline; }
+
+    /* Mobile responsive */
+    @media (max-width: 1024px) {
+      .sidebar { position: fixed; left: -260px; z-index: 50; transition: left 0.2s ease; }
+      .sidebar.open { left: 0; }
+      .main-content { padding: var(--space-lg); }
+      .hero-kpi { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .hero-kpi-supporting { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <a href="#" class="sidebar-logo">
+          <div class="sidebar-logo-mark">Y</div>
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-name">Yeezy</span>
+            <span class="sidebar-logo-tagline">Loyalty Platform</span>
+          </div>
+        </a>
+        <button class="btn btn-ghost" id="mobile-menu-close" style="display:none" aria-label="Close menu">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <nav class="sidebar-nav" role="navigation">
+        <a href="#" class="nav-item active" data-view="dashboard">
+          <span class="icon material-symbols-outlined">dashboard</span>
+          Dashboard
+        </a>
+        <a href="#" class="nav-item" data-view="campaigns">
+          <span class="icon material-symbols-outlined">campaign</span>
+          Campaigns
+        </a>
+        <a href="#" class="nav-item" data-view="loyalty">
+          <span class="icon material-symbols-outlined">card_giftcard</span>
+          Loyalty Program
+        </a>
+        <a href="#" class="nav-item" data-view="customers">
+          <span class="icon material-symbols-outlined">groups</span>
+          Customer Insights
+        </a>
+        <a href="#" class="nav-item" data-view="settings">
+          <span class="icon material-symbols-outlined">settings</span>
+          Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="#" class="sidebar-footer-item">
+          <span class="material-symbols-outlined">help</span>
+          <span>Need help? 24/7 Support</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:40;"></div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+      <!-- Header -->
+      <header class="header-bar">
+        <div class="header-greeting">
+          <h1>Hi, Sarah</h1>
+          <p>Real-time guest loyalty performance for <strong>Downtown Bistro</strong></p>
+        </div>
+        <div class="header-actions">
+          <div class="pill-group">
+            <button class="pill-btn" id="pill-yesterday">Yesterday</button>
+            <button class="pill-btn active" id="pill-today">Today</button>
+          </div>
+          <button class="btn btn-secondary" id="btn-export">
+            <span class="icon material-symbols-outlined">download</span>
+            <span>Export Report</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Hero KPI Section -->
+      <section class="hero-kpi">
+        <div class="hero-kpi-main">
+          <div class="hero-kpi-label">Today's Revenue</div>
+          <div class="hero-kpi-value">₹1,24,500</div>
+          <div class="hero-kpi-trend">
+            <span class="material-symbols-outlined" style="font-size:1rem">trending_up</span>
+            <span>+12% vs yesterday</span>
+          </div>
+        </div>
+        <div class="hero-kpi-supporting">
+          <div class="supporting-kpi">
+            <div class="supporting-kpi-label">Active Members</div>
+            <div class="supporting-kpi-value">1,234 <span class="unit">guests</span></div>
+          </div>
+          <div class="supporting-kpi">
+            <div class="supporting-kpi-label">Repeat Visit Rate</div>
+            <div class="supporting-kpi-value">67% <span class="unit"> </span></div>
+          </div>
+          <div class="supporting-kpi">
+            <div class="supporting-kpi-label">Points Issued</div>
+            <div class="supporting-kpi-value">48,200 <span class="unit">pts</span></div>
+          </div>
+          <div class="supporting-kpi">
+            <div class="supporting-kpi-label">Loyalty ROI</div>
+            <div class="supporting-kpi-value" style="color:var(--brand)">5.2x <span class="unit"> </span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Business Highlights Chart Card -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Business Highlights</h2>
+          <a href="#" class="section-action btn btn-ghost">View details</a>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="chart-placeholder" id="chartPlaceholder">
+              <!-- Bars rendered by JS -->
+            </div>
+            <div style="padding:var(--space-md) var(--space-lg); display:flex; gap:var(--space-lg); font-size:0.75rem; color:var(--ink-muted); border-top:1px solid var(--border-subtle);">
+              <span>Visits by hour</span>
+              <span style="color:var(--brand)"><strong>Peak: 7-9 PM</strong></span>
+              <span style="color:var(--accent)"><strong>Gold: +23%</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Credits Card -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Messaging Credits</h2>
+          <a href="#" class="section-action btn btn-ghost">Refill</a>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="credits-header">
+              <div class="credits-balance">2,450 <span class="unit">credits</span></div>
+              <span class="tier-badge tier-vip">73% used</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" style="width:73%"></div>
+            </div>
+            <div class="credits-meta">
+              <span>This cycle: <strong>1,820 sent</strong></span>
+              <span>Renews: <strong>Dec 1</strong></span>
+              <span>Avg cost: <strong>₹0.45/msg</strong></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top Loyalty Members Table -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Top Loyalty Members</h2>
+          <a href="#" class="section-action btn btn-ghost">View all</a>
+        </div>
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Guest</th>
+                  <th>Visits</th>
+                  <th>Lifetime Spend</th>
+                  <th>Points</th>
+                  <th>Tier</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="membersTable">
+                <!-- Rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Chart bars data
+    const chartData = [
+      { hour: '6AM', visits: 12, max: 180 },
+      { hour: '8AM', visits: 35, max: 180 },
+      { hour: '10AM', visits: 28, max: 180 },
+      { hour: '12PM', visits: 95, max: 180 },
+      { hour: '2PM', visits: 78, max: 180 },
+      { hour: '4PM', visits: 45, max: 180 },
+      { hour: '6PM', visits: 142, max: 180 },
+      { hour: '8PM', visits: 180, max: 180 },
+      { hour: '10PM', visits: 98, max: 180 },
+      { hour: '12AM', visits: 32, max: 180 },
+    ];
+
+    const chartContainer = document.getElementById('chartPlaceholder');
+    chartData.forEach(d => {
+      const bar = document.createElement('div');
+      bar.className = 'chart-bar' + (d.visits === 180 ? ' accent' : '');
+      bar.style.height = (d.visits / d.max * 100) + '%';
+      bar.title = `${d.hour}: ${d.visits} visits`;
+      chartContainer.appendChild(bar);
+    });
+
+    // Members table data
+    const members = [
+      { name: 'Anita R.', initials: 'AR', visits: 47, spend: 210000, points: 12400, tier: 'vip' },
+      { name: 'Mohit K.', initials: 'MK', visits: 32, spend: 145000, points: 8900, tier: 'gold' },
+      { name: 'Priya S.', initials: 'PS', visits: 28, spend: 98000, points: 6200, tier: 'gold' },
+      { name: 'Rahul M.', initials: 'RM', visits: 24, spend: 87000, points: 5100, tier: 'silver' },
+      { name: 'Deepa N.', initials: 'DN', visits: 19, spend: 72000, points: 4300, tier: 'silver' },
+      { name: 'Arjun P.', initials: 'AP', visits: 15, spend: 56000, points: 3200, tier: 'bronze' },
+      { name: 'Kavya T.', initials: 'KT', visits: 12, spend: 44000, points: 2800, tier: 'bronze' },
+      { name: 'Vikram J.', initials: 'VJ', visits: 9, spend: 31000, points: 1900, tier: 'bronze' },
+    ];
+
+    const tbody = document.getElementById('membersTable');
+    members.forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <div class="customer-name">
+            <div class="avatar">${m.initials}</div>
+            <span>${m.name}</span>
+          </div>
+        </td>
+        <td class="mono">${m.visits}</td>
+        <td class="mono">₹${m.spend.toLocaleString()}</td>
+        <td class="mono">${m.points.toLocaleString()} pts</td>
+        <td><span class="tier-badge tier-${m.tier}">${m.tier.charAt(0).toUpperCase() + m.tier.slice(1)}</span></td>
+        <td><button class="action-btn">Redeem</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Pill toggle
+    document.getElementById('pill-yesterday').addEventListener('click', function() {
+      this.classList.add('active');
+      document.getElementById('pill-today').classList.remove('active');
+    });
+    document.getElementById('pill-today').addEventListener('click', function() {
+      this.classList.add('active');
+      document.getElementById('pill-yesterday').classList.remove('active');
+    });
+
+    // Mobile sidebar toggle (for demo)
+    // Not needed for desktop view
+  </script>
+</body>
+</html>
